@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Voting Topics — MVP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <div class="container">
+      <header>
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <div class="title">Voting Topics</div>
+            <div class="muted">Draft, prioritize, and export your positions — locally, no account needed.</div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button id="btn-new-topic" class="btn">New Topic</button>
+          <button id="btn-clear" class="btn ghost danger">Clear All</button>
+          <button id="btn-import" class="btn ghost">Import JSON</button>
+          <input type="file" id="file-input" class="sr-only" accept="application/json" />
+          <button id="btn-export-json" class="btn primary">Export JSON</button>
+          <button id="btn-export-pdf" class="btn">Export PDF</button>
+          <button id="btn-export-jpeg" class="btn">Export JPEG</button>
+        </div>
+      </header>
+
+      <div class="grid two">
+        <section class="panel">
+          <h2 class="panel-title">Your Topics</h2>
+          <div id="topic-list" class="list"></div>
+          <div id="empty" class="empty" hidden>No topics yet. Click <b>New Topic</b> to get started.</div>
+        </section>
+
+        <aside class="panel">
+          <h2 class="panel-title">Template Info</h2>
+          <div class="grid">
+            <label>Template Title
+              <input id="tpl-title" class="input" placeholder="e.g., My 2025 Local Ballot Priorities"/>
+            </label>
+            <label>Notes (optional)
+              <textarea id="tpl-notes" placeholder="Context you want included in exports…"></textarea>
+            </label>
+            <div class="chips">
+              <span class="chip">Anonymous by design</span>
+              <span class="chip">Local-only storage</span>
+              <span class="chip">No accounts</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="footer">
+        <div>Keyboard: <span class="kbd">Tab</span>/<span class="kbd">Shift+Tab</span>, stars: <span class="kbd">ArrowLeft</span>/<span class="kbd">ArrowRight</span></div>
+        <div><a href="#" id="privacy-link">Privacy & disclaimers</a></div>
+      </div>
+
+      <!-- Hidden social-card render target for JPEG export -->
+      <div id="social-card" style="position:absolute; left:-99999px; top:-99999px" aria-hidden="true"></div>
+    </div>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
