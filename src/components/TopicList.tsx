@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TopicCard } from './TopicCard';
 import type { Topic } from '../schema';
 
@@ -9,6 +9,9 @@ interface TopicListProps {
 }
 
 export const TopicList: React.FC<TopicListProps> = ({ topics, onChange, onDelete }) => {
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(topics.map(t => t.id)));
+  const [allExpanded, setAllExpanded] = useState(true);
+
   if (topics.length === 0) {
     return (
       <div className="empty">
@@ -17,14 +20,50 @@ export const TopicList: React.FC<TopicListProps> = ({ topics, onChange, onDelete
     );
   }
 
+  const toggleTopic = (topicId: string) => {
+    const newExpanded = new Set(expandedTopics);
+    if (newExpanded.has(topicId)) {
+      newExpanded.delete(topicId);
+    } else {
+      newExpanded.add(topicId);
+    }
+    setExpandedTopics(newExpanded);
+    setAllExpanded(newExpanded.size === topics.length);
+  };
+
+  const toggleAll = () => {
+    if (allExpanded) {
+      setExpandedTopics(new Set());
+      setAllExpanded(false);
+    } else {
+      setExpandedTopics(new Set(topics.map(t => t.id)));
+      setAllExpanded(true);
+    }
+  };
+
   return (
     <div className="list">
+      <div className="list-controls">
+        <button 
+          className="btn ghost" 
+          onClick={toggleAll}
+          aria-label={allExpanded ? 'Collapse all topics' : 'Expand all topics'}
+        >
+          {allExpanded ? '▼' : '▶'} {allExpanded ? 'Collapse All' : 'Expand All'}
+        </button>
+        <span className="muted">
+          {expandedTopics.size} of {topics.length} topics expanded
+        </span>
+      </div>
+      
       {topics.map(topic => (
         <TopicCard
           key={topic.id}
           topic={topic}
           onChange={(patch) => onChange(topic.id, patch)}
           onDelete={() => onDelete(topic.id)}
+          isExpanded={expandedTopics.has(topic.id)}
+          onToggleExpand={() => toggleTopic(topic.id)}
         />
       ))}
     </div>

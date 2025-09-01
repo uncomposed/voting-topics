@@ -78,33 +78,13 @@ export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTop
     return 'Critical Priority';
   };
 
-  const getStanceText = (topic: Topic): string => {
-    const stanceLabels = {
-      'against': 'Strongly Against',
-      'lean_against': 'Lean Against',
-      'neutral': 'Neutral',
-      'lean_for': 'Lean For',
-      'for': 'Strongly For'
-    };
-    return stanceLabels[topic.stance] || 'Neutral';
-  };
 
-  const getStanceClass = (topic: Topic): string => {
-    const stanceClasses = {
-      'against': 'scale--2',
-      'lean_against': 'scale--1',
-      'neutral': 'scale-0',
-      'lean_for': 'scale-1',
-      'for': 'scale-2'
-    };
-    return stanceClasses[topic.stance] || 'scale-0';
-  };
 
   return (
     <div className="topic-cards" ref={dragRef}>
       <div className="cards-header">
-        <h2>Topic Priority View</h2>
-        <div className="cards-controls">
+        <div className="cards-header-top">
+          <h2>Topic Priority View</h2>
           <button 
             className={`btn ghost ${isExpanded ? 'active' : ''}`}
             onClick={() => setIsExpanded(!isExpanded)}
@@ -149,15 +129,18 @@ export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTop
                 >
                   <div className="card-header">
                     <h4 className="card-title">{topic.title || 'Untitled Topic'}</h4>
-                    <div className="card-direction">
-                      <span className={`direction-badge ${getStanceClass(topic)}`}>
-                        {getStanceText(topic)}
-                      </span>
-                      {topic.directions && topic.directions.length > 0 && (
-                        <span className="direction-count">
-                          {topic.directions.length} direction{topic.directions.length !== 1 ? 's' : ''}
-                        </span>
-                      )}
+                    <div className="card-directions">
+                      <div className="direction-dots">
+                        {Array.from({ length: Math.max(1, topic.directions.length) }).map((_, i) => (
+                          <span 
+                            key={i} 
+                            className={`direction-dot ${i < topic.directions.length ? 'has-directions' : 'no-directions'}`}
+                            title={i < topic.directions.length ? `${topic.directions[i].stars}/5 stars` : 'No direction'}
+                          >
+                            {i < topic.directions.length ? '●' : '○'}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   

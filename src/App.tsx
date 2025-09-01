@@ -88,18 +88,14 @@ export const App: React.FC = () => {
         reader.onload = () => {
           try {
             const obj = JSON.parse(String(reader.result || '{}'));
-            console.log('Importing JSON:', obj);
             const parsed = parseIncomingTemplate(obj);
-            console.log('Parsed result:', parsed);
             useStore.setState({
               title: parsed.title,
               notes: parsed.notes || '',
               topics: parsed.topics,
             });
-            console.log('Import successful');
           } catch (e: unknown) {
             const error = e instanceof Error ? e.message : String(e);
-            console.error('Import failed:', e);
             alert('Import failed: ' + error);
           } finally {
             fileInput.value = '';

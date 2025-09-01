@@ -74,23 +74,22 @@ export const TopicModal: React.FC<TopicModalProps> = ({
     updateField('sources', newSources);
   };
 
-  const getStanceLabel = (stance: string): string => {
-    const stanceLabels = {
-      'against': 'Strongly Against',
-      'lean_against': 'Lean Against',
-      'neutral': 'Neutral',
-      'lean_for': 'Lean For',
-      'for': 'Strongly For'
-    };
-    return stanceLabels[stance as keyof typeof stanceLabels] || 'Neutral';
-  };
+
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{editing ? 'Edit Topic' : topic.title || 'Untitled Topic'}</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <div className="modal-header-actions">
+            {editing && (
+              <>
+                <button className="btn" onClick={handleSave}>Save & Close</button>
+                <button className="btn ghost" onClick={handleCancel}>Cancel</button>
+              </>
+            )}
+            <button className="modal-close" onClick={onClose}>×</button>
+          </div>
         </div>
 
         <div className="modal-body">
@@ -124,20 +123,7 @@ export const TopicModal: React.FC<TopicModalProps> = ({
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Stance</label>
-                <select
-                  value={formData.stance || 'neutral'}
-                  onChange={e => updateField('stance', e.target.value)}
-                  className="input"
-                >
-                  <option value="against">Strongly Against</option>
-                  <option value="lean_against">Lean Against</option>
-                  <option value="neutral">Neutral</option>
-                  <option value="lean_for">Lean For</option>
-                  <option value="for">Strongly For</option>
-                </select>
-              </div>
+
 
               <div className="form-group">
                 <label>Directions</label>
@@ -204,12 +190,7 @@ export const TopicModal: React.FC<TopicModalProps> = ({
                 <div className="info-row">
                   <strong>Importance:</strong> {topic.importance}/5
                 </div>
-                <div className="info-row">
-                  <strong>Stance:</strong> 
-                  <span className={`direction-badge scale-${topic.stance === 'against' ? '-2' : topic.stance === 'lean_against' ? '-1' : topic.stance === 'lean_for' ? '1' : topic.stance === 'for' ? '2' : '0'}`}>
-                    {getStanceLabel(topic.stance)}
-                  </span>
-                </div>
+
                 {topic.directions && topic.directions.length > 0 && (
                   <div className="info-row">
                     <strong>Directions:</strong>
@@ -252,12 +233,7 @@ export const TopicModal: React.FC<TopicModalProps> = ({
         </div>
 
         <div className="modal-footer">
-          {editing ? (
-            <>
-              <button className="btn" onClick={handleSave}>Save & Close</button>
-              <button className="btn ghost" onClick={handleCancel}>Cancel</button>
-            </>
-          ) : (
+          {!editing && (
             <>
               <button className="btn" onClick={() => setEditing(true)}>Edit Topic</button>
               <button className="btn ghost danger" onClick={handleDelete}>Delete Topic</button>

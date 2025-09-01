@@ -11,6 +11,7 @@ export const StarterPackPicker: React.FC = () => {
   const addTopicFromStarter = useStore(s => s.addTopicFromStarter);
   const [pool, setPool] = useState<StarterTopic[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     // Load lazily from bundled JSON (tsconfig resolves JSON imports)
@@ -44,22 +45,36 @@ export const StarterPackPicker: React.FC = () => {
 
   return (
     <div className="panel" style={{ marginTop: 16 }}>
-      <h2 className="panel-title">Add from Starter Pack</h2>
-      <div className="list" style={{ marginBottom: 12 }}>
-        {pool.map(item => (
-          <label key={item.id} className="row" style={{ justifyContent: 'space-between' }}>
-            <span>{item.title}</span>
-            <input
-              type="checkbox"
-              checked={selected.includes(item.id)}
-              onChange={() => toggle(item.id)}
-            />
-          </label>
-        ))}
+      <div className="panel-header-collapsible">
+        <h2 className="panel-title">Add from Starter Pack</h2>
+        <button 
+          className="btn ghost expand-toggle"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? 'Expand starter pack' : 'Collapse starter pack'}
+        >
+          {isCollapsed ? '▶' : '▼'}
+        </button>
       </div>
-      <div className="row" style={{ justifyContent: 'flex-end' }}>
-        <button className="btn" onClick={addSelected} disabled={selected.length === 0}>Add Selected</button>
-      </div>
+      
+      {!isCollapsed && (
+        <>
+          <div className="list" style={{ marginBottom: 12 }}>
+            {pool.map(item => (
+              <label key={item.id} className="row" style={{ justifyContent: 'space-between' }}>
+                <span>{item.title}</span>
+                <input
+                  type="checkbox"
+                  checked={selected.includes(item.id)}
+                  onChange={() => toggle(item.id)}
+                />
+              </label>
+            ))}
+          </div>
+          <div className="row" style={{ justifyContent: 'flex-end' }}>
+            <button className="btn" onClick={addSelected} disabled={selected.length === 0}>Add Selected</button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

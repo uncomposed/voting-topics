@@ -1,7 +1,7 @@
 {
   "version": "tsb.v1",
   "title": "starter-pack",
-  "notes": "Neutral seed topics and directions with collaborative phrasing.",
+  "notes": "Neutral seed topics and directions with collaborative phrasing. Topics are containers only; directions are outcome-oriented. All stances set to neutral.",
   "createdAt": "2025-01-01T00:00:00.000Z",
   "updatedAt": "2025-01-01T00:00:00.000Z",
   "topics": [
@@ -9,72 +9,319 @@
       "id": "topic-firearms",
       "title": "Firearms",
       "importance": 3,
-      "stance": "lean_against",
+      "stance": "neutral",
       "directions": [
-        { "id": "dir-f1", "text": "Much less death and injury by firearms", "stars": 5, "sources": [], "tags": [] },
-        { "id": "dir-f2", "text": "Allow responsible ownership and use", "stars": 4, "sources": [], "tags": [] },
-        { "id": "dir-f3", "text": "Stronger background checks and safe storage norms", "stars": 4, "sources": [], "tags": [] },
-        { "id": "dir-f4", "text": "Invest in community violence interruption", "stars": 3, "sources": [], "tags": ["Public health"] }
+        { "id": "dir-f1", "text": "Much less death and injury by firearms", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-f2", "text": "People use firearms responsibly", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-f3", "text": "Fewer crimes committed with firearms", "stars": 0, "sources": [], "tags": [] }
       ],
       "notes": "",
       "sources": [],
-      "relations": { "broader": ["Public health"], "narrower": [], "related": ["Criminal justice"] }
+      "relations": { "broader": ["Public safety"], "narrower": [], "related": ["Criminal justice"] }
     },
+
     {
       "id": "topic-abortion",
-      "title": "Abortion & reproductive health",
-      "importance": 4,
+      "title": "Reproductive Health",
+      "importance": 3,
       "stance": "neutral",
       "directions": [
-        { "id": "dir-a1", "text": "Make abortion less needed via contraception, sex education, and healthcare access", "stars": 5, "sources": [], "tags": ["Healthcare"] },
-        { "id": "dir-a2", "text": "Ensure services are safe and accessible where legal", "stars": 4, "sources": [], "tags": [] },
-        { "id": "dir-a3", "text": "Minimize state involvement in private medical decisions", "stars": 3, "sources": [], "tags": [] }
+        { "id": "dir-a1", "text": "Abortion is less frequently needed", "stars": 0, "sources": [], "tags": ["Healthcare"] },
+        { "id": "dir-a2", "text": "Abortion care is safe when needed", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-a3", "text": "People face fewer barriers in private medical decisions", "stars": 0, "sources": [], "tags": [] }
       ],
       "notes": "",
       "sources": [],
       "relations": { "broader": ["Healthcare"], "narrower": [], "related": ["Family policy"] }
     },
+
     {
       "id": "topic-housing",
-      "title": "Housing affordability",
-      "importance": 5,
-      "stance": "lean_for",
+      "title": "Housing",
+      "importance": 3,
+      "stance": "neutral",
       "directions": [
-        { "id": "dir-h1", "text": "More homes near jobs and transit", "stars": 5, "sources": [], "tags": ["Infrastructure"] },
-        { "id": "dir-h2", "text": "Reform zoning to allow diverse, lower-cost housing types", "stars": 4, "sources": [], "tags": [] },
-        { "id": "dir-h3", "text": "Protect tenants from displacement while enabling new supply", "stars": 3, "sources": [], "tags": [] }
+        { "id": "dir-h1", "text": "Housing costs are a smaller share of income", "stars": 0, "sources": [], "tags": ["Affordability"] },
+        { "id": "dir-h2", "text": "More homes are available near jobs and transit", "stars": 0, "sources": [], "tags": ["Infrastructure"] },
+        { "id": "dir-h3", "text": "Fewer people are displaced or evicted", "stars": 0, "sources": [], "tags": [] }
       ],
       "notes": "",
       "sources": [],
       "relations": { "broader": ["Infrastructure"], "narrower": [], "related": ["Local government"] }
     },
+
     {
       "id": "topic-climate",
-      "title": "Climate change",
-      "importance": 4,
-      "stance": "lean_for",
+      "title": "Climate",
+      "importance": 3,
+      "stance": "neutral",
       "directions": [
-        { "id": "dir-c1", "text": "Reduce greenhouse gas emissions", "stars": 5, "sources": [], "tags": ["Energy policy"] },
-        { "id": "dir-c2", "text": "Scale adaptation and disaster resilience", "stars": 4, "sources": [], "tags": [] },
-        { "id": "dir-c3", "text": "Support clean energy innovation and deployment", "stars": 4, "sources": [], "tags": ["Technology & privacy"] }
+        { "id": "dir-c1", "text": "Lower greenhouse gas emissions", "stars": 0, "sources": [], "tags": ["Energy"] },
+        { "id": "dir-c2", "text": "Communities are more resilient to climate-related disasters", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-c3", "text": "Less climate-related damage to health and property", "stars": 0, "sources": [], "tags": [] }
       ],
       "notes": "",
       "sources": [],
-      "relations": { "broader": ["Environment & conservation"], "narrower": [], "related": ["Energy policy","Agriculture"] }
+      "relations": { "broader": ["Environment"], "narrower": [], "related": ["Energy", "Agriculture"] }
     },
+
     {
       "id": "topic-environment",
-      "title": "Environment & conservation",
-      "importance": 4,
-      "stance": "lean_for",
+      "title": "Environment",
+      "importance": 3,
+      "stance": "neutral",
       "directions": [
-        { "id": "dir-e1", "text": "Protect biodiversity and habitats", "stars": 4, "sources": [], "tags": [] },
-        { "id": "dir-e2", "text": "Improve water and air quality", "stars": 4, "sources": [], "tags": [] },
-        { "id": "dir-e3", "text": "Steward public lands and outdoor access", "stars": 3, "sources": [], "tags": [] }
+        { "id": "dir-e1", "text": "Cleaner air and water", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-e2", "text": "Biodiversity and habitats are preserved", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-e3", "text": "Public lands are well stewarded and accessible", "stars": 0, "sources": [], "tags": [] }
       ],
       "notes": "",
       "sources": [],
-      "relations": { "broader": [], "narrower": ["Public lands"], "related": ["Climate change"] }
+      "relations": { "broader": [], "narrower": ["Public lands"], "related": ["Climate"] }
+    },
+
+    {
+      "id": "topic-energy",
+      "title": "Energy",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-en1", "text": "Fewer blackouts and energy disruptions", "stars": 0, "sources": [], "tags": ["Reliability"] },
+        { "id": "dir-en2", "text": "Energy comes from a more diverse set of sources", "stars": 0, "sources": [], "tags": ["Diversity"] },
+        { "id": "dir-en3", "text": "Lower pollution from energy production and use", "stars": 0, "sources": [], "tags": ["Health"] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": [], "narrower": [], "related": ["Infrastructure", "Climate"] }
+    },
+    
+    {
+      "id": "topic-voting",
+      "title": "Voting",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-v1", "text": "Voter turnout is higher", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-v2", "text": "Wait times at polling places are shorter", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-v3", "text": "Fewer ballots are rejected due to errors", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Democratic process"], "narrower": [], "related": ["Privacy", "Technology"] }
+    },
+
+    {
+      "id": "topic-privacy",
+      "title": "Privacy",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-pr1", "text": "Less collection of personal data", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-pr2", "text": "People have more control over their digital identities", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-pr3", "text": "Unauthorized surveillance is reduced", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Technology"], "narrower": [], "related": ["Voting"] }
+    },
+
+    {
+      "id": "topic-alliances",
+      "title": "International Alliances",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-ia1", "text": "Alliances are more reliable and effective", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-ia2", "text": "Defense burdens are more evenly shared", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-ia3", "text": "Crises are addressed more often with allied cooperation", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Foreign policy"], "narrower": [], "related": ["Military"] }
+    },
+
+    {
+      "id": "topic-trade",
+      "title": "International Trade",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-tr1", "text": "Supply chains are more resilient", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-tr2", "text": "Domestic workers benefit more from trade", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-tr3", "text": "Consumer prices are more stable", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Economy"], "narrower": [], "related": ["Fossil Fuel Energy"] }
+    },
+
+    {
+      "id": "topic-military",
+      "title": "Military",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-mi1", "text": "Deterrence is stronger and readiness is higher", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-mi2", "text": "Fewer unnecessary overseas deployments", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-mi3", "text": "Veterans receive better care and support", "stars": 0, "sources": [], "tags": ["Veterans"] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Defense"], "narrower": [], "related": ["International Alliances"] }
+    },
+
+    {
+      "id": "topic-criminal-justice",
+      "title": "Criminal Justice",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-cj1", "text": "Violent crime is lower", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-cj2", "text": "Unnecessary incarceration is lower", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-cj3", "text": "Fair treatment across groups improves", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Public safety"], "narrower": [], "related": ["Firearms"] }
+    },
+
+    {
+      "id": "topic-education",
+      "title": "Education",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-ed1", "text": "Students achieve higher learning outcomes", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-ed2", "text": "Gaps in educational quality are smaller", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-ed3", "text": "Graduates are better prepared for jobs and civic life", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": [], "narrower": [], "related": ["Labor & Wages"] }
+    },
+
+    {
+      "id": "topic-healthcare",
+      "title": "Healthcare",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-he1", "text": "More people have affordable coverage", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-he2", "text": "Preventable deaths are lower", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-he3", "text": "Fewer medical bankruptcies", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Public health"], "narrower": [], "related": ["Abortion"] }
+    },
+
+    {
+      "id": "topic-taxes",
+      "title": "Taxes",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-ta1", "text": "Tax burden is perceived as fairer", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-ta2", "text": "Tax compliance is simpler", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-ta3", "text": "Revenues are more predictable for essential services", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Economy"], "narrower": [], "related": [] }
+    },
+
+    {
+      "id": "topic-infrastructure",
+      "title": "Infrastructure",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-in1", "text": "Transportation systems are safer and more reliable", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-in2", "text": "Commute times and congestion are reduced", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-in3", "text": "Critical infrastructure is more resilient to disasters", "stars": 0, "sources": [], "tags": ["Resilience"] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": [], "narrower": ["Energy"], "related": ["Housing"] }
+    },
+
+    {
+      "id": "topic-immigration",
+      "title": "Immigration",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-im1", "text": "The immigration system is more orderly and predictable", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-im2", "text": "Immigrants integrate successfully into society", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-im3", "text": "Unlawful crossings and violations are reduced", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Foreign policy"], "narrower": [], "related": ["Labor & Wages"] }
+    },
+
+    {
+      "id": "topic-technology",
+      "title": "Technology",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-te1", "text": "People have stronger privacy protections online", "stars": 0, "sources": [], "tags": ["Privacy"] },
+        { "id": "dir-te2", "text": "Harmful uses of technology are reduced (fraud, disinformation)", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-te3", "text": "Benefits of technology are more broadly shared", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": [], "narrower": ["Privacy"], "related": ["Voting"] }
+    },
+
+    {
+      "id": "topic-labor-wages",
+      "title": "Labor & Wages",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-lw1", "text": "Real wages are higher", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-lw2", "text": "Employment is more stable", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-lw3", "text": "Fewer exploitative working conditions", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Economy"], "narrower": [], "related": ["Education", "Trade"] }
+    },
+
+    {
+      "id": "topic-science-research",
+      "title": "Science & Research",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-sr1", "text": "Public trust in science is higher", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-sr2", "text": "More open access to publicly funded research", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-sr3", "text": "Research outcomes are more reproducible", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-sr4", "text": "Federal funding for basic research is stable and predictable", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-sr5", "text": "Scientific findings are less distorted by political or commercial influence", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": [], "narrower": [], "related": ["Education", "Technology", "Healthcare"] }
+    },
+
+    {
+      "id": "topic-church-state",
+      "title": "Church & State",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-cs1", "text": "Religious freedom is better protected for minority faiths and non-believers", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-cs2", "text": "Government policy is less influenced by religious doctrine", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-cs3", "text": "Public funds are not used for religious purposes", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-cs4", "text": "Individuals face fewer barriers to practicing religion privately", "stars": 0, "sources": [], "tags": [] },
+        { "id": "dir-cs5", "text": "Fewer disputes arise over religious symbols in public institutions", "stars": 0, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": [], "narrower": [], "related": ["Reproductive Health", "Education", "Civil Rights"] }
     }
   ]
 }
