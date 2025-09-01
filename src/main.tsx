@@ -4,7 +4,7 @@ import { App } from './App';
 import './index.css';
 import { useStore } from './store';
 import { exportJSON, exportPDF, exportJPEG } from './exporters';
-import { TemplateSchema } from './schema';
+import { parseIncomingTemplate } from './schema';
 
 // Wire toolbar buttons that live outside the React root
 const wireToolbar = () => {
@@ -36,7 +36,7 @@ const wireToolbar = () => {
       reader.onload = () => {
         try {
           const obj = JSON.parse(String(reader.result || '{}'));
-          const parsed = TemplateSchema.parse(obj);
+          const parsed = parseIncomingTemplate(obj);
           useStore.setState({ title: parsed.title, notes: parsed.notes || '', topics: parsed.topics });
         } catch (e: unknown) {
           alert('Import failed: ' + (e instanceof Error ? e.message : String(e)));

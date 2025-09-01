@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { uid } from './utils';
 
 // New stance enum replacing the old direction scale
 export const Stance = z.enum([
@@ -103,3 +104,55 @@ export type Template = z.infer<typeof TemplateSchema>;
 export type DirectionScale = z.infer<typeof DirectionScale>;
 export type LegacyTopic = z.infer<typeof LegacyTopicSchema>;
 export type LegacyTemplate = z.infer<typeof LegacyTemplateSchema>;
+
+// Migration: v0 -> v1
+export const migrateV0toV1 = (legacy: LegacyTemplate): Template => {
+  const topics = legacy.topics.map(t => {
+    const directions = [] as Array<z.infer<typeof Direction>>;
+    if (t.mode === 'custom' && t.direction.custom && t.direction.custom.trim().length > 0) {
+      directions.push({ id: uid(), text: t.direction.custom.trim(), stars: 0, sources: [], tags: [] });
+    }
+    const stance = t.mode === 'scale' && typeof t.direction.scale === 'number'
+      ? stanceFromScale(t.direction.scale)
+      : 'neutral';
+    return {
+      id: t.id,
+      title: t.title,
+      importance: t.importance,
+      stance,
+      directions,
+      notes: t.notes || '',
+      sources: t.sources || [],
+      relations: { broader: [], narrower: [], related: [] }
+    } as z.infer<typeof TopicSchema>;
+  });
+  const candidate = {
+    version: 'tsb.v1' as const,
+    title: legacy.title,
+    notes: legacy.notes || '',
+    topics,
+    createdAt: legacy.createdAt,
+    updatedAt: legacy.updatedAt,
+  };
+  return TemplateSchema.parse(candidate);
+};
+
+// Parse any incoming template JSON (v1 or legacy v0)
+export const parseIncomingTemplate = (data: unknown): Template => {
+  // Fast-path v1
+  const maybeVersion = (data as any)?.version;
+  if (maybeVersion === 'tsb.v1') {
+    return TemplateSchema.parse(data);
+  }
+  if (maybeVersion === 'tsb.v0') {
+    const legacy = LegacyTemplateSchema.parse(data);
+    return migrateV0toV1(legacy);
+  }
+  // Try strict v1, otherwise try legacy
+  try {
+    return TemplateSchema.parse(data);
+  } catch {
+    const legacy = LegacyTemplateSchema.parse(data);
+    return migrateV0toV1(legacy);
+  }
+};

@@ -6,6 +6,7 @@ import { TopicCards } from './components/TopicCards';
 import { TopicModal } from './components/TopicModal';
 import { TopicList } from './components/TopicList';
 import { Topic } from './schema';
+import { StarterPackPicker } from './components/StarterPackPicker';
 
 export const App: React.FC = () => {
   const { 
@@ -199,6 +200,11 @@ export const App: React.FC = () => {
           onChange={patchTopic}
           onDelete={removeTopic}
         />
+      )}
+
+      {/* Starter Pack Picker below lists */}
+      {!showCards && (
+        <StarterPackPicker />
       )}
 
       {/* Modal (available in both views) */}

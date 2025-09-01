@@ -696,6 +696,23 @@ textarea {
   flex: 1;
 }
 
+/* Direction items styling (within Directions section) */
+.direction-item {
+  border: 1px solid var(--border);
+  background: #0c1128;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.direction-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
 .sources-list {
   margin-top: 12px;
 }
