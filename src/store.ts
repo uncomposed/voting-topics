@@ -10,7 +10,7 @@ interface Store {
   __createdAt?: string;
   setTitle: (title: string) => void;
   setNotes: (notes: string) => void;
-  addTopic: () => void;
+  addTopic: (importance?: number) => void;
   removeTopic: (id: string) => void;
   patchTopic: (id: string, patch: Partial<Topic>) => void;
   patchSource: (id: string, idx: number, patch: Partial<Source>) => void;
@@ -27,18 +27,18 @@ export const useStore = create<Store>()(
       topics: [],
       setTitle: (title) => set({ title }),
       setNotes: (notes) => set({ notes }),
-      addTopic: () => set((state) => ({
+      addTopic: (importance?: number) => set((state) => ({
         topics: [
-          ...state.topics,
           {
             id: uid(),
             title: '',
-            importance: 0,
+            importance: importance || 0,
             mode: 'scale',
             direction: { scale: 0 },
             notes: '',
             sources: [],
           },
+          ...state.topics,
         ]
       })),
       removeTopic: (id) => set((state) => ({ 

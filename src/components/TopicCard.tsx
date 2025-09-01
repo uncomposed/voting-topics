@@ -52,7 +52,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({ topic, onChange, onDelete 
             {topic.mode === 'scale' ? (
               <select
                 value={String(topic.direction.scale ?? 0)}
-                onChange={e => onChange({ direction: { scale: Number(e.target.value) } })}
+                onChange={e => onChange({ direction: { scale: Number(e.target.value) as -2 | -1 | 0 | 1 | 2 } })}
                 aria-label="Direction scale"
               >
                 <option value="-2">Strongly Against</option>

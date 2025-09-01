@@ -42,11 +42,11 @@ export const exportPDF = async () => {
   const margin = 40; 
   let y = margin;
 
-  const H = (text: string, size = 18) => { 
+  const H = (_text: string, size = 18) => { 
     doc.setFont('helvetica', 'bold'); 
     doc.setFontSize(size); 
   };
-  const T = (text: string, size = 11) => { 
+  const T = (_text: string, size = 11) => { 
     doc.setFont('helvetica', 'normal'); 
     doc.setFontSize(size); 
   };
@@ -141,7 +141,7 @@ export const renderSocialCard = (tpl: Template): HTMLElement => {
     <div class="card-list">
       ${top.map((t, i) => {
         const direction = t.mode === 'scale' 
-          ? ['Strongly Against', 'Lean Against', 'Neutral', 'Lean For', 'Strongly For'][t.direction.scale + 2] || 'Neutral'
+          ? ['Strongly Against', 'Lean Against', 'Neutral', 'Lean For', 'Strongly For'][(t.direction.scale ?? 0) + 2] || 'Neutral'
           : (t.direction.custom || '—');
         
         return `

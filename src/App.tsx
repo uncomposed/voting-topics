@@ -1,7 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from './store';
 import { exportJSON, exportPDF, exportJPEG } from './exporters';
 import { TemplateSchema } from './schema';
+import { TopicCards } from './components/TopicCards';
+import { TopicModal } from './components/TopicModal';
+import { Topic } from './schema';
 
 export const App: React.FC = () => {
   const { 
@@ -16,8 +19,12 @@ export const App: React.FC = () => {
     clearAll 
   } = useStore();
 
+  const [showCards, setShowCards] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Set up button event handlers once on mount
   useEffect(() => {
-    // Set up button event handlers
     const btnNewTopic = document.getElementById('btn-new-topic');
     const btnClear = document.getElementById('btn-clear');
     const btnExportJson = document.getElementById('btn-export-json');
@@ -27,7 +34,12 @@ export const App: React.FC = () => {
     const fileInput = document.getElementById('file-input') as HTMLInputElement;
     const privacyLink = document.getElementById('privacy-link');
 
-    if (btnNewTopic) btnNewTopic.onclick = addTopic;
+    if (btnNewTopic) {
+      btnNewTopic.onclick = () => {
+        // Create topic at the top with no stars (importance 0)
+        addTopic(0);
+      };
+    }
     
     if (btnClear) {
       btnClear.onclick = () => {
@@ -100,8 +112,8 @@ export const App: React.FC = () => {
     }
   }, [addTopic, clearAll]);
 
+  // Set up form inputs once on mount
   useEffect(() => {
-    // Set up form inputs
     const titleEl = document.getElementById('tpl-title') as HTMLInputElement;
     const notesEl = document.getElementById('tpl-notes') as HTMLTextAreaElement;
     
@@ -116,8 +128,18 @@ export const App: React.FC = () => {
     }
   }, [title, notes, setTitle, setNotes]);
 
-  // Render topics directly into the existing HTML structure
+  // Render topics into the existing HTML structure ONLY when in list view
   useEffect(() => {
+    // Only render list view when showCards is false
+    if (showCards) {
+      // Hide list view when in card mode
+      const topicListEl = document.getElementById('topic-list');
+      const emptyEl = document.getElementById('empty');
+      if (topicListEl) topicListEl.hidden = true;
+      if (emptyEl) emptyEl.hidden = true;
+      return;
+    }
+
     const topicListEl = document.getElementById('topic-list');
     const emptyEl = document.getElementById('empty');
     
@@ -132,118 +154,285 @@ export const App: React.FC = () => {
     topicListEl.hidden = false;
     emptyEl.hidden = true;
     
-    // Clear existing content and render topics
-    topicListEl.innerHTML = '';
-    topics.forEach(topic => {
-      const topicElement = document.createElement('div');
-      topicElement.className = 'topic';
-      topicElement.setAttribute('aria-label', `Topic ${topic.title || topic.id}`);
-      
-      topicElement.innerHTML = `
-        <div class="topic-header">
-          <div>
-            <input
-              class="input"
-              placeholder="Topic title (e.g., School Bond Measure)"
-              value="${topic.title || ''}"
-              aria-label="Topic title"
-              data-topic-id="${topic.id}"
-              data-field="title"
-            />
+    // Smart DOM update: only recreate what's necessary
+    const currentTopicIds = Array.from(topicListEl.children).map(el => el.getAttribute('data-topic-id'));
+    const newTopicIds = topics.map(t => t.id);
+    
+    // Check if we need to re-render (only if topic structure changed)
+    const needsRerender = currentTopicIds.length !== newTopicIds.length || 
+                         !currentTopicIds.every((id, index) => id === newTopicIds[index]);
+    
+    if (!needsRerender) {
+      // Just update existing input values without recreating DOM
+      topics.forEach(topic => {
+        const existingTopic = topicListEl.querySelector(`[data-topic-id="${topic.id}"]`);
+        if (existingTopic) {
+          // Update input values without recreating elements
+          const titleInput = existingTopic.querySelector('input[data-field="title"]') as HTMLInputElement;
+          const notesTextarea = existingTopic.querySelector('textarea[data-field="notes"]') as HTMLTextAreaElement;
+          const customInput = existingTopic.querySelector('input[data-field="direction-custom"]') as HTMLInputElement;
+          
+          if (titleInput && titleInput.value !== topic.title) {
+            titleInput.value = topic.title || '';
+          }
+          if (notesTextarea && notesTextarea.value !== topic.notes) {
+            notesTextarea.value = topic.notes || '';
+          }
+          if (customInput && customInput.value !== topic.direction.custom) {
+            customInput.value = topic.direction.custom || '';
+          }
+          
+          // Update star buttons
+          const starButtons = existingTopic.querySelectorAll('.star-btn');
+          starButtons.forEach((btn, index) => {
+            const button = btn as HTMLButtonElement;
+            const isActive = index === topic.importance;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', isActive.toString());
+          });
+          
+          // Update direction selects
+          const modeSelect = existingTopic.querySelector('select[data-field="mode"]') as HTMLSelectElement;
+          const scaleSelect = existingTopic.querySelector('select[data-field="direction-scale"]') as HTMLSelectElement;
+          
+          if (modeSelect && modeSelect.value !== topic.mode) {
+            modeSelect.value = topic.mode;
+          }
+          if (scaleSelect && scaleSelect.value !== String(topic.direction.scale)) {
+            scaleSelect.value = String(topic.direction.scale);
+          }
+          
+          return; // Skip to next topic
+        }
+        
+        // If topic doesn't exist, create it
+        const topicElement = document.createElement('div');
+        topicElement.className = 'topic';
+        topicElement.setAttribute('data-topic-id', topic.id);
+        topicElement.setAttribute('aria-label', `Topic ${topic.title || topic.id}`);
+        
+        topicElement.innerHTML = `
+          <div class="topic-header">
+            <div>
+              <input
+                class="input"
+                placeholder="Topic title (e.g., School Bond Measure)"
+                value="${topic.title || ''}"
+                aria-label="Topic title"
+                data-topic-id="${topic.id}"
+                data-field="title"
+              />
+            </div>
+            <div>
+              <label class="muted">Importance</label>
+              <div class="stars" role="group" aria-label="Importance 0 to 5">
+                ${Array.from({ length: 6 }, (_, n) => `
+                  <button
+                    class="star-btn ${topic.importance === n ? 'active' : ''}"
+                    type="button"
+                    aria-label="${n} star${n === 1 ? '' : 's'}"
+                    aria-pressed="${topic.importance === n}"
+                    data-value="${n}"
+                    data-topic-id="${topic.id}"
+                  >
+                    ${n === 0 ? '–' : (n <= topic.importance ? '★' : '☆')}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+            <div>
+              <label class="muted">Direction</label>
+              <div class="row">
+                <select aria-label="Direction mode" data-topic-id="${topic.id}" data-field="mode">
+                  <option value="scale" ${topic.mode === 'scale' ? 'selected' : ''}>Select (For/Against)</option>
+                  <option value="custom" ${topic.mode === 'custom' ? 'selected' : ''}>Freeform</option>
+                </select>
+
+                ${topic.mode === 'scale' ? `
+                  <select aria-label="Direction scale" data-topic-id="${topic.id}" data-field="direction-scale">
+                    <option value="-2" ${topic.direction.scale === -2 ? 'selected' : ''}>Strongly Against</option>
+                    <option value="-1" ${topic.direction.scale === -1 ? 'selected' : ''}>Lean Against</option>
+                    <option value="0" ${topic.direction.scale === 0 ? 'selected' : ''}>Neutral</option>
+                    <option value="1" ${topic.direction.scale === 1 ? 'selected' : ''}>Lean For</option>
+                    <option value="2" ${topic.direction.scale === 2 ? 'selected' : ''}>Strongly For</option>
+                  </select>
+                ` : `
+                  <input
+                    class="input"
+                    placeholder="Describe your position…"
+                    value="${topic.direction.custom || ''}"
+                    aria-label="Direction freeform"
+                    data-topic-id="${topic.id}"
+                    data-field="direction-custom"
+                  />
+                `}
+              </div>
+              <div class="muted" style="margin-top:6px">
+                ${topic.mode === 'scale' ? 
+                  `Selected: ${['Strongly Against', 'Lean Against', 'Neutral', 'Lean For', 'Strongly For'][(topic.direction.scale ?? 0) + 2]}` : 
+                  'Custom description enabled'
+                }
+              </div>
+            </div>
           </div>
+
+          <label>Notes
+            <textarea
+              placeholder="Why you feel this way; tradeoffs; personal thresholds…"
+              aria-label="Notes"
+              data-topic-id="${topic.id}"
+              data-field="notes"
+            >${topic.notes || ''}</textarea>
+          </label>
+
           <div>
-            <label class="muted">Importance</label>
-            <div class="stars" role="group" aria-label="Importance 0 to 5">
-              ${Array.from({ length: 6 }, (_, n) => `
-                <button
-                  class="star-btn ${topic.importance === n ? 'active' : ''}"
-                  type="button"
-                  aria-label="${n} star${n === 1 ? '' : 's'}"
-                  aria-pressed="${topic.importance === n}"
-                  data-value="${n}"
-                  data-topic-id="${topic.id}"
-                >
-                  ${n === 0 ? '–' : (n <= topic.importance ? '★' : '☆')}
-                </button>
+            <div class="row" style="justify-content: space-between;">
+              <div class="muted">Sources (up to 5)</div>
+              <button class="btn ghost" data-topic-id="${topic.id}" data-action="add-source">Add Source</button>
+            </div>
+            <div class="grid">
+              ${topic.sources.map((source, i) => `
+                <div class="row" style="align-items: center;">
+                  <input class="input" placeholder="Label" value="${source.label}" aria-label="Source ${i + 1} label" data-topic-id="${topic.id}" data-source-index="${i}" data-field="label" />
+                  <input class="input" placeholder="https://…" value="${source.url}" aria-label="Source ${i + 1} URL" data-topic-id="${topic.id}" data-source-index="${i}" data-field="url" />
+                  <button class="btn ghost danger" aria-label="Remove source ${i + 1}" data-topic-id="${topic.id}" data-source-index="${i}" data-action="remove-source">Remove</button>
+                </div>
               `).join('')}
             </div>
           </div>
-          <div>
-            <label class="muted">Direction</label>
-            <div class="row">
-              <select aria-label="Direction mode" data-topic-id="${topic.id}" data-field="mode">
-                <option value="scale" ${topic.mode === 'scale' ? 'selected' : ''}>Select (For/Against)</option>
-                <option value="custom" ${topic.mode === 'custom' ? 'selected' : ''}>Freeform</option>
-              </select>
 
-              ${topic.mode === 'scale' ? `
-                <select aria-label="Direction scale" data-topic-id="${topic.id}" data-field="direction-scale">
-                  <option value="-2" ${topic.direction.scale === -2 ? 'selected' : ''}>Strongly Against</option>
-                  <option value="-1" ${topic.direction.scale === -1 ? 'selected' : ''}>Lean Against</option>
-                  <option value="0" ${topic.direction.scale === 0 ? 'selected' : ''}>Neutral</option>
-                  <option value="1" ${topic.direction.scale === 1 ? 'selected' : ''}>Lean For</option>
-                  <option value="2" ${topic.direction.scale === 2 ? 'selected' : ''}>Strongly For</option>
-                </select>
-              ` : `
-                <input
-                  class="input"
-                  placeholder="Describe your position…"
-                  value="${topic.direction.custom || ''}"
-                  aria-label="Direction freeform"
-                  data-topic-id="${topic.id}"
-                  data-field="direction-custom"
-                />
-              `}
-            </div>
-            <div class="muted" style="margin-top:6px">
-              ${topic.mode === 'scale' ? 
-                `Selected: ${['Strongly Against', 'Lean Against', 'Neutral', 'Lean For', 'Strongly For'][(topic.direction.scale ?? 0) + 2]}` : 
-                'Custom description enabled'
-              }
-            </div>
-          </div>
-        </div>
-
-        <label>Notes
-          <textarea
-            placeholder="Why you feel this way; tradeoffs; personal thresholds…"
-            aria-label="Notes"
-            data-topic-id="${topic.id}"
-            data-field="notes"
-          >${topic.notes || ''}</textarea>
-        </label>
-
-        <div>
           <div class="row" style="justify-content: space-between;">
-            <div class="muted">Sources (up to 5)</div>
-            <button class="btn ghost" data-topic-id="${topic.id}" data-action="add-source">Add Source</button>
+            <div class="muted">ID: ${topic.id}</div>
+            <button class="btn ghost danger" data-topic-id="${topic.id}" data-action="delete">Delete Topic</button>
           </div>
-          <div class="grid">
-            ${topic.sources.map((source, i) => `
-              <div class="row" style="align-items: center;">
-                <input class="input" placeholder="Label" value="${source.label}" aria-label="Source ${i + 1} label" data-topic-id="${topic.id}" data-source-index="${i}" data-field="label" />
-                <input class="input" placeholder="https://…" value="${source.url}" aria-label="Source ${i + 1} URL" data-topic-id="${topic.id}" data-source-index="${i}" data-field="url" />
-                <button class="btn ghost danger" aria-label="Remove source ${i + 1}" data-topic-id="${topic.id}" data-source-index="${i}" data-action="remove-source">Remove</button>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="row" style="justify-content: space-between;">
-          <div class="muted">ID: ${topic.id}</div>
-          <button class="btn ghost danger" data-topic-id="${topic.id}" data-action="delete">Delete Topic</button>
-        </div>
-      `;
+        `;
+        
+        topicListEl.appendChild(topicElement);
+      });
       
-      topicListEl.appendChild(topicElement);
-    });
-    
-    // Add event listeners for the rendered topics
-    addTopicEventListeners();
-  }, [topics]);
+      // Add event listeners for the newly created topics only
+      addTopicEventListeners();
+    } else {
+      // Full re-render needed
+      topicListEl.innerHTML = '';
+      topics.forEach(topic => {
+        const topicElement = document.createElement('div');
+        topicElement.className = 'topic';
+        topicElement.setAttribute('data-topic-id', topic.id);
+        topicElement.setAttribute('aria-label', `Topic ${topic.title || topic.id}`);
+        
+        topicElement.innerHTML = `
+          <div class="topic-header">
+            <div>
+              <input
+                class="input"
+                placeholder="Topic title (e.g., School Bond Measure)"
+                value="${topic.title || ''}"
+                aria-label="Topic title"
+                data-topic-id="${topic.id}"
+                data-field="title"
+              />
+            </div>
+            <div>
+              <label class="muted">Importance</label>
+              <div class="stars" role="group" aria-label="Importance 0 to 5">
+                ${Array.from({ length: 6 }, (_, n) => `
+                  <button
+                    class="star-btn ${topic.importance === n ? 'active' : ''}"
+                    type="button"
+                    aria-label="${n} star${n === 1 ? '' : 's'}"
+                    aria-pressed="${topic.importance === n}"
+                    data-value="${n}"
+                    data-topic-id="${topic.id}"
+                  >
+                    ${n === 0 ? '–' : (n <= topic.importance ? '★' : '☆')}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+            <div>
+              <label class="muted">Direction</label>
+              <div class="row">
+                <select aria-label="Direction mode" data-topic-id="${topic.id}" data-field="mode">
+                  <option value="scale" ${topic.mode === 'scale' ? 'selected' : ''}>Select (For/Against)</option>
+                  <option value="custom" ${topic.mode === 'custom' ? 'selected' : ''}>Freeform</option>
+                </select>
 
+                ${topic.mode === 'scale' ? `
+                  <select aria-label="Direction scale" data-topic-id="${topic.id}" data-field="direction-scale">
+                    <option value="-2" ${topic.direction.scale === -2 ? 'selected' : ''}>Strongly Against</option>
+                    <option value="-1" ${topic.direction.scale === -1 ? 'selected' : ''}>Lean Against</option>
+                    <option value="0" ${topic.direction.scale === 0 ? 'selected' : ''}>Neutral</option>
+                    <option value="1" ${topic.direction.scale === 1 ? 'selected' : ''}>Lean For</option>
+                    <option value="2" ${topic.direction.scale === 2 ? 'selected' : ''}>Strongly For</option>
+                  </select>
+                ` : `
+                  <input
+                    class="input"
+                    placeholder="Describe your position…"
+                    value="${topic.direction.custom || ''}"
+                    aria-label="Direction freeform"
+                    data-topic-id="${topic.id}"
+                    data-field="direction-custom"
+                  />
+                `}
+              </div>
+              <div class="muted" style="margin-top:6px">
+                ${topic.mode === 'scale' ? 
+                  `Selected: ${['Strongly Against', 'Lean Against', 'Neutral', 'Lean For', 'Strongly For'][(topic.direction.scale ?? 0) + 2]}` : 
+                  'Custom description enabled'
+                }
+              </div>
+            </div>
+          </div>
+
+          <label>Notes
+            <textarea
+              placeholder="Why you feel this way; tradeoffs; personal thresholds…"
+              aria-label="Notes"
+              data-topic-id="${topic.id}"
+              data-field="notes"
+            >${topic.notes || ''}</textarea>
+          </label>
+
+          <div>
+            <div class="row" style="justify-content: space-between;">
+              <div class="muted">Sources (up to 5)</div>
+              <button class="btn ghost" data-topic-id="${topic.id}" data-action="add-source">Add Source</button>
+            </div>
+            <div class="grid">
+              ${topic.sources.map((source, i) => `
+                <div class="row" style="align-items: center;">
+                  <input class="input" placeholder="Label" value="${source.label}" aria-label="Source ${i + 1} label" data-topic-id="${topic.id}" data-source-index="${i}" data-field="label" />
+                  <input class="input" placeholder="https://…" value="${source.url}" aria-label="Source ${i + 1} URL" data-topic-id="${topic.id}" data-source-index="${i}" data-field="url" />
+                  <button class="btn ghost danger" aria-label="Remove source ${i + 1}" data-topic-id="${topic.id}" data-source-index="${i}" data-action="remove-source">Remove</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="row" style="justify-content: space-between;">
+            <div class="muted">ID: ${topic.id}</div>
+            <button class="btn ghost danger" data-topic-id="${topic.id}" data-action="delete">Delete Topic</button>
+          </div>
+        `;
+        
+        topicListEl.appendChild(topicElement);
+      });
+      
+      // Add event listeners for the rendered topics
+      addTopicEventListeners();
+    }
+  }, [topics, showCards]); // Include showCards in dependency array
+
+  // Add event listeners for topic interactions
   const addTopicEventListeners = () => {
-    // Add event listeners for topic interactions
+    // Remove existing listeners first to prevent duplicates
+    document.removeEventListener('click', handleTopicAction);
+    document.removeEventListener('input', handleTopicInput);
+    document.removeEventListener('change', handleTopicChange);
+    
+    // Add new listeners
     document.addEventListener('click', handleTopicAction);
     document.addEventListener('input', handleTopicInput);
     document.addEventListener('change', handleTopicChange);
@@ -345,5 +534,78 @@ export const App: React.FC = () => {
     }
   };
 
-  return null; // We're rendering directly to the DOM
+  // Card view handlers
+  const handleTopicReorder = (topicId: string, newImportance: number) => {
+    patchTopic(topicId, { importance: newImportance });
+  };
+
+  const handleTopicClick = (topic: Topic) => {
+    setSelectedTopic(topic);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedTopic(null);
+  };
+
+  const handleTopicSave = (topicId: string, updates: Partial<Topic>) => {
+    patchTopic(topicId, updates);
+  };
+
+  const handleTopicDelete = (topicId: string) => {
+    removeTopic(topicId);
+  };
+
+  // Add view toggle button to the toolbar (only once on mount)
+  useEffect(() => {
+    const toolbar = document.querySelector('.toolbar');
+    if (toolbar && !document.getElementById('btn-toggle-view')) {
+      const toggleBtn = document.createElement('button');
+      toggleBtn.id = 'btn-toggle-view';
+      toggleBtn.className = 'btn';
+      toggleBtn.textContent = 'Show Card View';
+      toggleBtn.onclick = () => setShowCards(!showCards);
+      
+      // Insert after the first button
+      const firstBtn = toolbar.querySelector('.btn');
+      if (firstBtn) {
+        firstBtn.parentNode?.insertBefore(toggleBtn, firstBtn.nextSibling);
+      } else {
+        toolbar.appendChild(toggleBtn);
+      }
+    }
+  }, []); // Only run once on mount
+
+  // Update button text when showCards changes
+  useEffect(() => {
+    const toggleBtn = document.getElementById('btn-toggle-view');
+    if (toggleBtn) {
+      toggleBtn.textContent = showCards ? 'Show List View' : 'Show Card View';
+    }
+  }, [showCards]);
+
+  // Render the appropriate view
+  if (showCards) {
+    return (
+      <>
+        <TopicCards
+          topics={topics}
+          onReorder={handleTopicReorder}
+          onTopicClick={handleTopicClick}
+        />
+        <TopicModal
+          topic={selectedTopic}
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          onSave={handleTopicSave}
+          onDelete={handleTopicDelete}
+        />
+      </>
+    );
+  }
+
+  // When not showing cards, render nothing - the list view is handled by DOM manipulation
+  // but only when showCards is false
+  return null;
 };
