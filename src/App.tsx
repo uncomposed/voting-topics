@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useStore } from './store';
-import { TopicList } from './components/TopicList';
 import { exportJSON, exportPDF, exportJPEG } from './exporters';
 import { TemplateSchema } from './schema';
 
@@ -117,11 +116,232 @@ export const App: React.FC = () => {
     }
   }, [title, notes, setTitle, setNotes]);
 
-  return (
-    <TopicList
-      topics={topics}
-      onChange={(id, patch) => patchTopic(id, patch)}
-      onDelete={(id) => removeTopic(id)}
-    />
-  );
+  // Render topics directly into the existing HTML structure
+  useEffect(() => {
+    const topicListEl = document.getElementById('topic-list');
+    const emptyEl = document.getElementById('empty');
+    
+    if (!topicListEl || !emptyEl) return;
+    
+    if (topics.length === 0) {
+      topicListEl.hidden = true;
+      emptyEl.hidden = false;
+      return;
+    }
+    
+    topicListEl.hidden = false;
+    emptyEl.hidden = true;
+    
+    // Clear existing content and render topics
+    topicListEl.innerHTML = '';
+    topics.forEach(topic => {
+      const topicElement = document.createElement('div');
+      topicElement.className = 'topic';
+      topicElement.setAttribute('aria-label', `Topic ${topic.title || topic.id}`);
+      
+      topicElement.innerHTML = `
+        <div class="topic-header">
+          <input
+            class="input"
+            placeholder="Topic title (e.g., School Bond Measure)"
+            value="${topic.title || ''}"
+            aria-label="Topic title"
+            data-topic-id="${topic.id}"
+            data-field="title"
+          />
+          <div>
+            <label class="muted">Importance</label>
+            <div class="stars" role="group" aria-label="Importance 0 to 5">
+              ${Array.from({ length: 6 }, (_, n) => `
+                <button
+                  class="star-btn ${topic.importance === n ? 'active' : ''}"
+                  type="button"
+                  aria-label="${n} star${n === 1 ? '' : 's'}"
+                  aria-pressed="${topic.importance === n}"
+                  data-value="${n}"
+                  data-topic-id="${topic.id}"
+                >
+                  ${n === 0 ? '–' : (n <= topic.importance ? '★' : '☆')}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+          <div>
+            <label class="muted">Direction</label>
+            <div class="row">
+              <select aria-label="Direction mode" data-topic-id="${topic.id}" data-field="mode">
+                <option value="scale" ${topic.mode === 'scale' ? 'selected' : ''}>Select (For/Against)</option>
+                <option value="custom" ${topic.mode === 'custom' ? 'selected' : ''}>Freeform</option>
+              </select>
+
+              ${topic.mode === 'scale' ? `
+                <select aria-label="Direction scale" data-topic-id="${topic.id}" data-field="direction-scale">
+                  <option value="-2" ${topic.direction.scale === -2 ? 'selected' : ''}>Strongly Against</option>
+                  <option value="-1" ${topic.direction.scale === -1 ? 'selected' : ''}>Lean Against</option>
+                  <option value="0" ${topic.direction.scale === 0 ? 'selected' : ''}>Neutral</option>
+                  <option value="1" ${topic.direction.scale === 1 ? 'selected' : ''}>Lean For</option>
+                  <option value="2" ${topic.direction.scale === 2 ? 'selected' : ''}>Strongly For</option>
+                </select>
+              ` : `
+                <input
+                  class="input"
+                  placeholder="Describe your position…"
+                  value="${topic.direction.custom || ''}"
+                  aria-label="Direction freeform"
+                  data-topic-id="${topic.id}"
+                  data-field="direction-custom"
+                />
+              `}
+            </div>
+            <div class="muted" style="margin-top:6px">
+              ${topic.mode === 'scale' ? 
+                `Selected: ${['Strongly Against', 'Lean Against', 'Neutral', 'Lean For', 'Strongly For'][(topic.direction.scale ?? 0) + 2]}` : 
+                'Custom description enabled'
+              }
+            </div>
+          </div>
+        </div>
+
+        <label>Notes
+          <textarea
+            placeholder="Why you feel this way; tradeoffs; personal thresholds…"
+            aria-label="Notes"
+            data-topic-id="${topic.id}"
+            data-field="notes"
+          >${topic.notes || ''}</textarea>
+        </label>
+
+        <div>
+          <div class="row" style="justify-content: space-between;">
+            <div class="muted">Sources (up to 5)</div>
+            <button class="btn ghost" data-topic-id="${topic.id}" data-action="add-source">Add Source</button>
+          </div>
+          <div class="grid">
+            ${topic.sources.map((source, i) => `
+              <div class="row" style="align-items: center;">
+                <input class="input" placeholder="Label" value="${source.label}" aria-label="Source ${i + 1} label" data-topic-id="${topic.id}" data-source-index="${i}" data-field="label" />
+                <input class="input" placeholder="https://…" value="${source.url}" aria-label="Source ${i + 1} URL" data-topic-id="${topic.id}" data-source-index="${i}" data-field="url" />
+                <button class="btn ghost danger" aria-label="Remove source ${i + 1}" data-topic-id="${topic.id}" data-source-index="${i}" data-action="remove-source">Remove</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="row" style="justify-content: space-between;">
+          <div class="muted">ID: ${topic.id}</div>
+          <button class="btn ghost danger" data-topic-id="${topic.id}" data-action="delete">Delete Topic</button>
+        </div>
+      `;
+      
+      topicListEl.appendChild(topicElement);
+    });
+    
+    // Add event listeners for the rendered topics
+    addTopicEventListeners();
+  }, [topics]);
+
+  const addTopicEventListeners = () => {
+    // Add event listeners for topic interactions
+    document.addEventListener('click', handleTopicAction);
+    document.addEventListener('input', handleTopicInput);
+    document.addEventListener('change', handleTopicChange);
+  };
+
+  // Clean up event listeners
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('click', handleTopicAction);
+      document.removeEventListener('input', handleTopicInput);
+      document.removeEventListener('change', handleTopicChange);
+    };
+  }, []);
+
+  const handleTopicInput = (e: Event) => {
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+    const topicId = target.getAttribute('data-topic-id');
+    const field = target.getAttribute('data-field');
+    const sourceIndex = target.getAttribute('data-source-index');
+    
+    if (!topicId || !field) return;
+    
+    if (sourceIndex !== null) {
+      // Handle source field updates
+      const topic = topics.find(t => t.id === topicId);
+      if (topic) {
+        const newSources = [...topic.sources];
+        newSources[parseInt(sourceIndex)] = {
+          ...newSources[parseInt(sourceIndex)],
+          [field]: target.value
+        };
+        patchTopic(topicId, { sources: newSources });
+      }
+    } else {
+      // Handle main topic field updates
+      if (field === 'notes') {
+        patchTopic(topicId, { notes: target.value });
+      } else if (field === 'direction-custom') {
+        patchTopic(topicId, { direction: { custom: target.value } });
+      } else if (field === 'title') {
+        patchTopic(topicId, { title: target.value });
+      }
+    }
+  };
+
+  const handleTopicChange = (e: Event) => {
+    const target = e.target as HTMLSelectElement;
+    const topicId = target.getAttribute('data-topic-id');
+    const field = target.getAttribute('data-field');
+    
+    if (!topicId || !field) return;
+    
+    if (field === 'mode') {
+      const mode = target.value as 'scale' | 'custom';
+      patchTopic(topicId, { 
+        mode, 
+        direction: mode === 'scale' ? { scale: 0 } : { custom: '' } 
+      });
+    } else if (field === 'direction-scale') {
+      const scaleValue = parseInt(target.value);
+      if (scaleValue >= -2 && scaleValue <= 2) {
+        patchTopic(topicId, { direction: { scale: scaleValue as -2 | -1 | 0 | 1 | 2 } });
+      }
+    }
+  };
+
+  const handleTopicAction = (e: Event) => {
+    const target = e.target as HTMLElement;
+    const topicId = target.getAttribute('data-topic-id');
+    const action = target.getAttribute('data-action');
+    
+    if (!topicId) return;
+    
+    if (action === 'delete') {
+      removeTopic(topicId);
+    } else if (action === 'add-source') {
+      const topic = topics.find(t => t.id === topicId);
+      if (topic && topic.sources.length < 5) {
+        patchTopic(topicId, {
+          sources: [...topic.sources, { label: '', url: '' }]
+        });
+      }
+    } else if (action === 'remove-source') {
+      const sourceIndex = target.getAttribute('data-source-index');
+      if (sourceIndex !== null) {
+        const topic = topics.find(t => t.id === topicId);
+        if (topic) {
+          patchTopic(topicId, {
+            sources: topic.sources.filter((_, i) => i !== parseInt(sourceIndex))
+          });
+        }
+      }
+    } else if (target.classList.contains('star-btn')) {
+      // Handle star button clicks
+      const value = target.getAttribute('data-value');
+      if (value !== null) {
+        patchTopic(topicId, { importance: parseInt(value) });
+      }
+    }
+  };
+
+  return null; // We're rendering directly to the DOM
 };

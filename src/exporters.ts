@@ -138,16 +138,23 @@ export const renderSocialCard = (tpl: Template): HTMLElement => {
     <h1>${tpl.title}</h1>
     <small>Top ${top.length} topics by importance</small>
     <div class="card-list">
-      ${top.map((t, i) => `
-        <div class="row">
-          <div style="font-weight:700">${i + 1}</div>
-          <div>
-            <div style="font-weight:600">${t.title}</div>
-            <div class="bar"><span style="width:${(t.importance / 5) * 100}%"></span></div>
+      ${top.map((t, i) => {
+        const direction = t.mode === 'scale' 
+          ? ['Strongly Against', 'Lean Against', 'Neutral', 'Lean For', 'Strongly For'][t.direction.scale + 2] || 'Neutral'
+          : (t.direction.custom || '—');
+        
+        return `
+          <div class="row">
+            <div style="font-weight:700">${i + 1}</div>
+            <div>
+              <div style="font-weight:600">${t.title}</div>
+              <div style="font-size: 14px; color: var(--muted); margin: 4px 0;">${direction}</div>
+              <div class="bar"><span style="width:${(t.importance / 5) * 100}%"></span></div>
+            </div>
+            <div style="text-align:right">${t.importance}/5</div>
           </div>
-          <div style="text-align:right">${t.importance}/5</div>
-        </div>
-      `).join('')}
+        `;
+      }).join('')}
     </div>
   `;
   root.appendChild(el);

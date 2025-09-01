@@ -124,6 +124,25 @@ header {
   border-radius: 10px; 
   padding: 8px 10px; 
   width: 100%;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Modern select styling */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a9b1d6' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 8px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 2px rgba(155, 130, 255, 0.2);
 }
 
 textarea { 
@@ -173,10 +192,22 @@ textarea {
 
 @media (min-width: 760px) {
   .topic-header { 
-    grid-template-columns: 1fr 180px 220px; 
+    grid-template-columns: 1fr 200px 240px; 
     align-items: start; 
-    gap: 12px; 
+    gap: 16px; 
   }
+}
+
+.topic-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.topic-header label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .stars { 
@@ -193,6 +224,12 @@ textarea {
   background: #0c1128; 
   color: var(--muted); 
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.star-btn:hover {
+  background: #1a2144;
+  border-color: #314081;
 }
 
 .star-btn[aria-pressed="true"] { 
@@ -262,39 +299,64 @@ textarea {
 /* Social-card preview (captured to JPEG) */
 #social-card {
   position: relative;
-  width: 1200px;
-  height: 630px;
+  width: 1080px;
+  height: 1080px;
   background: linear-gradient(180deg, #0b1020 0%, #0d1533 100%);
   color: var(--text);
   border-radius: 24px;
-  padding: 32px;
+  padding: 48px;
   border: 1px solid #1a2553;
 }
 
 #social-card h1 { 
-  margin: 0 0 10px; 
-  font-size: 42px; 
+  margin: 0 0 16px; 
+  font-size: 48px; 
+  line-height: 1.2;
 }
 
 #social-card small { 
   color: var(--muted); 
+  font-size: 18px;
+  display: block;
+  margin-bottom: 24px;
 }
 
 #social-card .card-list { 
-  margin-top: 16px; 
+  margin-top: 24px; 
   display: grid; 
-  gap: 10px; 
+  gap: 16px; 
 }
 
 #social-card .row { 
   display: grid; 
-  grid-template-columns: 44px 1fr 120px; 
-  gap: 12px; 
+  grid-template-columns: 60px 1fr 120px; 
+  gap: 16px; 
   align-items: center; 
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#social-card .row > div:first-child {
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--accent);
+}
+
+#social-card .row > div:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#social-card .row > div:nth-child(2) > div:first-child {
+  font-weight: 600;
+  font-size: 18px;
 }
 
 #social-card .bar { 
-  height: 10px; 
+  height: 12px; 
   background: #1a2146; 
   border-radius: 999px; 
   overflow: hidden; 
@@ -306,4 +368,12 @@ textarea {
   height: 100%; 
   background: linear-gradient(90deg, var(--accent), var(--accent-2)); 
   width: 0%; 
+  transition: width 0.3s ease;
+}
+
+#social-card .row > div:last-child {
+  text-align: right;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--accent-2);
 }
