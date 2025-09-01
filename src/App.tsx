@@ -22,6 +22,7 @@ export const App: React.FC = () => {
   } = useStore();
 
   const topicListRef = useRef<{ toggleAll: () => void; updateButtonText: () => void }>(null);
+  const topicCardsRef = useRef<{ toggleExpanded: () => void; updateButtonText: () => void }>(null);
 
   const [showCards, setShowCards] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
@@ -110,8 +111,13 @@ export const App: React.FC = () => {
     
     if (btnExpandAll) {
       btnExpandAll.onclick = () => {
-        topicListRef.current?.toggleAll();
-        topicListRef.current?.updateButtonText();
+        if (showCards) {
+          topicCardsRef.current?.toggleExpanded();
+          topicCardsRef.current?.updateButtonText();
+        } else {
+          topicListRef.current?.toggleAll();
+          topicListRef.current?.updateButtonText();
+        }
       };
     }
     
@@ -166,6 +172,19 @@ export const App: React.FC = () => {
       // Update the onclick handler to use the current showCards value
       toggleBtn.onclick = () => setShowCards(!showCards);
     }
+    
+    // Update expand all button text when switching views
+    const btnExpandAll = document.getElementById('btn-expand-all');
+    if (btnExpandAll) {
+      // Update button text based on current view state
+      if (showCards && topicCardsRef.current) {
+        // In card view, get the current expanded state
+        setTimeout(() => topicCardsRef.current?.updateButtonText(), 100);
+      } else if (!showCards && topicListRef.current) {
+        // In list view, get the current expanded state
+        setTimeout(() => topicListRef.current?.updateButtonText(), 100);
+      }
+    }
   }, [showCards]);
 
   // Card view handlers
@@ -197,6 +216,7 @@ export const App: React.FC = () => {
       {/* Card View */}
       {showCards && (
         <TopicCards
+          ref={topicCardsRef}
           topics={topics}
           onReorder={handleTopicReorder}
           onTopicClick={handleTopicClick}
@@ -213,10 +233,8 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Starter Pack Picker below lists */}
-      {!showCards && (
-        <StarterPackPicker />
-      )}
+      {/* Starter Pack Picker below both views */}
+      <StarterPackPicker />
 
       {/* Modal (available in both views) */}
       <TopicModal

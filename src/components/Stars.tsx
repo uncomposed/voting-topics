@@ -27,7 +27,7 @@ export const Stars: React.FC<StarsProps> = ({ value, onChange }) => {
       {Array.from({ length: 6 }, (_, n) => (
         <button
           key={n}
-          className="star-btn"
+          className={`star-btn ${n <= value ? 'filled' : ''}`}
           type="button"
           aria-label={`${n} star${n === 1 ? '' : 's'}`}
           aria-pressed={value === n}

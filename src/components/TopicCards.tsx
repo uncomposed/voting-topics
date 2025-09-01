@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { Topic } from '../schema';
 
 interface TopicCardsProps {
@@ -13,7 +13,7 @@ interface DragState {
   draggedOverImportance: number | null;
 }
 
-export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTopicClick }) => {
+export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonText: () => void }, TopicCardsProps>(({ topics, onReorder, onTopicClick }, ref) => {
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     draggedTopic: null,
@@ -78,6 +78,53 @@ export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTop
     return 'Critical Priority';
   };
 
+  // Wire up the main button directly
+  useEffect(() => {
+    const btnExpandAll = document.getElementById('btn-expand-all');
+    if (btnExpandAll) {
+      // Remove any existing click handlers
+      btnExpandAll.replaceWith(btnExpandAll.cloneNode(true));
+      
+      // Get the fresh reference
+      const freshBtn = document.getElementById('btn-expand-all');
+      if (freshBtn) {
+        freshBtn.onclick = () => {
+          console.log('Main button clicked! Current state:', isExpanded);
+          setIsExpanded(!isExpanded);
+        };
+        
+        // Set initial button text
+        freshBtn.textContent = isExpanded ? '▼ Collapse All' : '▶ Expand All';
+      }
+    }
+  }, [isExpanded]);
+
+  useImperativeHandle(ref, () => ({
+    toggleExpanded: () => {
+      console.log('TopicCards toggleExpanded called, current state:', isExpanded);
+      setIsExpanded(prev => {
+        const newState = !prev;
+        console.log('Setting isExpanded to:', newState);
+        
+        // Update button text after state change
+        setTimeout(() => {
+          const btnExpandAll = document.getElementById('btn-expand-all');
+          if (btnExpandAll) {
+            btnExpandAll.textContent = newState ? '▼ Collapse All' : '▶ Expand All';
+          }
+        }, 0);
+        
+        return newState;
+      });
+    },
+    updateButtonText: () => {
+      const btnExpandAll = document.getElementById('btn-expand-all');
+      if (btnExpandAll) {
+        btnExpandAll.textContent = isExpanded ? '▼ Collapse All' : '▶ Expand All';
+      }
+    }
+  }));
+
 
 
   return (
@@ -85,15 +132,19 @@ export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTop
       <div className="cards-header">
         <div className="cards-header-top">
           <h2>Topic Priority View</h2>
-          <button 
-            className={`btn ghost ${isExpanded ? 'active' : ''}`}
-            onClick={() => setIsExpanded(!isExpanded)}
-            title={isExpanded ? 'Switch to minimal view' : 'Switch to expanded view'}
-          >
-            {isExpanded ? '📖' : '📝'} {isExpanded ? 'Minimal' : 'Expanded'}
-          </button>
         </div>
         <p className="muted">Drag cards to reorder by importance. Click to edit details.</p>
+        <p className="muted" style={{fontSize: '12px'}}>Debug: isExpanded = {isExpanded ? 'true' : 'false'}</p>
+        <div style={{
+          padding: '8px',
+          background: isExpanded ? '#4CAF50' : '#f44336',
+          color: 'white',
+          borderRadius: '4px',
+          fontSize: '12px',
+          textAlign: 'center'
+        }}>
+          {isExpanded ? 'EXPANDED - Cards should show details' : 'COLLAPSED - Cards should hide details'}
+        </div>
       </div>
       
       <div className="cards-grid">
@@ -165,8 +216,7 @@ export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTop
                   )}
                   
                   <div className="card-footer">
-                    <span className="card-id">ID: {topic.id}</span>
-                    <span className="drag-hint">Drag to reorder • Click to edit</span>
+                    <span className="drag-hint">Click to edit</span>
                   </div>
                 </div>
               ))}
@@ -182,4 +232,4 @@ export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTop
       </div>
     </div>
   );
-};
+});

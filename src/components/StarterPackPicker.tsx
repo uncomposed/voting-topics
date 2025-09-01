@@ -48,7 +48,7 @@ export const StarterPackPicker: React.FC = () => {
       <div className="panel-header-collapsible">
         <h2 className="panel-title">Add from Starter Pack</h2>
         <button 
-          className="btn ghost expand-toggle"
+          className="btn ghost starter-toggle"
           onClick={() => setIsCollapsed(!isCollapsed)}
           aria-label={isCollapsed ? 'Expand starter pack' : 'Collapse starter pack'}
         >
