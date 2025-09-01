@@ -73,6 +73,7 @@ export const exportPDF = async () => {
     y += 6; 
   }
   line();
+  y += 12; // Add extra space after the line to prevent overlap with first topic
 
   tpl.topics.forEach((t, idx) => {
     if (y > 760) { 
