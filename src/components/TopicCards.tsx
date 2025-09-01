@@ -129,24 +129,6 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
 
   return (
     <div className="topic-cards" ref={dragRef}>
-      <div className="cards-header">
-        <div className="cards-header-top">
-          <h2>Topic Priority View</h2>
-        </div>
-        <p className="muted">Drag cards to reorder by importance. Click to edit details.</p>
-        <p className="muted" style={{fontSize: '12px'}}>Debug: isExpanded = {isExpanded ? 'true' : 'false'}</p>
-        <div style={{
-          padding: '8px',
-          background: isExpanded ? '#4CAF50' : '#f44336',
-          color: 'white',
-          borderRadius: '4px',
-          fontSize: '12px',
-          textAlign: 'center'
-        }}>
-          {isExpanded ? 'EXPANDED - Cards should show details' : 'COLLAPSED - Cards should hide details'}
-        </div>
-      </div>
-      
       <div className="cards-grid">
         {groupedTopics.map(({ importance, topics }) => (
           <div

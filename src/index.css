@@ -189,9 +189,20 @@ textarea {
 
 .panel-header-with-controls {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.panel-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-header-left .muted {
+  margin: 0;
+  font-size: 0.9rem;
 }
 
 .panel-header-with-controls .panel-title {
