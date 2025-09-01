@@ -141,14 +141,16 @@ export const App: React.FC = () => {
       
       topicElement.innerHTML = `
         <div class="topic-header">
-          <input
-            class="input"
-            placeholder="Topic title (e.g., School Bond Measure)"
-            value="${topic.title || ''}"
-            aria-label="Topic title"
-            data-topic-id="${topic.id}"
-            data-field="title"
-          />
+          <div>
+            <input
+              class="input"
+              placeholder="Topic title (e.g., School Bond Measure)"
+              value="${topic.title || ''}"
+              aria-label="Topic title"
+              data-topic-id="${topic.id}"
+              data-field="title"
+            />
+          </div>
           <div>
             <label class="muted">Importance</label>
             <div class="stars" role="group" aria-label="Importance 0 to 5">

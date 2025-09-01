@@ -192,9 +192,13 @@ textarea {
 
 @media (min-width: 760px) {
   .topic-header { 
-    grid-template-columns: 1fr 200px 240px; 
+    grid-template-columns: 1fr 240px; 
     align-items: start; 
     gap: 16px; 
+  }
+  
+  .topic-header > div:first-child {
+    grid-column: 1 / -1;
   }
 }
 
