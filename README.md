@@ -1,127 +1,69 @@
-# Voting Topics
+# Voting Topics Builder
 
-A lightweight, open-source project for building and sharing **transferable sample ballots**.  
-Users can define their values and priorities as a set of topics, then export or share them.  
-The goal is to empower individuals to think critically about their preferences and compare them against candidates transparently — without ever storing PII.
+A lightweight, open-source project for building and sharing transferable sample ballots. This tool helps voters organize their positions on ballot measures and candidate races with a collaborative, nuance-focused approach.
 
----
+## Key Features
 
-## ✨ Features
+### **Stance + Directions Structure**
+- **Stance**: Topic-level position using a 5-point Likert scale (Strongly Against → Strongly For)
+- **Directions**: Multiple free-form outcomes per topic, each with individual 0-5 star importance ratings
+- **Collaborative Design**: Avoids adversarial binaries by focusing on specific desired outcomes
 
-- **Topic Builder UI**  
-  - Add topics, assign importance (STAR-style 0–5), write directions (select/freeform), and add notes/sources.
-- **Anonymous by design**  
-  - No accounts, no IP storage, no tracking.
-- **Export**  
-  - Download as JSON, PDF, or JPEG share card.
-- **Immutable publishing**  
-  - Templates are stored with content hashes; forks create new immutable links.
-- **Topic Library (Wiki-like)**  
-  - Topics curated in JSON files in this repo. Community can propose changes via PR.
-- **Future goals**  
-  - Abuse resistance (proof-of-work, token bucket), integrations with VOTE411/BallotReady, GitHub-driven transparency.
+### **Example Usage**
+For a topic like "Firearms":
+- **Stance**: Lean Against (overall position)
+- **Directions**: 
+  - "Much less death and injury by firearms" (5 stars)
+  - "Allow responsible ownership and use" (4 stars) 
+  - "Stronger background checks and safe storage norms" (4 stars)
+  - "Invest in community violence interruption" (3 stars)
 
----
+### **Topic Relations**
+- SKOS-style linking between topics (broader/narrower/related)
+- Keeps scope manageable while enabling nuanced navigation
+- Example: "Climate change" → broader: "Environment & conservation"
 
-## 🚀 Getting Started
+## Schema Version: tsb.v1
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
+The new schema separates stance (topic-level position) from directions (specific outcomes with individual importance ratings).
 
-### Setup
+### Migration from v0
+Use the migration script to convert existing data:
+```bash
+npx ts-node scripts/migrateV0toV1.ts your-file.json
+```
+
+## Development
 
 ```bash
-# Clone the repository
-git clone https://github.com/uncomposed/voting-topics.git
-cd voting-topics
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-The application will open in your browser at `http://localhost:3000`.
-
-### Build for Production
+## Testing
 
 ```bash
-# Build the project
-npm run build
-
-# Preview the production build
-npm run preview
+npm test
 ```
 
----
+## Export Options
 
-## 🏗️ Project Structure
+- **JSON**: Full data export with versioning
+- **PDF**: Formatted document with topics, stances, and directions
+- **JPEG**: Social media share card
 
-The project has been refactored from a monolithic HTML file into a modern React TypeScript application:
+## Privacy & Design Principles
 
-```
-src/
-├── components/          # React components
-│   ├── Stars.tsx       # Star rating component
-│   ├── TopicCard.tsx   # Individual topic card
-│   └── TopicList.tsx   # List of topics
-├── schema.ts           # Zod schema definitions
-├── store.ts            # Zustand state management
-├── utils.ts            # Utility functions
-├── exporters.ts        # Export functionality (PDF, JPEG, JSON)
-├── App.tsx             # Main application component
-├── main.tsx            # Application entry point
-└── index.css           # Global styles
-```
+- **Anonymous by design**: No accounts, no IP storage
+- **Local-first**: Data stored in your browser
+- **Collaborative phrasing**: Neutral, outcome-focused language
+- **Importance-based**: STAR-style 0-5 rating system (separate from electoral STAR Voting)
 
-### Key Technologies
+## Starter Pack
 
-- **React 18** - Modern React with hooks
-- **TypeScript** - Type safety and better developer experience
-- **Vite** - Fast build tool and dev server
-- **Zustand** - Lightweight state management
-- **Zod** - Schema validation
-- **html2canvas** - Screenshot generation for JPEG export
-- **jsPDF** - PDF generation
+Load `starter-pack.v1.json` to see example topics with the new structure.
 
----
+## Contributing
 
-## 🔧 Development
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
-
-### Code Style
-
-The project uses ESLint with TypeScript and React rules. Run `npm run lint:fix` to automatically fix formatting issues.
-
----
-
-## 📝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-## 🤝 Acknowledgments
-
-- Built with modern web technologies for performance and maintainability
-- Designed with accessibility and user experience in mind
+See [Contributing.md](Contributing.md) for development guidelines.
 - Open source and community-driven development

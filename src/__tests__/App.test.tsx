@@ -64,10 +64,11 @@ describe('App Component', () => {
         id: '1',
         title: 'Test Topic 1',
         importance: 3,
-        mode: 'scale' as const,
-        direction: { scale: 1 },
+        stance: 'lean_for' as const,
+        directions: [],
         notes: 'Test topic notes',
-        sources: []
+        sources: [],
+        relations: { broader: [], narrower: [], related: [] }
       }
     ] as import('../schema').Topic[],
     setTitle: vi.fn(),
@@ -78,10 +79,11 @@ describe('App Component', () => {
         id: '2',
         title: '',
         importance: importance || 0,
-        mode: 'scale' as const,
-        direction: { scale: 0 as const },
+        stance: 'neutral' as const,
+        directions: [],
         notes: '',
-        sources: []
+        sources: [],
+        relations: { broader: [], narrower: [], related: [] }
       };
       mockStore.topics.unshift(newTopic);
     }),
@@ -103,10 +105,11 @@ describe('App Component', () => {
         id: '1',
         title: 'Test Topic 1',
         importance: 3,
-        mode: 'scale' as const,
-        direction: { scale: 1 },
+        stance: 'lean_for' as const,
+        directions: [],
         notes: 'Test topic notes',
-        sources: []
+        sources: [],
+        relations: { broader: [], narrower: [], related: [] }
       }
     ];
   };
@@ -225,7 +228,7 @@ describe('App Component', () => {
       fireEvent.click(newTopicBtn!);
       
       // Mock the store to now have a topic
-      const topicStore = { ...mockStore, topics: [{ id: 'new', title: '', importance: 0, mode: 'scale', direction: { scale: 0 }, notes: '', sources: [] }] };
+      const topicStore = { ...mockStore, topics: [{ id: 'new', title: '', importance: 0, stance: 'neutral' as const, directions: [], notes: '', sources: [], relations: { broader: [], narrower: [], related: [] } }] };
       (useStore as any).mockReturnValue(topicStore);
       
       // Re-render to see the new topic
@@ -348,7 +351,7 @@ describe('App Component', () => {
       });
     });
 
-    it('should show correct direction badges', async () => {
+    it('should show correct stance badges', async () => {
       render(<App />);
       
       // Switch to card view

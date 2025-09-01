@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Topic } from '../schema';
+import { DirectionsList } from './DirectionsList';
 
 interface TopicModalProps {
   topic: Topic | null;
@@ -57,13 +58,6 @@ export const TopicModal: React.FC<TopicModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const updateDirection = (updates: Partial<Topic['direction']>) => {
-    setFormData(prev => ({
-      ...prev,
-      direction: { ...prev.direction, ...updates }
-    }));
-  };
-
   const addSource = () => {
     const newSources = [...(formData.sources || []), { label: '', url: '' }];
     updateField('sources', newSources);
@@ -78,6 +72,17 @@ export const TopicModal: React.FC<TopicModalProps> = ({
     const newSources = [...(formData.sources || [])];
     newSources[index] = { ...newSources[index], [field]: value };
     updateField('sources', newSources);
+  };
+
+  const getStanceLabel = (stance: string): string => {
+    const stanceLabels = {
+      'against': 'Strongly Against',
+      'lean_against': 'Lean Against',
+      'neutral': 'Neutral',
+      'lean_for': 'Lean For',
+      'for': 'Strongly For'
+    };
+    return stanceLabels[stance as keyof typeof stanceLabels] || 'Neutral';
   };
 
   return (
@@ -120,47 +125,29 @@ export const TopicModal: React.FC<TopicModalProps> = ({
               </div>
 
               <div className="form-group">
-                <label>Direction</label>
-                <div className="direction-controls">
-                  <select
-                    value={formData.mode || 'scale'}
-                    onChange={e => {
-                      const mode = e.target.value as 'scale' | 'custom';
-                      updateField('mode', mode);
-                      if (mode === 'scale') {
-                        updateDirection({ scale: 0, custom: undefined });
-                      } else {
-                        updateDirection({ custom: '', scale: undefined });
-                      }
-                    }}
-                    className="input"
-                  >
-                    <option value="scale">Select (For/Against)</option>
-                    <option value="custom">Freeform</option>
-                  </select>
+                <label>Stance</label>
+                <select
+                  value={formData.stance || 'neutral'}
+                  onChange={e => updateField('stance', e.target.value)}
+                  className="input"
+                >
+                  <option value="against">Strongly Against</option>
+                  <option value="lean_against">Lean Against</option>
+                  <option value="neutral">Neutral</option>
+                  <option value="lean_for">Lean For</option>
+                  <option value="for">Strongly For</option>
+                </select>
+              </div>
 
-                  {formData.mode === 'scale' ? (
-                    <select
-                      value={formData.direction?.scale ?? 0}
-                      onChange={e => updateDirection({ scale: parseInt(e.target.value) as -2 | -1 | 0 | 1 | 2 })}
-                      className="input"
-                    >
-                      <option value="-2">Strongly Against</option>
-                      <option value="-1">Lean Against</option>
-                      <option value="0">Neutral</option>
-                      <option value="1">Lean For</option>
-                      <option value="2">Strongly For</option>
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      value={formData.direction?.custom || ''}
-                      onChange={e => updateDirection({ custom: e.target.value })}
-                      placeholder="Describe your position..."
-                      className="input"
-                    />
-                  )}
+              <div className="form-group">
+                <label>Directions</label>
+                <div className="text-sm text-gray-600 mb-2">
+                  Add specific outcomes or changes you want to see within this topic. Each direction gets its own importance rating.
                 </div>
+                <DirectionsList 
+                  directions={formData.directions || []}
+                  onChange={(directions) => updateField('directions', directions)}
+                />
               </div>
 
               <div className="form-group">
@@ -218,17 +205,24 @@ export const TopicModal: React.FC<TopicModalProps> = ({
                   <strong>Importance:</strong> {topic.importance}/5
                 </div>
                 <div className="info-row">
-                  <strong>Direction:</strong> 
-                  {topic.mode === 'scale' ? (
-                    <span className={`direction-badge scale-${topic.direction.scale ?? 0}`}>
-                      {['Strongly Against', 'Lean Against', 'Neutral', 'Lean For', 'Strongly For'][(topic.direction.scale ?? 0) + 2]}
-                    </span>
-                  ) : (
-                    <span className="direction-badge custom">
-                      {topic.direction.custom || 'Custom'}
-                    </span>
-                  )}
+                  <strong>Stance:</strong> 
+                  <span className={`direction-badge scale-${topic.stance === 'against' ? '-2' : topic.stance === 'lean_against' ? '-1' : topic.stance === 'lean_for' ? '1' : topic.stance === 'for' ? '2' : '0'}`}>
+                    {getStanceLabel(topic.stance)}
+                  </span>
                 </div>
+                {topic.directions && topic.directions.length > 0 && (
+                  <div className="info-row">
+                    <strong>Directions:</strong>
+                    <ul className="directions-list">
+                      {topic.directions.map((direction) => (
+                        <li key={direction.id}>
+                          <strong>{direction.text}</strong> ({direction.stars}/5 stars)
+                          {direction.notes && <p className="direction-notes">{direction.notes}</p>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {topic.notes && (
                   <div className="info-row">
                     <strong>Notes:</strong>

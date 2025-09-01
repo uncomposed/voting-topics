@@ -78,12 +78,26 @@ export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTop
     return 'Critical Priority';
   };
 
-  const getDirectionText = (topic: Topic): string => {
-    if (topic.mode === 'scale') {
-      const labels = ['Strongly Against', 'Lean Against', 'Neutral', 'Lean For', 'Strongly For'];
-      return labels[(topic.direction.scale ?? 0) + 2];
-    }
-    return topic.direction.custom || 'Custom';
+  const getStanceText = (topic: Topic): string => {
+    const stanceLabels = {
+      'against': 'Strongly Against',
+      'lean_against': 'Lean Against',
+      'neutral': 'Neutral',
+      'lean_for': 'Lean For',
+      'for': 'Strongly For'
+    };
+    return stanceLabels[topic.stance] || 'Neutral';
+  };
+
+  const getStanceClass = (topic: Topic): string => {
+    const stanceClasses = {
+      'against': 'scale--2',
+      'lean_against': 'scale--1',
+      'neutral': 'scale-0',
+      'lean_for': 'scale-1',
+      'for': 'scale-2'
+    };
+    return stanceClasses[topic.stance] || 'scale-0';
   };
 
   return (
@@ -136,13 +150,12 @@ export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTop
                   <div className="card-header">
                     <h4 className="card-title">{topic.title || 'Untitled Topic'}</h4>
                     <div className="card-direction">
-                      {topic.mode === 'scale' ? (
-                        <span className={`direction-badge scale-${topic.direction.scale ?? 0}`}>
-                          {getDirectionText(topic)}
-                        </span>
-                      ) : (
-                        <span className={`direction-badge custom`}>
-                          {topic.direction.custom || 'Custom'}
+                      <span className={`direction-badge ${getStanceClass(topic)}`}>
+                        {getStanceText(topic)}
+                      </span>
+                      {topic.directions && topic.directions.length > 0 && (
+                        <span className="direction-count">
+                          {topic.directions.length} direction{topic.directions.length !== 1 ? 's' : ''}
                         </span>
                       )}
                     </div>
@@ -150,6 +163,14 @@ export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTop
                   
                   {isExpanded && topic.notes && (
                     <p className="card-notes">{topic.notes}</p>
+                  )}
+                  
+                  {isExpanded && topic.directions && topic.directions.length > 0 && (
+                    <div className="card-directions">
+                      <small className="muted">
+                        Top direction: {topic.directions[0]?.text}
+                      </small>
+                    </div>
                   )}
                   
                   {isExpanded && topic.sources && topic.sources.length > 0 && (

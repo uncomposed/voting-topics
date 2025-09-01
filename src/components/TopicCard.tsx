@@ -1,6 +1,7 @@
 import React from 'react';
 import { Stars } from './Stars';
-import type { Topic } from '../schema';
+import { DirectionsList } from './DirectionsList';
+import type { Topic, Stance } from '../schema';
 
 interface TopicCardProps {
   topic: Topic;
@@ -9,76 +10,58 @@ interface TopicCardProps {
 }
 
 export const TopicCard: React.FC<TopicCardProps> = ({ topic, onChange, onDelete }) => {
-  const dirLabel = (v: number) => ({
-    '-2': 'Strongly Against',
-    '-1': 'Lean Against',
-    '0': 'Neutral',
-    '1': 'Lean For',
-    '2': 'Strongly For'
-  }[String(v)]);
+  const stanceLabels: Record<Stance, string> = {
+    'against': 'Strongly Against',
+    'lean_against': 'Lean Against',
+    'neutral': 'Neutral',
+    'lean_for': 'Lean For',
+    'for': 'Strongly For'
+  };
 
   return (
     <div className="topic" aria-label={`Topic ${topic.title || topic.id}`}>
       <div className="topic-header">
         <input
           className="input"
-          placeholder="Topic title (e.g., School Bond Measure)"
+          placeholder="Topic title (e.g., Firearms Policy)"
           value={topic.title}
           onChange={e => onChange({ title: e.target.value })}
           aria-label="Topic title"
           data-field="title"
         />
         <div>
-          <label className="muted">Importance</label>
+          <label className="muted">Topic Importance</label>
           <Stars value={topic.importance} onChange={n => onChange({ importance: n })} />
         </div>
         <div>
-          <label className="muted">Direction</label>
-          <div className="row">
-            <select
-              value={topic.mode}
-              onChange={e => {
-                const mode = e.target.value as 'scale' | 'custom';
-                onChange({ 
-                  mode, 
-                  direction: mode === 'scale' ? { scale: 0 } : { custom: '' } 
-                });
-              }}
-              aria-label="Direction mode"
-            >
-              <option value="scale">Select (For/Against)</option>
-              <option value="custom">Freeform</option>
-            </select>
-
-            {topic.mode === 'scale' ? (
-              <select
-                value={String(topic.direction.scale ?? 0)}
-                onChange={e => onChange({ direction: { scale: Number(e.target.value) as -2 | -1 | 0 | 1 | 2 } })}
-                aria-label="Direction scale"
-              >
-                <option value="-2">Strongly Against</option>
-                <option value="-1">Lean Against</option>
-                <option value="0">Neutral</option>
-                <option value="1">Lean For</option>
-                <option value="2">Strongly For</option>
-              </select>
-            ) : (
-              <input
-                className="input"
-                placeholder="Describe your position…"
-                value={topic.direction.custom ?? ''}
-                onChange={e => onChange({ direction: { custom: e.target.value } })}
-                aria-label="Direction freeform"
-              />
-            )}
-          </div>
+          <label className="muted">Stance</label>
+          <select
+            value={topic.stance}
+            onChange={e => onChange({ stance: e.target.value as Stance })}
+            aria-label="Stance"
+            className="border rounded px-3 py-2"
+          >
+            <option value="against">Strongly Against</option>
+            <option value="lean_against">Lean Against</option>
+            <option value="neutral">Neutral</option>
+            <option value="lean_for">Lean For</option>
+            <option value="for">Strongly For</option>
+          </select>
           <div className="muted" style={{ marginTop: '6px' }}>
-            {topic.mode === 'scale' 
-              ? `Selected: ${dirLabel(topic.direction.scale ?? 0)}` 
-              : 'Custom description enabled'
-            }
+            Selected: {stanceLabels[topic.stance]}
           </div>
         </div>
+      </div>
+
+      <div>
+        <label className="muted">Directions</label>
+        <div className="text-sm text-gray-600 mb-2">
+          Add specific outcomes or changes you want to see within this topic. Each direction gets its own importance rating.
+        </div>
+        <DirectionsList 
+          directions={topic.directions}
+          onChange={(directions) => onChange({ directions })}
+        />
       </div>
 
       <label>Notes
@@ -148,3 +131,4 @@ export const TopicCard: React.FC<TopicCardProps> = ({ topic, onChange, onDelete 
     </div>
   );
 };
+

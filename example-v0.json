@@ -1,0 +1,36 @@
+{
+  "version": "tsb.v0",
+  "title": "Example v0 Template",
+  "notes": "This is an example v0 template to test migration",
+  "topics": [
+    {
+      "id": "topic-1",
+      "title": "Firearms Policy",
+      "importance": 4,
+      "mode": "scale",
+      "direction": {
+        "scale": -1
+      },
+      "notes": "Concerned about gun violence",
+      "sources": [
+        {
+          "label": "CDC Statistics",
+          "url": "https://example.com/cdc"
+        }
+      ]
+    },
+    {
+      "id": "topic-2",
+      "title": "Climate Change",
+      "importance": 5,
+      "mode": "custom",
+      "direction": {
+        "custom": "We need to reduce emissions and invest in renewable energy"
+      },
+      "notes": "Urgent action needed",
+      "sources": []
+    }
+  ],
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z"
+}

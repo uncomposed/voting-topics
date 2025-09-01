@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { uid } from './utils';
-import type { Topic, Source } from './schema';
+import type { Topic, Source, Direction, Stance } from './schema';
 
 interface Store {
   title: string;
@@ -16,6 +16,10 @@ interface Store {
   patchSource: (id: string, idx: number, patch: Partial<Source>) => void;
   addSource: (id: string) => void;
   removeSource: (id: string, idx: number) => void;
+  // New methods for directions
+  addDirection: (topicId: string) => void;
+  removeDirection: (topicId: string, directionId: string) => void;
+  patchDirection: (topicId: string, directionId: string, patch: Partial<Direction>) => void;
   clearAll: () => void;
 }
 
@@ -33,10 +37,11 @@ export const useStore = create<Store>()(
             id: uid(),
             title: '',
             importance: importance || 0,
-            mode: 'scale',
-            direction: { scale: 0 },
+            stance: 'neutral' as Stance,
+            directions: [],
             notes: '',
             sources: [],
+            relations: { broader: [], narrower: [], related: [] }
           },
           ...state.topics,
         ]
@@ -60,6 +65,37 @@ export const useStore = create<Store>()(
       })),
       removeSource: (id, idx) => set((state) => ({
         topics: state.topics.map(t => (t.id === id ? { ...t, sources: t.sources.filter((_, i) => idx !== i) } : t))
+      })),
+      // New methods for managing directions
+      addDirection: (topicId: string) => set((state) => ({
+        topics: state.topics.map(t => {
+          if (t.id !== topicId) return t;
+          const newDirection: Direction = {
+            id: uid(),
+            text: '',
+            stars: 0,
+            sources: [],
+            tags: []
+          };
+          return { ...t, directions: [...t.directions, newDirection] };
+        })
+      })),
+      removeDirection: (topicId: string, directionId: string) => set((state) => ({
+        topics: state.topics.map(t => {
+          if (t.id !== topicId) return t;
+          return { ...t, directions: t.directions.filter(d => d.id !== directionId) };
+        })
+      })),
+      patchDirection: (topicId: string, directionId: string, patch: Partial<Direction>) => set((state) => ({
+        topics: state.topics.map(t => {
+          if (t.id !== topicId) return t;
+          return {
+            ...t,
+            directions: t.directions.map(d => 
+              d.id === directionId ? { ...d, ...patch } : d
+            )
+          };
+        })
       })),
       clearAll: () => set({ title: '', notes: '', topics: [] }),
     }),

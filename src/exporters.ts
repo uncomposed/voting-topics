@@ -3,12 +3,12 @@ import { jsPDF } from 'jspdf';
 import { useStore } from './store';
 import { TemplateSchema } from './schema';
 import { nowISO, sanitize, downloadFile } from './utils';
-import type { Template } from './schema';
+import type { Template, Topic, Direction, Source } from './schema';
 
 export const buildTemplate = (): Template => {
   const state = useStore.getState();
   const tpl = {
-    version: 'tsb.v0' as const,
+    version: 'tsb.v1' as const,
     title: state.title || 'Untitled Template',
     notes: state.notes || '',
     topics: state.topics,
@@ -66,7 +66,7 @@ export const exportPDF = async () => {
   
   if (tpl.notes) { 
     T(''); 
-    tpl.notes.split('\n').forEach(row => { 
+    tpl.notes.split('\n').forEach((row: string) => { 
       doc.text(row, margin, y); 
       y += 14; 
     }); 
@@ -75,7 +75,7 @@ export const exportPDF = async () => {
   line();
   y += 12; // Add extra space after the line to prevent overlap with first topic
 
-  tpl.topics.forEach((t, idx) => {
+  tpl.topics.forEach((t: Topic, idx: number) => {
     if (y > 760) { 
       doc.addPage(); 
       y = margin; 
@@ -88,26 +88,49 @@ export const exportPDF = async () => {
     doc.text(`Importance: ${t.importance}/5`, margin, y); 
     y += 14;
     
-    const dir = t.mode === 'scale' 
-      ? ({'-2':'Strongly Against','-1':'Lean Against','0':'Neutral','1':'Lean For','2':'Strongly For'}[String(t.direction.scale ?? 0)]) 
-      : (t.direction.custom || '—');
-    doc.text(`Direction: ${dir}`, margin, y); 
+    // New stance display
+    const stanceLabels: Record<string, string> = {
+      'against': 'Strongly Against',
+      'lean_against': 'Lean Against', 
+      'neutral': 'Neutral',
+      'lean_for': 'Lean For',
+      'for': 'Strongly For'
+    };
+    doc.text(`Stance: ${stanceLabels[t.stance] || 'Neutral'}`, margin, y); 
     y += 14;
     
+    // Display directions if they exist
+    if (t.directions && t.directions.length > 0) {
+      y += 6;
+      H('Directions', 12);
+      doc.text('Directions', margin, y);
+      y += 14;
+      T('');
+      t.directions.forEach((d: Direction, i: number) => {
+        doc.text(`${i + 1}. ${d.text} (${d.stars}/5 stars)`, margin, y);
+        y += 14;
+        if (y > 760) {
+          doc.addPage();
+          y = margin;
+        }
+      });
+      y += 6;
+    }
+    
     if (t.notes) { 
-      t.notes.split('\n').forEach(row => { 
+      t.notes.split('\n').forEach((row: string) => { 
         doc.text(row, margin, y); 
         y += 14; 
       }); 
     }
     
-    if (t.sources?.length) {
+    if (t.sources && t.sources.length > 0) {
       y += 6; 
       H('Sources', 12); 
       doc.text('Sources', margin, y); 
       y += 14; 
       T('');
-      t.sources.forEach((s, i) => { 
+      t.sources.forEach((s: Source, i: number) => { 
         doc.text(`${i + 1}. ${s.label} — ${s.url}`, margin, y); 
         y += 14; 
         if (y > 760) { 
@@ -139,17 +162,25 @@ export const renderSocialCard = (tpl: Template): HTMLElement => {
     <h1>${tpl.title}</h1>
     <small>Top ${top.length} topics by importance</small>
     <div class="card-list">
-      ${top.map((t, i) => {
-        const direction = t.mode === 'scale' 
-          ? ['Strongly Against', 'Lean Against', 'Neutral', 'Lean For', 'Strongly For'][(t.direction.scale ?? 0) + 2] || 'Neutral'
-          : (t.direction.custom || '—');
+      ${top.map((t: Topic, i: number) => {
+        // New stance display
+        const stanceLabels: Record<string, string> = {
+          'against': 'Strongly Against',
+          'lean_against': 'Lean Against', 
+          'neutral': 'Neutral',
+          'lean_for': 'Lean For',
+          'for': 'Strongly For'
+        };
+        
+        const stance = stanceLabels[t.stance] || 'Neutral';
+        const directionCount = t.directions ? t.directions.length : 0;
         
         return `
           <div class="row">
             <div style="font-weight:700">${i + 1}</div>
             <div>
               <div style="font-weight:600">${t.title}</div>
-              <div style="font-size: 14px; color: var(--muted); margin: 4px 0;">${direction}</div>
+              <div style="font-size: 14px; color: var(--muted); margin: 4px 0;">${stance}${directionCount > 0 ? ` • ${directionCount} direction${directionCount !== 1 ? 's' : ''}` : ''}</div>
               <div class="bar"><span style="width:${(t.importance / 5) * 100}%"></span></div>
             </div>
             <div style="text-align:right">${t.importance}/5</div>

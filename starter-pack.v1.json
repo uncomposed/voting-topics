@@ -1,0 +1,80 @@
+{
+  "version": "tsb.v1",
+  "title": "starter-pack",
+  "notes": "Neutral seed topics and directions with collaborative phrasing.",
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z",
+  "topics": [
+    {
+      "id": "topic-firearms",
+      "title": "Firearms",
+      "importance": 3,
+      "stance": "lean_against",
+      "directions": [
+        { "id": "dir-f1", "text": "Much less death and injury by firearms", "stars": 5, "sources": [], "tags": [] },
+        { "id": "dir-f2", "text": "Allow responsible ownership and use", "stars": 4, "sources": [], "tags": [] },
+        { "id": "dir-f3", "text": "Stronger background checks and safe storage norms", "stars": 4, "sources": [], "tags": [] },
+        { "id": "dir-f4", "text": "Invest in community violence interruption", "stars": 3, "sources": [], "tags": ["Public health"] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Public health"], "narrower": [], "related": ["Criminal justice"] }
+    },
+    {
+      "id": "topic-abortion",
+      "title": "Abortion & reproductive health",
+      "importance": 4,
+      "stance": "neutral",
+      "directions": [
+        { "id": "dir-a1", "text": "Make abortion less needed via contraception, sex education, and healthcare access", "stars": 5, "sources": [], "tags": ["Healthcare"] },
+        { "id": "dir-a2", "text": "Ensure services are safe and accessible where legal", "stars": 4, "sources": [], "tags": [] },
+        { "id": "dir-a3", "text": "Minimize state involvement in private medical decisions", "stars": 3, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Healthcare"], "narrower": [], "related": ["Family policy"] }
+    },
+    {
+      "id": "topic-housing",
+      "title": "Housing affordability",
+      "importance": 5,
+      "stance": "lean_for",
+      "directions": [
+        { "id": "dir-h1", "text": "More homes near jobs and transit", "stars": 5, "sources": [], "tags": ["Infrastructure"] },
+        { "id": "dir-h2", "text": "Reform zoning to allow diverse, lower-cost housing types", "stars": 4, "sources": [], "tags": [] },
+        { "id": "dir-h3", "text": "Protect tenants from displacement while enabling new supply", "stars": 3, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Infrastructure"], "narrower": [], "related": ["Local government"] }
+    },
+    {
+      "id": "topic-climate",
+      "title": "Climate change",
+      "importance": 4,
+      "stance": "lean_for",
+      "directions": [
+        { "id": "dir-c1", "text": "Reduce greenhouse gas emissions", "stars": 5, "sources": [], "tags": ["Energy policy"] },
+        { "id": "dir-c2", "text": "Scale adaptation and disaster resilience", "stars": 4, "sources": [], "tags": [] },
+        { "id": "dir-c3", "text": "Support clean energy innovation and deployment", "stars": 4, "sources": [], "tags": ["Technology & privacy"] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": ["Environment & conservation"], "narrower": [], "related": ["Energy policy","Agriculture"] }
+    },
+    {
+      "id": "topic-environment",
+      "title": "Environment & conservation",
+      "importance": 4,
+      "stance": "lean_for",
+      "directions": [
+        { "id": "dir-e1", "text": "Protect biodiversity and habitats", "stars": 4, "sources": [], "tags": [] },
+        { "id": "dir-e2", "text": "Improve water and air quality", "stars": 4, "sources": [], "tags": [] },
+        { "id": "dir-e3", "text": "Steward public lands and outdoor access", "stars": 3, "sources": [], "tags": [] }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": [], "narrower": ["Public lands"], "related": ["Climate change"] }
+    }
+  ]
+}

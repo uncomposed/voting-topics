@@ -1,0 +1,51 @@
+{
+  "version": "tsb.v0",
+  "title": "test",
+  "notes": "test",
+  "topics": [
+    {
+      "id": "t9tzgg5jzq45",
+      "title": "Utilization of Urban Infrastructure",
+      "importance": 5,
+      "mode": "scale",
+      "direction": {
+        "scale": 2
+      },
+      "notes": "Where there is already infrastructure we should continue to develop and try to avoid sprawling in a low density and unsustainable manner.",
+      "sources": [
+        {
+          "label": "Strong Towns",
+          "url": "https://en.wikipedia.org/wiki/Strong_Towns"
+        },
+        {
+          "label": "Land Value Tax",
+          "url": "https://en.wikipedia.org/wiki/Land_value_tax"
+        }
+      ]
+    },
+    {
+      "id": "tomg37yobht3",
+      "title": "Gun violence",
+      "importance": 3,
+      "mode": "scale",
+      "direction": {
+        "scale": -2
+      },
+      "notes": "",
+      "sources": []
+    },
+    {
+      "id": "glebhmwe9vll",
+      "title": "Human Space Flight",
+      "importance": 0,
+      "mode": "scale",
+      "direction": {
+        "scale": 2
+      },
+      "notes": "Understanding how to explore and build in the cosmos helps us create and imagine amazing things today.",
+      "sources": []
+    }
+  ],
+  "createdAt": "2025-08-31T14:56:37.207Z",
+  "updatedAt": "2025-09-01T03:37:14.239Z"
+}
