@@ -1,6 +1,7 @@
 import React from 'react';
 import { Stars } from './Stars';
 import { DirectionsList } from './DirectionsList';
+import { SmartDirectionDots } from './SmartDirectionDots';
 import type { Topic } from '../schema';
 
 interface TopicCardProps {
@@ -47,17 +48,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
         </div>
         <div>
           <label className="muted">Directions</label>
-          <div className="direction-dots">
-            {Array.from({ length: Math.max(1, topic.directions.length) }).map((_, i) => (
-              <span 
-                key={i} 
-                className={`direction-dot ${i < topic.directions.length ? (topic.directions[i].stars > 0 ? 'rated' : 'unrated') : 'no-directions'}`}
-                title={i < topic.directions.length ? `${topic.directions[i].stars}/5 stars` : 'No direction'}
-              >
-                {i < topic.directions.length ? (topic.directions[i].stars > 0 ? '●' : '○') : '○'}
-              </span>
-            ))}
-          </div>
+          <SmartDirectionDots directions={topic.directions} maxVisible={7} />
         </div>
       </div>
 

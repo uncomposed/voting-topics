@@ -1,5 +1,6 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { Topic } from '../schema';
+import { SmartDirectionDots } from './SmartDirectionDots';
 
 interface TopicCardsProps {
   topics: Topic[];
@@ -163,17 +164,7 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
                   <div className="card-header">
                     <h4 className="card-title">{topic.title || 'Untitled Topic'}</h4>
                     <div className="card-directions">
-                      <div className="direction-dots">
-                        {Array.from({ length: Math.max(1, topic.directions.length) }).map((_, i) => (
-                          <span 
-                            key={i} 
-                            className={`direction-dot ${i < topic.directions.length ? (topic.directions[i].stars > 0 ? 'rated' : 'unrated') : 'no-directions'}`}
-                            title={i < topic.directions.length ? `${topic.directions[i].stars}/5 stars` : 'No direction'}
-                          >
-                            {i < topic.directions.length ? (topic.directions[i].stars > 0 ? '●' : '○') : '○'}
-                          </span>
-                        ))}
-                      </div>
+                      <SmartDirectionDots directions={topic.directions} maxVisible={7} />
                     </div>
                   </div>
                   

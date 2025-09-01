@@ -807,6 +807,30 @@ textarea {
   opacity: 0.3;
 }
 
+.direction-dot.count-bubble {
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-family: monospace;
+}
+
+/* Filled count bubble (for rated directions) */
+.direction-dot.rated.count-bubble {
+  background: var(--accent);
+  color: #000;
+}
+
+/* Unfilled count bubble (for unrated directions) */
+.direction-dot.unrated.count-bubble {
+  background: var(--muted);
+  color: #000;
+}
+
 .sources-list {
   margin-top: 12px;
 }
