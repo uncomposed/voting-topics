@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store';
 
-interface StarterTopic { id: string; title: string; }
+interface StarterTopic { 
+  id: string; 
+  title: string; 
+  directions: Array<{ text: string }>;
+}
 
 export const StarterPackPicker: React.FC = () => {
-  const addTopicByTitle = useStore(s => s.addTopicByTitle);
+  const addTopicFromStarter = useStore(s => s.addTopicFromStarter);
   const [pool, setPool] = useState<StarterTopic[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -12,8 +16,16 @@ export const StarterPackPicker: React.FC = () => {
     // Load lazily from bundled JSON (tsconfig resolves JSON imports)
     import('../../starter-pack.v1.json')
       .then((m: any) => {
-        const topics = (m.default?.topics || m.topics || []) as Array<{ id: string; title: string }>;
-        setPool(topics.map(t => ({ id: t.id, title: t.title })));
+        const topics = (m.default?.topics || m.topics || []) as Array<{ 
+          id: string; 
+          title: string; 
+          directions: Array<{ text: string }>;
+        }>;
+        setPool(topics.map(t => ({ 
+          id: t.id, 
+          title: t.title, 
+          directions: t.directions || []
+        })));
       })
       .catch(() => setPool([]));
   }, []);
@@ -23,8 +35,8 @@ export const StarterPackPicker: React.FC = () => {
   };
 
   const addSelected = () => {
-    const titles = pool.filter(p => selected.includes(p.id)).map(p => p.title);
-    titles.forEach(t => addTopicByTitle(t));
+    const selectedTopics = pool.filter(p => selected.includes(p.id));
+    selectedTopics.forEach(topic => addTopicFromStarter(topic));
     setSelected([]);
   };
 

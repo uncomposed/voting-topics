@@ -12,6 +12,7 @@ interface Store {
   setNotes: (notes: string) => void;
   addTopic: (importance?: number) => void;
   addTopicByTitle: (title: string) => void;
+  addTopicFromStarter: (starterTopic: { title: string; directions: Array<{ text: string }> }) => void;
   removeTopic: (id: string) => void;
   patchTopic: (id: string, patch: Partial<Topic>) => void;
   patchSource: (id: string, idx: number, patch: Partial<Source>) => void;
@@ -55,6 +56,27 @@ export const useStore = create<Store>()(
             importance: 0,
             stance: 'neutral' as Stance,
             directions: [],
+            notes: '',
+            sources: [],
+            relations: { broader: [], narrower: [], related: [] }
+          },
+          ...state.topics,
+        ]
+      })),
+      addTopicFromStarter: (starterTopic: { title: string; directions: Array<{ text: string }> }) => set((state) => ({
+        topics: [
+          {
+            id: uid(),
+            title: starterTopic.title,
+            importance: 0,
+            stance: 'neutral' as Stance,
+            directions: starterTopic.directions.map(d => ({
+              id: uid(),
+              text: d.text,
+              stars: 0, // Unrated until user decides
+              sources: [],
+              tags: []
+            })),
             notes: '',
             sources: [],
             relations: { broader: [], narrower: [], related: [] }

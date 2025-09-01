@@ -145,13 +145,17 @@ export const parseIncomingTemplate = (data: unknown): Template => {
     return TemplateSchema.parse(data);
   }
   if (maybeVersion === 'tsb.v0') {
+    console.log('Detected v0 template, migrating...', data);
     const legacy = LegacyTemplateSchema.parse(data);
-    return migrateV0toV1(legacy);
+    const migrated = migrateV0toV1(legacy);
+    console.log('Migration successful:', migrated);
+    return migrated;
   }
   // Try strict v1, otherwise try legacy
   try {
     return TemplateSchema.parse(data);
-  } catch {
+  } catch (v1Error) {
+    console.log('v1 parse failed, trying legacy migration...', v1Error);
     const legacy = LegacyTemplateSchema.parse(data);
     return migrateV0toV1(legacy);
   }
