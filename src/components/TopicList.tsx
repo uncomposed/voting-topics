@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { TopicCard } from './TopicCard';
 import type { Topic } from '../schema';
 
@@ -9,30 +9,24 @@ interface TopicListProps {
 }
 
 export const TopicList: React.FC<TopicListProps> = ({ topics, onChange, onDelete }) => {
-  useEffect(() => {
-    const has = topics.length > 0;
-    const emptyEl = document.getElementById('empty');
-    const topicListEl = document.getElementById('topic-list');
-    
-    if (emptyEl) emptyEl.hidden = has;
-    if (topicListEl) topicListEl.hidden = !has;
-  }, [topics.length]);
-
-  return (
-    <div>
-      <div id="topic-list" className="list">
-        {topics.map(topic => (
-          <TopicCard
-            key={topic.id}
-            topic={topic}
-            onChange={(patch) => onChange(topic.id, { ...topic, ...patch })}
-            onDelete={() => onDelete(topic.id)}
-          />
-        ))}
-      </div>
-      <div id="empty" className="empty">
+  if (topics.length === 0) {
+    return (
+      <div className="empty">
         No topics yet. Click <b>New Topic</b> to get started.
       </div>
+    );
+  }
+
+  return (
+    <div className="list">
+      {topics.map(topic => (
+        <TopicCard
+          key={topic.id}
+          topic={topic}
+          onChange={(patch) => onChange(topic.id, patch)}
+          onDelete={() => onDelete(topic.id)}
+        />
+      ))}
     </div>
   );
 };

@@ -39,13 +39,6 @@ const mockDOMElements = () => {
   notesTextarea.id = 'tpl-notes';
   notesTextarea.className = 'input';
   
-  // Create topic list container
-  const topicList = document.createElement('div');
-  topicList.id = 'topic-list';
-  
-  const emptyState = document.createElement('div');
-  emptyState.id = 'empty';
-  
   // Create file input
   const fileInput = document.createElement('input');
   fileInput.id = 'file-input';
@@ -55,8 +48,6 @@ const mockDOMElements = () => {
   document.body.appendChild(toolbar);
   document.body.appendChild(titleInput);
   document.body.appendChild(notesTextarea);
-  document.body.appendChild(topicList);
-  document.body.appendChild(emptyState);
   document.body.appendChild(fileInput);
 };
 
@@ -105,7 +96,7 @@ describe('App Component', () => {
       expect(screen.queryByText('Topic Priority View')).not.toBeInTheDocument();
       
       // Should render list view elements
-      expect(document.getElementById('topic-list')).toBeInTheDocument();
+      expect(screen.getByText('Test Topic 1')).toBeInTheDocument();
     });
 
     it('should toggle to card view when button is clicked', async () => {
@@ -130,7 +121,7 @@ describe('App Component', () => {
       render(<App />);
       
       // Start in list view
-      expect(document.getElementById('topic-list')).toBeInTheDocument();
+      expect(screen.getByText('Test Topic 1')).toBeInTheDocument();
       
       // Switch to card view
       const toggleBtn = document.getElementById('btn-toggle-view');
@@ -140,9 +131,8 @@ describe('App Component', () => {
         expect(screen.getByText('Topic Priority View')).toBeInTheDocument();
       });
       
-      // List view should be hidden
-      const topicList = document.getElementById('topic-list');
-      expect(topicList!.hidden).toBe(true);
+      // List view should be hidden (check React component is not rendered)
+      expect(screen.queryByText('Test Topic 1')).not.toBeInTheDocument();
     });
 
     it('should return to list view when toggle button is clicked again', async () => {
@@ -162,9 +152,8 @@ describe('App Component', () => {
         expect(screen.queryByText('Topic Priority View')).not.toBeInTheDocument();
       });
       
-      // List view should be visible again
-      const topicList = document.getElementById('topic-list');
-      expect(topicList!.hidden).toBe(false);
+      // List view should be visible again (check React component is rendered)
+      expect(screen.getByText('Test Topic 1')).toBeInTheDocument();
     });
   });
 
@@ -194,9 +183,8 @@ describe('App Component', () => {
       
       render(<App />);
       
-      // Should show empty state
-      expect(document.getElementById('empty')!.hidden).toBe(false);
-      expect(document.getElementById('topic-list')!.hidden).toBe(true);
+      // Should show empty state (React component)
+      expect(screen.getByText('No topics yet. Click New Topic to get started.')).toBeInTheDocument();
       
       // Add a topic
       const newTopicBtn = document.getElementById('btn-new-topic');
