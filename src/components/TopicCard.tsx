@@ -26,6 +26,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({ topic, onChange, onDelete 
           value={topic.title}
           onChange={e => onChange({ title: e.target.value })}
           aria-label="Topic title"
+          data-field="title"
         />
         <div>
           <label className="muted">Importance</label>

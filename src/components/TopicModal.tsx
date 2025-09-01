@@ -38,6 +38,7 @@ export const TopicModal: React.FC<TopicModalProps> = ({
   const handleSave = () => {
     onSave(topic.id, formData);
     setEditing(false);
+    onClose(); // Close modal after saving to show updated data in main view
   };
 
   const handleCancel = () => {
@@ -259,7 +260,7 @@ export const TopicModal: React.FC<TopicModalProps> = ({
         <div className="modal-footer">
           {editing ? (
             <>
-              <button className="btn" onClick={handleSave}>Save Changes</button>
+              <button className="btn" onClick={handleSave}>Save & Close</button>
               <button className="btn ghost" onClick={handleCancel}>Cancel</button>
             </>
           ) : (

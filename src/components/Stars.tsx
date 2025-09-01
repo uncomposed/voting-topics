@@ -34,6 +34,7 @@ export const Stars: React.FC<StarsProps> = ({ value, onChange }) => {
           onMouseEnter={() => setActive(n)}
           onMouseLeave={() => setActive(value)}
           onClick={() => onChange(n)}
+          data-value={n}
         >
           {n === 0 ? '–' : (n <= active ? '★' : '☆')}
         </button>
