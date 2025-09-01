@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from './store';
 import { exportJSON, exportPDF, exportJPEG } from './exporters';
 import { parseIncomingTemplate } from './schema';
@@ -21,6 +21,8 @@ export const App: React.FC = () => {
     clearAll 
   } = useStore();
 
+  const topicListRef = useRef<{ toggleAll: () => void; updateButtonText: () => void }>(null);
+
   const [showCards, setShowCards] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,6 +35,7 @@ export const App: React.FC = () => {
     const btnExportPdf = document.getElementById('btn-export-pdf');
     const btnExportJpeg = document.getElementById('btn-export-jpeg');
     const btnImport = document.getElementById('btn-import');
+    const btnExpandAll = document.getElementById('btn-expand-all');
     const fileInput = document.getElementById('file-input') as HTMLInputElement;
     const privacyLink = document.getElementById('privacy-link');
 
@@ -102,6 +105,13 @@ export const App: React.FC = () => {
           }
         };
         reader.readAsText(file);
+      };
+    }
+    
+    if (btnExpandAll) {
+      btnExpandAll.onclick = () => {
+        topicListRef.current?.toggleAll();
+        topicListRef.current?.updateButtonText();
       };
     }
     
@@ -196,6 +206,7 @@ export const App: React.FC = () => {
       {/* List View */}
       {!showCards && (
         <TopicList
+          ref={topicListRef}
           topics={topics}
           onChange={patchTopic}
           onDelete={removeTopic}

@@ -187,6 +187,22 @@ textarea {
   margin: 0;
 }
 
+.panel-header-with-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.panel-header-with-controls .panel-title {
+  margin: 0;
+}
+
+.panel-controls {
+  display: flex;
+  gap: 8px;
+}
+
 .topic {
   display: grid; 
   gap: 10px; 
@@ -195,6 +211,7 @@ textarea {
   border-radius: 14px; 
   padding: 14px;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .topic:nth-child(even) {
@@ -234,17 +251,21 @@ textarea {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
 }
 
 .expand-toggle {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 10px;
+  border-radius: 6px;
 }
 
 .topic-header label {
@@ -747,13 +768,18 @@ textarea {
   transition: all 0.2s ease;
 }
 
-.direction-dot.has-directions {
+.direction-dot.rated {
   color: var(--accent);
+}
+
+.direction-dot.unrated {
+  color: var(--muted);
+  opacity: 0.7;
 }
 
 .direction-dot.no-directions {
   color: var(--muted);
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .sources-list {

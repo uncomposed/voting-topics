@@ -31,30 +31,30 @@ export const TopicCard: React.FC<TopicCardProps> = ({
             aria-label="Topic title"
             data-field="title"
           />
-          {onToggleExpand && (
-            <button 
-              className="btn ghost expand-toggle"
-              onClick={onToggleExpand}
-              aria-label={isExpanded ? 'Collapse topic' : 'Expand topic'}
-            >
-              {isExpanded ? '▼' : '▶'}
-            </button>
-          )}
         </div>
+        {onToggleExpand && (
+          <button 
+            className="btn ghost expand-toggle"
+            onClick={onToggleExpand}
+            aria-label={isExpanded ? 'Collapse topic' : 'Expand topic'}
+          >
+            {isExpanded ? '▼' : '▶'}
+          </button>
+        )}
         <div>
           <label className="muted">Topic Importance</label>
           <Stars value={topic.importance} onChange={n => onChange({ importance: n })} />
         </div>
         <div>
-          <label className="muted">Directions Count</label>
+          <label className="muted">Directions</label>
           <div className="direction-dots">
             {Array.from({ length: Math.max(1, topic.directions.length) }).map((_, i) => (
               <span 
                 key={i} 
-                className={`direction-dot ${i < topic.directions.length ? 'has-directions' : 'no-directions'}`}
+                className={`direction-dot ${i < topic.directions.length ? (topic.directions[i].stars > 0 ? 'rated' : 'unrated') : 'no-directions'}`}
                 title={i < topic.directions.length ? `${topic.directions[i].stars}/5 stars` : 'No direction'}
               >
-                {i < topic.directions.length ? '●' : '○'}
+                {i < topic.directions.length ? (topic.directions[i].stars > 0 ? '●' : '○') : '○'}
               </span>
             ))}
           </div>

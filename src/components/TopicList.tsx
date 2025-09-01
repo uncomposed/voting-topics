@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { TopicCard } from './TopicCard';
 import type { Topic } from '../schema';
 
@@ -8,7 +8,7 @@ interface TopicListProps {
   onDelete: (id: string) => void;
 }
 
-export const TopicList: React.FC<TopicListProps> = ({ topics, onChange, onDelete }) => {
+export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: () => void }, TopicListProps>(({ topics, onChange, onDelete }, ref) => {
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(topics.map(t => t.id)));
   const [allExpanded, setAllExpanded] = useState(true);
 
@@ -41,16 +41,27 @@ export const TopicList: React.FC<TopicListProps> = ({ topics, onChange, onDelete
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    toggleAll,
+    updateButtonText: () => {
+      const btnExpandAll = document.getElementById('btn-expand-all');
+      if (btnExpandAll) {
+        btnExpandAll.textContent = allExpanded ? '▼ Collapse All' : '▶ Expand All';
+      }
+    }
+  }));
+
+  // Update button text when component mounts or state changes
+  useEffect(() => {
+    const btnExpandAll = document.getElementById('btn-expand-all');
+    if (btnExpandAll) {
+      btnExpandAll.textContent = allExpanded ? '▼ Collapse All' : '▶ Expand All';
+    }
+  }, [allExpanded]);
+
   return (
     <div className="list">
       <div className="list-controls">
-        <button 
-          className="btn ghost" 
-          onClick={toggleAll}
-          aria-label={allExpanded ? 'Collapse all topics' : 'Expand all topics'}
-        >
-          {allExpanded ? '▼' : '▶'} {allExpanded ? 'Collapse All' : 'Expand All'}
-        </button>
         <span className="muted">
           {expandedTopics.size} of {topics.length} topics expanded
         </span>
@@ -68,4 +79,4 @@ export const TopicList: React.FC<TopicListProps> = ({ topics, onChange, onDelete
       ))}
     </div>
   );
-};
+});

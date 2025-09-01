@@ -134,10 +134,10 @@ export const TopicCards: React.FC<TopicCardsProps> = ({ topics, onReorder, onTop
                         {Array.from({ length: Math.max(1, topic.directions.length) }).map((_, i) => (
                           <span 
                             key={i} 
-                            className={`direction-dot ${i < topic.directions.length ? 'has-directions' : 'no-directions'}`}
+                            className={`direction-dot ${i < topic.directions.length ? (topic.directions[i].stars > 0 ? 'rated' : 'unrated') : 'no-directions'}`}
                             title={i < topic.directions.length ? `${topic.directions[i].stars}/5 stars` : 'No direction'}
                           >
-                            {i < topic.directions.length ? '●' : '○'}
+                            {i < topic.directions.length ? (topic.directions[i].stars > 0 ? '●' : '○') : '○'}
                           </span>
                         ))}
                       </div>

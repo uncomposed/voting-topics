@@ -96,14 +96,42 @@
     },
     
     {
-      "id": "topic-voting",
-      "title": "Voting",
+      "id": "topic-elections",
+      "title": "Elections",
       "importance": 3,
       "stance": "neutral",
       "directions": [
         { "id": "dir-v1", "text": "Voter turnout is higher", "stars": 0, "sources": [], "tags": [] },
         { "id": "dir-v2", "text": "Wait times at polling places are shorter", "stars": 0, "sources": [], "tags": [] },
-        { "id": "dir-v3", "text": "Fewer ballots are rejected due to errors", "stars": 0, "sources": [], "tags": [] }
+        { "id": "dir-v3", "text": "Fewer ballots are rejected due to errors", "stars": 0, "sources": [], "tags": [] },
+        {
+          "id": "zhqqsnmb1kls",
+          "text": "Early voting and mail in voting should be accessible to all",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "61znjdw64787",
+          "text": "National Elections should be a holiday",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "rslv28cc67nm",
+          "text": "Your vote should be private",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "tr9yri4nfmw2",
+          "text": "Politicians should have age limits along with current minimums",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        }
       ],
       "notes": "",
       "sources": [],
