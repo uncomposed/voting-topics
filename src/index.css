@@ -232,6 +232,15 @@ textarea {
   border-radius: 6px;
 }
 
+.starter-pack-panel {
+  border: 2px solid var(--accent);
+  background: linear-gradient(135deg, var(--panel) 0%, rgba(139, 211, 255, 0.05) 100%);
+}
+
+.starter-pack-panel .panel-title {
+  color: var(--accent);
+}
+
 .starter-pack-controls {
   display: flex;
   align-items: center;

@@ -39,6 +39,18 @@ export const DirectionsList: React.FC<DirectionsListProps> = ({ directions, onCh
 
   return (
     <div>
+      <div className="directions-help" style={{ 
+        marginBottom: '12px', 
+        padding: '8px 12px', 
+        background: 'rgba(139, 211, 255, 0.1)', 
+        border: '1px solid rgba(139, 211, 255, 0.3)', 
+        borderRadius: '6px',
+        fontSize: '0.85rem'
+      }}>
+        <strong>💡 Star Rating Guide:</strong> Rate each direction's importance from 0 (skip) to 5 (critical). 
+        This helps you prioritize your preferences and see how differentiated your views are.
+      </div>
+      
       <div className="direction-controls">
         <input
           value={text}

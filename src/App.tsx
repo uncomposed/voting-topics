@@ -8,6 +8,8 @@ import { StarterPackPicker } from './components/StarterPackPicker';
 import { PreferenceSetComparison } from './components/PreferenceSetComparison';
 import { BallotBuilder } from './components/ballot';
 import { LLMIntegration } from './components/LLMIntegration';
+import { NextStepGuidance } from './components/NextStepGuidance';
+import { GettingStartedGuide } from './components/GettingStartedGuide';
 
 export const App: React.FC = () => {
   const title = useStore(state => state.title);
@@ -28,6 +30,7 @@ export const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDiffComparison, setShowDiffComparison] = useState(false);
   const [showLLMIntegration, setShowLLMIntegration] = useState(false);
+  const [showGettingStarted, setShowGettingStarted] = useState(false);
 
   // Set up expand/collapse button handler (other buttons are wired in main.tsx)
   useEffect(() => {
@@ -86,6 +89,11 @@ export const App: React.FC = () => {
       llmBtn.className = 'btn';
       llmBtn.textContent = 'LLM Integration';
       
+      const helpBtn = document.createElement('button');
+      helpBtn.id = 'btn-getting-started';
+      helpBtn.className = 'btn ghost';
+      helpBtn.textContent = 'Getting Started';
+      
       // Insert after the first button
       const firstBtn = toolbar.querySelector('.btn');
       if (firstBtn) {
@@ -93,11 +101,13 @@ export const App: React.FC = () => {
         firstBtn.parentNode?.insertBefore(diffBtn, toggleBtn.nextSibling);
         firstBtn.parentNode?.insertBefore(ballotBtn, diffBtn.nextSibling);
         firstBtn.parentNode?.insertBefore(llmBtn, ballotBtn.nextSibling);
+        firstBtn.parentNode?.insertBefore(helpBtn, llmBtn.nextSibling);
       } else {
         toolbar.appendChild(toggleBtn);
         toolbar.appendChild(diffBtn);
         toolbar.appendChild(ballotBtn);
         toolbar.appendChild(llmBtn);
+        toolbar.appendChild(helpBtn);
       }
     }
   }, []); // Only run once on mount
@@ -154,6 +164,12 @@ export const App: React.FC = () => {
         llmBtn.textContent = 'LLM Integration';
         llmBtn.onclick = () => setShowLLMIntegration(true);
       }
+    }
+    
+    const helpBtn = document.getElementById('btn-getting-started');
+    if (helpBtn) {
+      helpBtn.textContent = 'Getting Started';
+      helpBtn.onclick = () => setShowGettingStarted(true);
     }
     
     // Update expand all button text when switching views
@@ -214,6 +230,9 @@ export const App: React.FC = () => {
 
   return (
     <>
+      {/* Next Step Guidance */}
+      <NextStepGuidance />
+
       {/* Card View */}
       {showCards && (
         <TopicCards
@@ -245,6 +264,11 @@ export const App: React.FC = () => {
         onSave={handleTopicSave}
         onDelete={handleTopicDelete}
       />
+
+      {/* Getting Started Guide Modal */}
+      {showGettingStarted && (
+        <GettingStartedGuide onClose={() => setShowGettingStarted(false)} />
+      )}
     </>
   );
 };

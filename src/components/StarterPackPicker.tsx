@@ -57,9 +57,14 @@ export const StarterPackPicker: React.FC = () => {
   if (topics.length > 0) return null;
 
   return (
-    <div className="panel" style={{ marginTop: 16 }}>
+    <div className="panel starter-pack-panel" style={{ marginTop: 16 }}>
       <div className="panel-header-collapsible">
-        <h2 className="panel-title">Add from Starter Pack</h2>
+        <div>
+          <h2 className="panel-title">🚀 Get Started with Starter Pack</h2>
+          <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>
+            Choose from {pool.length} pre-built topics to jumpstart your preferences
+          </p>
+        </div>
         <button 
           className="btn ghost starter-toggle"
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -91,9 +96,18 @@ export const StarterPackPicker: React.FC = () => {
               </label>
             ))}
           </div>
-          <div className="row" style={{ justifyContent: 'flex-end', marginTop: 12 }}>
-            <button className="btn" onClick={addSelected} disabled={selected.length === 0}>
-              Add Selected ({selected.length})
+          <div className="row" style={{ justifyContent: 'center', marginTop: 20, padding: '16px 0', borderTop: '1px solid var(--border)' }}>
+            <button 
+              className="btn primary" 
+              onClick={addSelected} 
+              disabled={selected.length === 0}
+              style={{ 
+                fontSize: '1rem', 
+                padding: '12px 24px',
+                fontWeight: '600'
+              }}
+            >
+              ✨ Add {selected.length} Selected Topic{selected.length !== 1 ? 's' : ''} to My List
             </button>
           </div>
         </>

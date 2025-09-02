@@ -14,3 +14,41 @@ export const downloadFile = (blob: Blob, filename: string) => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 0);
 };
+
+export const calculateStandardDeviation = (values: number[]): number => {
+  if (values.length === 0) return 0;
+  
+  const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+  const squaredDiffs = values.map(val => Math.pow(val - mean, 2));
+  const avgSquaredDiff = squaredDiffs.reduce((sum, val) => sum + val, 0) / values.length;
+  
+  return Math.sqrt(avgSquaredDiff);
+};
+
+export const getDifferentiationLevel = (stdDev: number): { level: string; color: string; description: string } => {
+  if (stdDev < 0.5) {
+    return { 
+      level: "Undifferentiated", 
+      color: "var(--muted)", 
+      description: "You rate most directions similarly - consider if you have stronger preferences" 
+    };
+  } else if (stdDev < 1.0) {
+    return { 
+      level: "Somewhat Differentiated", 
+      color: "var(--warn)", 
+      description: "You have some preference differences - good start!" 
+    };
+  } else if (stdDev < 1.5) {
+    return { 
+      level: "Well Differentiated", 
+      color: "var(--accent)", 
+      description: "You have clear preference priorities - excellent!" 
+    };
+  } else {
+    return { 
+      level: "Highly Differentiated", 
+      color: "var(--accent-2)", 
+      description: "You have very strong and clear preference priorities!" 
+    };
+  }
+};

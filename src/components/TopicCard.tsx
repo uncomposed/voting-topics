@@ -2,6 +2,7 @@ import React from 'react';
 import { Stars } from './Stars';
 import { DirectionsList } from './DirectionsList';
 import { SmartDirectionDots } from './SmartDirectionDots';
+import { calculateStandardDeviation, getDifferentiationLevel } from '../utils';
 import type { Topic } from '../schema';
 
 interface TopicCardProps {
@@ -63,6 +64,39 @@ export const TopicCard: React.FC<TopicCardProps> = ({
               directions={topic.directions}
               onChange={(directions) => onChange({ directions })}
             />
+            
+            {topic.directions.length > 1 && (
+              <div className="differentiation-display" style={{ 
+                marginTop: '12px', 
+                padding: '8px 12px', 
+                background: 'rgba(139, 211, 255, 0.05)', 
+                border: '1px solid rgba(139, 211, 255, 0.2)', 
+                borderRadius: '6px',
+                fontSize: '0.85rem'
+              }}>
+                {(() => {
+                  const starValues = topic.directions.map(d => d.stars);
+                  const stdDev = calculateStandardDeviation(starValues);
+                  const diffLevel = getDifferentiationLevel(stdDev);
+                  
+                  return (
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: '600', color: diffLevel.color }}>
+                          📊 {diffLevel.level}
+                        </span>
+                        <span className="muted" style={{ fontSize: '0.8rem' }}>
+                          (σ = {stdDev.toFixed(2)})
+                        </span>
+                      </div>
+                      <div className="muted" style={{ fontSize: '0.8rem' }}>
+                        {diffLevel.description}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
 
           <label>Notes
