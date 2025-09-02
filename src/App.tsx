@@ -173,18 +173,32 @@ export const App: React.FC = () => {
     }
   }, []); // Only run once on mount
 
-  // Update button text and handler when showCards changes
+  // Update button text and handler when showCards or showDiffComparison changes
   useEffect(() => {
     const toggleBtn = document.getElementById('btn-toggle-view');
     if (toggleBtn) {
-      toggleBtn.textContent = showCards ? 'Show List View' : 'Show Card View';
-      // Update the onclick handler to use the current showCards value
-      toggleBtn.onclick = () => setShowCards(!showCards);
+      if (showDiffComparison) {
+        // When in diff comparison view, show "Back to Main View"
+        toggleBtn.textContent = 'Back to Main View';
+        toggleBtn.onclick = () => setShowDiffComparison(false);
+      } else {
+        // When in main view, show the normal toggle
+        toggleBtn.textContent = showCards ? 'Show List View' : 'Show Card View';
+        toggleBtn.onclick = () => setShowCards(!showCards);
+      }
     }
     
     const diffBtn = document.getElementById('btn-diff-comparison');
     if (diffBtn) {
-      diffBtn.onclick = () => setShowDiffComparison(true);
+      if (showDiffComparison) {
+        // When in diff comparison view, show "Close Comparison"
+        diffBtn.textContent = 'Close Comparison';
+        diffBtn.onclick = () => setShowDiffComparison(false);
+      } else {
+        // When in main view, show "Compare Preference Sets"
+        diffBtn.textContent = 'Compare Preference Sets';
+        diffBtn.onclick = () => setShowDiffComparison(true);
+      }
     }
     
     // Update expand all button text when switching views
@@ -199,7 +213,7 @@ export const App: React.FC = () => {
         setTimeout(() => topicListRef.current?.updateButtonText(), 100);
       }
     }
-  }, [showCards]);
+  }, [showCards, showDiffComparison]);
 
   // Card view handlers
   const handleTopicReorder = (topicId: string, newImportance: number) => {
