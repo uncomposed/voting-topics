@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from './store';
 import { exportJSON, exportPDF, exportJPEG } from './exporters';
-import { parseIncomingTemplate } from './schema';
+import { parseIncomingPreferenceSet } from './schema';
 import { TopicCards } from './components/TopicCards';
 import { TopicModal } from './components/TopicModal';
 import { TopicList } from './components/TopicList';
 import { Topic } from './schema';
 import { StarterPackPicker } from './components/StarterPackPicker';
+import { PreferenceSetComparison } from './components/PreferenceSetComparison';
 
 export const App: React.FC = () => {
   const { 
@@ -27,6 +28,7 @@ export const App: React.FC = () => {
   const [showCards, setShowCards] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showDiffComparison, setShowDiffComparison] = useState(false);
 
   // Set up button event handlers once on mount
   useEffect(() => {
@@ -92,7 +94,7 @@ export const App: React.FC = () => {
         reader.onload = () => {
           try {
             const obj = JSON.parse(String(reader.result || '{}'));
-            const parsed = parseIncomingTemplate(obj);
+            const parsed = parseIncomingPreferenceSet(obj);
             useStore.setState({
               title: parsed.title,
               notes: parsed.notes || '',
@@ -127,7 +129,7 @@ export const App: React.FC = () => {
         alert('Privacy: This app stores data only in your browser (localStorage). No accounts, no analytics, no network calls.\nDisclaimers: This is an informational tool; verify official ballot info via your local election authority.');
       };
     }
-  }, [addTopic, clearAll]);
+  }, [addTopic, clearAll, showCards]);
 
   // Set up form inputs once on mount
   useEffect(() => {
@@ -145,7 +147,7 @@ export const App: React.FC = () => {
     }
   }, [title, notes, setTitle, setNotes]);
 
-  // Add view toggle button to the toolbar (only once on mount)
+  // Add view toggle and diff comparison buttons to the toolbar (only once on mount)
   useEffect(() => {
     const toolbar = document.querySelector('.toolbar');
     if (toolbar && !document.getElementById('btn-toggle-view')) {
@@ -154,12 +156,19 @@ export const App: React.FC = () => {
       toggleBtn.className = 'btn';
       toggleBtn.textContent = 'Show Card View';
       
+      const diffBtn = document.createElement('button');
+      diffBtn.id = 'btn-diff-comparison';
+      diffBtn.className = 'btn';
+      diffBtn.textContent = 'Compare Preference Sets';
+      
       // Insert after the first button
       const firstBtn = toolbar.querySelector('.btn');
       if (firstBtn) {
         firstBtn.parentNode?.insertBefore(toggleBtn, firstBtn.nextSibling);
+        firstBtn.parentNode?.insertBefore(diffBtn, toggleBtn.nextSibling);
       } else {
         toolbar.appendChild(toggleBtn);
+        toolbar.appendChild(diffBtn);
       }
     }
   }, []); // Only run once on mount
@@ -171,6 +180,11 @@ export const App: React.FC = () => {
       toggleBtn.textContent = showCards ? 'Show List View' : 'Show Card View';
       // Update the onclick handler to use the current showCards value
       toggleBtn.onclick = () => setShowCards(!showCards);
+    }
+    
+    const diffBtn = document.getElementById('btn-diff-comparison');
+    if (diffBtn) {
+      diffBtn.onclick = () => setShowDiffComparison(true);
     }
     
     // Update expand all button text when switching views
@@ -211,6 +225,12 @@ export const App: React.FC = () => {
   };
 
   // Render the appropriate view based on state
+  if (showDiffComparison) {
+    return (
+      <PreferenceSetComparison onClose={() => setShowDiffComparison(false)} />
+    );
+  }
+
   return (
     <>
       {/* Card View */}

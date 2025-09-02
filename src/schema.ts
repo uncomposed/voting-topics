@@ -52,9 +52,9 @@ export const TopicSchema = z.object({
   relations: TopicRelations.default({ broader: [], narrower: [], related: [] })
 });
 
-export const TemplateSchema = z.object({
+export const PreferenceSetSchema = z.object({
   version: z.literal('tsb.v1'), // Updated version
-  title: z.string().min(1, 'Template title required'),
+  title: z.string().min(1, 'Preference set title required'),
   notes: z.string().optional(),
   topics: z.array(TopicSchema).min(1, 'At least one topic'),
   createdAt: z.string(),
@@ -83,9 +83,9 @@ export const LegacyTopicSchema = z.object({
   sources: z.array(SourceSchema).max(5),
 });
 
-export const LegacyTemplateSchema = z.object({
+export const LegacyPreferenceSetSchema = z.object({
   version: z.literal('tsb.v0'),
-  title: z.string().min(1, 'Template title required'),
+  title: z.string().min(1, 'Preference set title required'),
   notes: z.string().optional(),
   topics: z.array(LegacyTopicSchema).min(1, 'At least one topic'),
   createdAt: z.string(),
@@ -98,15 +98,15 @@ export type Direction = z.infer<typeof Direction>;
 export type TopicRelations = z.infer<typeof TopicRelations>;
 export type Source = z.infer<typeof SourceSchema>;
 export type Topic = z.infer<typeof TopicSchema>;
-export type Template = z.infer<typeof TemplateSchema>;
+export type PreferenceSet = z.infer<typeof PreferenceSetSchema>;
 
 // Legacy types for migration
 export type DirectionScale = z.infer<typeof DirectionScale>;
 export type LegacyTopic = z.infer<typeof LegacyTopicSchema>;
-export type LegacyTemplate = z.infer<typeof LegacyTemplateSchema>;
+export type LegacyPreferenceSet = z.infer<typeof LegacyPreferenceSetSchema>;
 
 // Migration: v0 -> v1
-export const migrateV0toV1 = (legacy: LegacyTemplate): Template => {
+export const migrateV0toV1 = (legacy: LegacyPreferenceSet): PreferenceSet => {
   const topics = legacy.topics.map(t => {
     const directions = [] as Array<z.infer<typeof Direction>>;
     if (t.mode === 'custom' && t.direction.custom && t.direction.custom.trim().length > 0) {
@@ -134,25 +134,32 @@ export const migrateV0toV1 = (legacy: LegacyTemplate): Template => {
     createdAt: legacy.createdAt,
     updatedAt: legacy.updatedAt,
   };
-  return TemplateSchema.parse(candidate);
+  return PreferenceSetSchema.parse(candidate);
 };
 
-// Parse any incoming template JSON (v1 or legacy v0)
-export const parseIncomingTemplate = (data: unknown): Template => {
+// Parse any incoming preference set JSON (v1 or legacy v0)
+export const parseIncomingPreferenceSet = (data: unknown): PreferenceSet => {
   // Fast-path v1
   const maybeVersion = (data as any)?.version;
   if (maybeVersion === 'tsb.v1') {
-    return TemplateSchema.parse(data);
+    return PreferenceSetSchema.parse(data);
   }
   if (maybeVersion === 'tsb.v0') {
-    const legacy = LegacyTemplateSchema.parse(data);
+    const legacy = LegacyPreferenceSetSchema.parse(data);
     return migrateV0toV1(legacy);
   }
   // Try strict v1, otherwise try legacy
   try {
-    return TemplateSchema.parse(data);
+    return PreferenceSetSchema.parse(data);
   } catch (v1Error) {
-    const legacy = LegacyTemplateSchema.parse(data);
+    const legacy = LegacyPreferenceSetSchema.parse(data);
     return migrateV0toV1(legacy);
   }
 };
+
+// Backward compatibility aliases
+export const TemplateSchema = PreferenceSetSchema;
+export const LegacyTemplateSchema = LegacyPreferenceSetSchema;
+export type Template = PreferenceSet;
+export type LegacyTemplate = LegacyPreferenceSet;
+export const parseIncomingTemplate = parseIncomingPreferenceSet;
