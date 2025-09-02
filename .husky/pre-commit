@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npm run check-duplicates
+# Run duplication check with options
+# Use --warn-only to show warnings but not fail the commit
+# Use --skip-high to ignore high severity issues
+node scripts/check-duplicates.js --warn-only

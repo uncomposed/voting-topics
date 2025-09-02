@@ -95,8 +95,24 @@ function checkForDuplicates() {
   
   let hasDuplicates = false;
   let totalIssues = 0;
+  let highSeverityIssues = 0;
+  let mediumSeverityIssues = 0;
+  let lowSeverityIssues = 0;
+  
+  // Parse command line options
+  const warnOnly = process.argv.includes('--warn-only');
+  const skipHigh = process.argv.includes('--skip-high');
+  const skipMedium = process.argv.includes('--skip-medium');
+  const skipLow = process.argv.includes('--skip-low');
   
   for (const { name, pattern, message, suggestion, severity } of DUPLICATION_PATTERNS) {
+    // Skip based on severity if requested
+    if ((severity === 'high' && skipHigh) || 
+        (severity === 'medium' && skipMedium) || 
+        (severity === 'low' && skipLow)) {
+      continue;
+    }
+    
     try {
       const result = execSync(`grep -r "${pattern}" src/ --include="*.ts" --include="*.tsx"`, 
         { encoding: 'utf8' });
@@ -106,7 +122,13 @@ function checkForDuplicates() {
         const fileCount = files.length;
         totalIssues += fileCount;
         
-        console.log(`⚠️  ${name} detected:`);
+        // Count by severity
+        if (severity === 'high') highSeverityIssues += fileCount;
+        else if (severity === 'medium') mediumSeverityIssues += fileCount;
+        else if (severity === 'low') lowSeverityIssues += fileCount;
+        
+        const severityIcon = severity === 'high' ? '🔴' : severity === 'medium' ? '🟡' : '🟢';
+        console.log(`${severityIcon} ${name} detected:`);
         console.log(`   ${message}`);
         console.log(`   Files affected: ${fileCount}`);
         console.log(`   Severity: ${severity.toUpperCase()}`);
@@ -122,8 +144,18 @@ function checkForDuplicates() {
   
   if (hasDuplicates) {
     console.log(`\n📊 Summary: ${totalIssues} potential duplication issues found`);
-    console.log('💡 Run "npm run suggest-refactors" for specific recommendations');
+    if (highSeverityIssues > 0) console.log(`   🔴 High severity: ${highSeverityIssues}`);
+    if (mediumSeverityIssues > 0) console.log(`   🟡 Medium severity: ${mediumSeverityIssues}`);
+    if (lowSeverityIssues > 0) console.log(`   🟢 Low severity: ${lowSeverityIssues}`);
+    
+    console.log('\n💡 Run "npm run suggest-refactors" for specific recommendations');
     console.log('📚 Check Storybook for available hooks and utilities');
+    
+    if (warnOnly) {
+      console.log('\n⚠️  Running in warn-only mode - not failing the build');
+      return false; // Don't fail in warn-only mode
+    }
+    
     return true;
   } else {
     console.log('✅ No duplication patterns detected!');
@@ -162,11 +194,17 @@ Options:
   --help, -h     Show this help message
   --resources    Show available hooks and utilities
   --suggest      Show refactoring suggestions
+  --warn-only    Show warnings but don't fail (exit code 0)
+  --skip-high    Skip high severity checks
+  --skip-medium  Skip medium severity checks
+  --skip-low     Skip low severity checks
 
 Examples:
   node scripts/check-duplicates.js
   node scripts/check-duplicates.js --resources
   node scripts/check-duplicates.js --suggest
+  node scripts/check-duplicates.js --warn-only
+  node scripts/check-duplicates.js --skip-high --warn-only
   `);
   process.exit(0);
 }

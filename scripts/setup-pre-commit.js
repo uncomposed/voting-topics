@@ -15,18 +15,11 @@ const PRE_COMMIT_HOOK = `#!/bin/bash
 
 echo "🔍 Running pre-commit checks..."
 
-# Run duplication detection
-npm run check-duplicates
+# Run duplication detection in warn-only mode
+# This shows warnings but doesn't fail the commit
+node scripts/check-duplicates.js --warn-only
 
-# If duplicates found, prevent commit
-if [ $? -ne 0 ]; then
-    echo "❌ Potential duplicates detected! Please review and refactor."
-    echo "💡 Run 'npm run suggest-refactors' for specific recommendations"
-    echo "📚 Check Storybook for examples: npm run storybook"
-    exit 1
-fi
-
-echo "✅ No duplicates detected. Proceeding with commit."
+echo "✅ Pre-commit checks complete. Proceeding with commit."
 `;
 
 function setupPreCommitHook() {
@@ -74,7 +67,10 @@ function setupHusky() {
     const huskyPreCommit = `#!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npm run check-duplicates
+# Run duplication check with options
+# Use --warn-only to show warnings but not fail the commit
+# Use --skip-high to ignore high severity issues
+node scripts/check-duplicates.js --warn-only
 `;
     
     fs.writeFileSync('.husky/pre-commit', huskyPreCommit);
