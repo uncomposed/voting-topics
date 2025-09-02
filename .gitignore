@@ -94,3 +94,6 @@ jspm_packages/
 
 # DynamoDB Local files
 .dynamodb/
+
+*storybook.log
+storybook-static
