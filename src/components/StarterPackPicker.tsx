@@ -41,6 +41,14 @@ export const StarterPackPicker: React.FC = () => {
     setSelected([]);
   };
 
+  const selectAll = () => {
+    setSelected(pool.map(p => p.id));
+  };
+
+  const selectNone = () => {
+    setSelected([]);
+  };
+
   if (pool.length === 0) return null;
 
   return (
@@ -58,20 +66,29 @@ export const StarterPackPicker: React.FC = () => {
       
       {!isCollapsed && (
         <>
-          <div className="list" style={{ marginBottom: 12 }}>
-            {pool.map(item => (
-              <label key={item.id} className="row" style={{ justifyContent: 'space-between' }}>
-                <span>{item.title}</span>
+          <div className="starter-pack-controls" style={{ marginBottom: 12 }}>
+            <button className="btn ghost" onClick={selectAll}>Select All</button>
+            <button className="btn ghost" onClick={selectNone}>Select None</button>
+            <span className="muted" style={{ marginLeft: 'auto' }}>
+              {selected.length} of {pool.length} selected
+            </span>
+          </div>
+          <div className="starter-pack-list">
+            {pool.map((item) => (
+              <label key={item.id} className="starter-pack-item">
                 <input
                   type="checkbox"
                   checked={selected.includes(item.id)}
                   onChange={() => toggle(item.id)}
                 />
+                <span className="starter-pack-title">{item.title}</span>
               </label>
             ))}
           </div>
-          <div className="row" style={{ justifyContent: 'flex-end' }}>
-            <button className="btn" onClick={addSelected} disabled={selected.length === 0}>Add Selected</button>
+          <div className="row" style={{ justifyContent: 'flex-end', marginTop: 12 }}>
+            <button className="btn" onClick={addSelected} disabled={selected.length === 0}>
+              Add Selected ({selected.length})
+            </button>
           </div>
         </>
       )}

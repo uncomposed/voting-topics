@@ -127,7 +127,7 @@ export const TopicModal: React.FC<TopicModalProps> = ({
 
               <div className="form-group">
                 <label>Directions</label>
-                <div className="text-sm text-gray-600 mb-2">
+                <div className="muted" style={{ fontSize: '12px', marginBottom: '8px' }}>
                   Add specific outcomes or changes you want to see within this topic. Each direction gets its own importance rating.
                 </div>
                 <DirectionsList 

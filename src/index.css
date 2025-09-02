@@ -225,6 +225,48 @@ textarea {
   border-radius: 6px;
 }
 
+.starter-pack-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.starter-pack-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.starter-pack-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.starter-pack-item:last-child {
+  border-bottom: none;
+}
+
+.starter-pack-item:hover {
+  background-color: rgba(139, 211, 255, 0.05);
+}
+
+.starter-pack-item input[type="checkbox"] {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.starter-pack-title {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text);
+}
+
 .topic {
   display: grid; 
   gap: 10px; 
@@ -263,7 +305,7 @@ textarea {
   }
 }
 
-.topic-header > div {
+.topic-header > div:not(.topic-header-main) {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -271,23 +313,36 @@ textarea {
 
 .topic-header-main {
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
+}
+
+.topic-header-main .input {
   flex: 1;
 }
 
 .expand-toggle {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 12px;
   border-radius: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.expand-toggle.expanded {
+  background: var(--accent);
+  color: #000;
+}
+
+.expand-toggle.collapsed {
+  background: #1a2144;
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .topic-header label {

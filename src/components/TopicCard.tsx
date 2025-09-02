@@ -32,16 +32,16 @@ export const TopicCard: React.FC<TopicCardProps> = ({
             aria-label="Topic title"
             data-field="title"
           />
+          {onToggleExpand && (
+            <button 
+              className={`btn ghost expand-toggle ${isExpanded ? 'expanded' : 'collapsed'}`}
+              onClick={onToggleExpand}
+              aria-label={isExpanded ? 'Collapse topic' : 'Expand topic'}
+            >
+              {isExpanded ? '▼' : '▶'}
+            </button>
+          )}
         </div>
-        {onToggleExpand && (
-          <button 
-            className="btn ghost expand-toggle"
-            onClick={onToggleExpand}
-            aria-label={isExpanded ? 'Collapse topic' : 'Expand topic'}
-          >
-            {isExpanded ? '▼' : '▶'}
-          </button>
-        )}
         <div>
           <label className="muted">Topic Importance</label>
           <Stars value={topic.importance} onChange={n => onChange({ importance: n })} />
@@ -56,7 +56,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
         <>
           <div>
             <label className="muted">Directions</label>
-            <div className="text-sm text-gray-600 mb-2">
+            <div className="muted" style={{ fontSize: '12px', marginBottom: '8px' }}>
               Add specific outcomes or changes you want to see within this topic. Each direction gets its own importance rating.
             </div>
             <DirectionsList 
