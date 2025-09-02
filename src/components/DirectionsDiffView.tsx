@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import type { PreferenceSet, Topic, Direction } from '../schema';
+import { useExpandedState } from '../hooks/useExpandedState';
+import { useDirectionsFilters } from '../hooks/useFilters';
 
 interface DirectionsDiffViewProps {
   leftPreferenceSet: PreferenceSet;
@@ -17,22 +19,12 @@ interface DirectionComparison {
   isModified: boolean;
 }
 
-interface DirectionsFilter {
-  topicFilter: 'all' | 'similar' | 'different' | 'missing';
-  directionFilter: 'all' | 'matching' | 'most_different' | 'highest_rated';
-  magnitudeFilter: 'all' | 'high_diff' | 'high_rating';
-}
-
 export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({ 
   leftPreferenceSet, 
   rightPreferenceSet 
 }) => {
-  const [filters, setFilters] = useState<DirectionsFilter>({
-    topicFilter: 'all',
-    directionFilter: 'all',
-    magnitudeFilter: 'all'
-  });
-  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
+  const { expandedItems, toggleExpanded, toggleAllExpanded, isExpanded } = useExpandedState();
+  const { filters, updateFilter } = useDirectionsFilters();
 
   // Compute all direction comparisons
   const directionComparisons = useMemo(() => {
@@ -197,25 +189,7 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
     return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [filteredComparisons]);
 
-  const toggleTopicExpanded = (topicTitle: string) => {
-    const newExpanded = new Set(expandedTopics);
-    if (newExpanded.has(topicTitle)) {
-      newExpanded.delete(topicTitle);
-    } else {
-      newExpanded.add(topicTitle);
-    }
-    setExpandedTopics(newExpanded);
-  };
 
-  const toggleAllExpanded = () => {
-    if (expandedTopics.size === groupedComparisons.length) {
-      // All are expanded, collapse all
-      setExpandedTopics(new Set());
-    } else {
-      // Some or none are expanded, expand all
-      setExpandedTopics(new Set(groupedComparisons.map(([topicTitle]) => topicTitle)));
-    }
-  };
 
   const getDirectionTypeColor = (comp: DirectionComparison) => {
     if (comp.isAdded) return 'var(--accent-2)';
@@ -245,7 +219,7 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
           <label>Topic Filter:</label>
           <select 
             value={filters.topicFilter} 
-            onChange={(e) => setFilters(prev => ({ ...prev, topicFilter: e.target.value as any }))}
+            onChange={(e) => updateFilter('topicFilter', e.target.value as any)}
             className="select"
           >
             <option value="all">All Topics</option>
@@ -259,7 +233,7 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
           <label>Direction Filter:</label>
           <select 
             value={filters.directionFilter} 
-            onChange={(e) => setFilters(prev => ({ ...prev, directionFilter: e.target.value as any }))}
+            onChange={(e) => updateFilter('directionFilter', e.target.value as any)}
             className="select"
           >
             <option value="all">All Directions</option>
@@ -273,7 +247,7 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
           <label>Magnitude Filter:</label>
           <select 
             value={filters.magnitudeFilter} 
-            onChange={(e) => setFilters(prev => ({ ...prev, magnitudeFilter: e.target.value as any }))}
+            onChange={(e) => updateFilter('magnitudeFilter', e.target.value as any)}
             className="select"
           >
             <option value="all">All Magnitudes</option>
@@ -283,11 +257,11 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
         </div>
 
         <button 
-          onClick={toggleAllExpanded}
+          onClick={() => toggleAllExpanded(groupedComparisons.map(([topicTitle]) => topicTitle))}
           className="btn"
           style={{ fontSize: '12px', padding: '6px 12px' }}
         >
-          {expandedTopics.size === groupedComparisons.length ? 'Collapse All' : 'Expand All'}
+          {expandedItems.size === groupedComparisons.length ? 'Collapse All' : 'Expand All'}
         </button>
       </div>
 
@@ -311,18 +285,18 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
           <div key={topicTitle} className="topic-directions-group">
             <div 
               className="topic-directions-header"
-              onClick={() => toggleTopicExpanded(topicTitle)}
+              onClick={() => toggleExpanded(topicTitle)}
             >
               <h4>{topicTitle}</h4>
               <div className="topic-directions-meta">
                 <span className="direction-count">{comparisons.length} directions</span>
                 <span className="expand-icon">
-                  {expandedTopics.has(topicTitle) ? '▼' : '▶'}
+                  {isExpanded(topicTitle) ? '▼' : '▶'}
                 </span>
               </div>
             </div>
 
-            {expandedTopics.has(topicTitle) && (
+            {isExpanded(topicTitle) && (
               <div className="topic-directions-content">
                 {comparisons.map((comp, index) => (
                   <div key={index} className="direction-comparison">

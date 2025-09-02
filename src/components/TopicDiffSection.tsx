@@ -1,36 +1,18 @@
-import React, { useState } from 'react';
-import type { PreferenceSetDiff, TopicDiff } from '../diff';
+import React from 'react';
+import type { PreferenceSetDiff, TopicDiff } from '../types/diff';
+import { useExpandedState } from '../hooks/useExpandedState';
+import { useFilters } from '../hooks/useFilters';
 
 interface TopicDiffSectionProps {
   diff: PreferenceSetDiff;
 }
 
 export const TopicDiffSection: React.FC<TopicDiffSectionProps> = ({ diff }) => {
-  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
-  const [filterType, setFilterType] = useState<'all' | 'added' | 'removed' | 'modified'>('all');
-  
-  const toggleExpanded = (topicId: string) => {
-    const newExpanded = new Set(expandedTopics);
-    if (newExpanded.has(topicId)) {
-      newExpanded.delete(topicId);
-    } else {
-      newExpanded.add(topicId);
-    }
-    setExpandedTopics(newExpanded);
-  };
-
-  const toggleAllExpanded = () => {
-    if (expandedTopics.size === filteredTopics.length) {
-      // All are expanded, collapse all
-      setExpandedTopics(new Set());
-    } else {
-      // Some or none are expanded, expand all
-      setExpandedTopics(new Set(filteredTopics.map(topic => topic.id)));
-    }
-  };
+  const { expandedItems, toggleExpanded, toggleAllExpanded, isExpanded } = useExpandedState();
+  const { filters, updateFilter } = useFilters();
   
   const getFilteredTopics = () => {
-    switch (filterType) {
+    switch (filters.topicFilter) {
       case 'added':
         return diff.topics.added;
       case 'removed':
@@ -67,8 +49,8 @@ export const TopicDiffSection: React.FC<TopicDiffSectionProps> = ({ diff }) => {
           <div className="control-group">
             <label>Filter:</label>
             <select 
-              value={filterType} 
-              onChange={(e) => setFilterType(e.target.value as any)}
+              value={filters.topicFilter} 
+              onChange={(e) => updateFilter('topicFilter', e.target.value as any)}
               className="select"
             >
               <option value="all">All Changes</option>
@@ -78,11 +60,11 @@ export const TopicDiffSection: React.FC<TopicDiffSectionProps> = ({ diff }) => {
             </select>
           </div>
           <button 
-            onClick={toggleAllExpanded}
+            onClick={() => toggleAllExpanded(filteredTopics.map(topic => topic.id))}
             className="btn"
             style={{ fontSize: '12px', padding: '6px 12px' }}
           >
-            {expandedTopics.size === filteredTopics.length ? 'Collapse All' : 'Expand All'}
+            {expandedItems.size === filteredTopics.length ? 'Collapse All' : 'Expand All'}
           </button>
         </div>
       </div>
@@ -91,7 +73,7 @@ export const TopicDiffSection: React.FC<TopicDiffSectionProps> = ({ diff }) => {
         {filteredTopics.map(topic => {
           const topicType = getTopicType(topic.id);
           const topicDiff = getTopicDiff(topic.id);
-          const isExpanded = expandedTopics.has(topic.id);
+          const topicIsExpanded = isExpanded(topic.id);
           
           return (
             <div key={topic.id} className={`topic-diff-item ${topicType}`}>
@@ -109,12 +91,12 @@ export const TopicDiffSection: React.FC<TopicDiffSectionProps> = ({ diff }) => {
                 <div className="topic-diff-meta">
                   <span className="topic-importance">{topic.importance}/5</span>
                   <span className="expand-icon">
-                    {isExpanded ? '▼' : '▶'}
+                    {topicIsExpanded ? '▼' : '▶'}
                   </span>
                 </div>
               </div>
               
-              {isExpanded && (
+              {topicIsExpanded && (
                 <div className="topic-diff-details">
                   {topicType === 'added' && (
                     <div className="topic-diff-content">

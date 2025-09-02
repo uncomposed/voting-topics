@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { PreferenceSet } from '../schema';
-import { computePreferenceSetDiff, computePriorityComparison, type PreferenceSetDiff } from '../diff';
+import { computePreferenceSetDiff, computePriorityComparison } from '../utils/diff';
+import type { PreferenceSetDiff } from '../types/diff';
 import { PriorityHeatmap } from './PriorityHeatmap';
 import { TopicDiffSection } from './TopicDiffSection';
 import { DirectionsDiffView } from './DirectionsDiffView';
