@@ -1,13 +1,21 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { uid } from './utils';
-import type { Topic, Source, Direction, Stance } from './schema';
+import type { Topic, Source, Direction, Stance, Ballot, Office, Candidate, Measure, ElectionInfo, ReasoningLink } from './schema';
 
 interface Store {
+  // Preference set state
   title: string;
   notes: string;
   topics: Topic[];
   __createdAt?: string;
+  
+  // Ballot state
+  ballotMode: 'preference' | 'ballot';
+  currentBallot: Ballot | null;
+  ballotHistory: Ballot[];
+  
+  // Preference set actions
   setTitle: (title: string) => void;
   setNotes: (notes: string) => void;
   addTopic: (importance?: number) => void;
@@ -23,14 +31,39 @@ interface Store {
   removeDirection: (topicId: string, directionId: string) => void;
   patchDirection: (topicId: string, directionId: string, patch: Partial<Direction>) => void;
   clearAll: () => void;
+  
+  // Ballot actions
+  setBallotMode: (mode: 'preference' | 'ballot') => void;
+  createBallot: (electionInfo: ElectionInfo) => void;
+  updateBallotTitle: (title: string) => void;
+  updateBallotElection: (electionInfo: ElectionInfo) => void;
+  addOffice: (office: Omit<Office, 'id'>) => void;
+  removeOffice: (officeId: string) => void;
+  updateOffice: (officeId: string, patch: Partial<Office>) => void;
+  addCandidate: (officeId: string, candidate: Omit<Candidate, 'id'>) => void;
+  removeCandidate: (officeId: string, candidateId: string) => void;
+  updateCandidate: (officeId: string, candidateId: string, patch: Partial<Candidate>) => void;
+  selectCandidate: (officeId: string, candidateId: string) => void;
+  addMeasure: (measure: Omit<Measure, 'id'>) => void;
+  removeMeasure: (measureId: string) => void;
+  updateMeasure: (measureId: string, patch: Partial<Measure>) => void;
+  addReasoningLink: (officeId: string, candidateId: string, reasoning: ReasoningLink) => void;
+  removeReasoningLink: (officeId: string, candidateId: string, reasoningId: string) => void;
+  clearBallot: () => void;
 }
 
 export const useStore = create<Store>()(
   persist(
     (set) => ({
+      // Preference set state
       title: '',
       notes: '',
       topics: [],
+      
+      // Ballot state
+      ballotMode: 'preference' as const,
+      currentBallot: null,
+      ballotHistory: [],
       setTitle: (title) => set({ title }),
       setNotes: (notes) => set({ notes }),
       addTopic: (importance?: number) => set((state) => ({
@@ -136,6 +169,164 @@ export const useStore = create<Store>()(
         })
       })),
       clearAll: () => set({ title: '', notes: '', topics: [] }),
+      
+      // Ballot actions
+      setBallotMode: (mode) => set({ ballotMode: mode }),
+      createBallot: (electionInfo) => set(() => {
+        const now = new Date().toISOString();
+        const newBallot: Ballot = {
+          version: 'tsb.ballot.v1',
+          title: `${electionInfo.name} - ${electionInfo.location}`,
+          election: electionInfo,
+          offices: [],
+          measures: [],
+          metadata: {
+            preferenceSetId: undefined,
+            notes: '',
+            sources: [],
+            tags: []
+          },
+          createdAt: now,
+          updatedAt: now
+        };
+        return { currentBallot: newBallot };
+      }),
+      updateBallotTitle: (title) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          title,
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      updateBallotElection: (electionInfo) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          election: electionInfo,
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      addOffice: (office) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          offices: [...state.currentBallot.offices, { ...office, id: uid() }],
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      removeOffice: (officeId) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          offices: state.currentBallot.offices.filter(o => o.id !== officeId),
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      updateOffice: (officeId, patch) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          offices: state.currentBallot.offices.map(o => 
+            o.id === officeId ? { ...o, ...patch } : o
+          ),
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      addCandidate: (officeId, candidate) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          offices: state.currentBallot.offices.map(o => 
+            o.id === officeId ? {
+              ...o,
+              candidates: [...o.candidates, { ...candidate, id: uid() }]
+            } : o
+          ),
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      removeCandidate: (officeId, candidateId) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          offices: state.currentBallot.offices.map(o => 
+            o.id === officeId ? {
+              ...o,
+              candidates: o.candidates.filter(c => c.id !== candidateId),
+              selectedCandidateId: o.selectedCandidateId === candidateId ? undefined : o.selectedCandidateId
+            } : o
+          ),
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      updateCandidate: (officeId, candidateId, patch) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          offices: state.currentBallot.offices.map(o => 
+            o.id === officeId ? {
+              ...o,
+              candidates: o.candidates.map(c => 
+                c.id === candidateId ? { ...c, ...patch } : c
+              )
+            } : o
+          ),
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      selectCandidate: (officeId, candidateId) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          offices: state.currentBallot.offices.map(o => 
+            o.id === officeId ? {
+              ...o,
+              selectedCandidateId: candidateId
+            } : o
+          ),
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      addMeasure: (measure) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          measures: [...state.currentBallot.measures, { ...measure, id: uid() }],
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      removeMeasure: (measureId) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          measures: state.currentBallot.measures.filter(m => m.id !== measureId),
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      updateMeasure: (measureId, patch) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          measures: state.currentBallot.measures.map(m => 
+            m.id === measureId ? { ...m, ...patch } : m
+          ),
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      addReasoningLink: (officeId, _candidateId, reasoning) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          offices: state.currentBallot.offices.map(o => 
+            o.id === officeId ? {
+              ...o,
+              reasoning: [...o.reasoning, reasoning]
+            } : o
+          ),
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      removeReasoningLink: (officeId, _candidateId, reasoningId) => set((state) => ({
+        currentBallot: state.currentBallot ? {
+          ...state.currentBallot,
+          offices: state.currentBallot.offices.map(o => 
+            o.id === officeId ? {
+              ...o,
+              reasoning: o.reasoning.filter(r => r.topicId !== reasoningId)
+            } : o
+          ),
+          updatedAt: new Date().toISOString()
+        } : null
+      })),
+      clearBallot: () => set({ currentBallot: null }),
     }),
     { name: 'vt.m1' }
   )

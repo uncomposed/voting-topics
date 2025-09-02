@@ -157,6 +157,83 @@ export const parseIncomingPreferenceSet = (data: unknown): PreferenceSet => {
   }
 };
 
+// Ballot schemas
+export const ElectionInfo = z.object({
+  name: z.string().min(1, 'Election name required'),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+  location: z.string().min(1, 'Location required'),
+  type: z.enum(['primary', 'general', 'special', 'runoff']),
+  jurisdiction: z.string().min(1, 'Jurisdiction required'), // e.g., "City of Portland, OR"
+});
+
+export const Candidate = z.object({
+  id: z.string(),
+  name: z.string().min(1, 'Candidate name required'),
+  party: z.string().optional(),
+  description: z.string().optional(),
+  website: z.string().url().optional(),
+  sources: z.array(SourceSchema).default([]),
+});
+
+export const ReasoningLink = z.object({
+  type: z.enum(['topic', 'direction']),
+  preferenceSetId: z.string().optional(), // Reference to the preference set
+  topicId: z.string(),
+  directionId: z.string().optional(), // Only for direction links
+  relevance: z.string().min(1, 'Relevance explanation required'),
+  weight: z.number().min(0).max(5).int().default(3), // How important this reasoning is
+});
+
+export const Office = z.object({
+  id: z.string(),
+  title: z.string().min(1, 'Office title required'),
+  description: z.string().optional(),
+  candidates: z.array(Candidate).min(1, 'At least one candidate required'),
+  selectedCandidateId: z.string().optional(), // The user's choice
+  reasoning: z.array(ReasoningLink).default([]), // Links to preference set topics/directions
+});
+
+export const Measure = z.object({
+  id: z.string(),
+  title: z.string().min(1, 'Measure title required'),
+  description: z.string().optional(),
+  position: z.enum(['yes', 'no', 'abstain']).optional(),
+  reasoning: z.array(ReasoningLink).default([]),
+  sources: z.array(SourceSchema).default([]),
+});
+
+export const BallotMetadata = z.object({
+  preferenceSetId: z.string().optional(), // Optional reference to source preference set
+  notes: z.string().optional(),
+  sources: z.array(SourceSchema).default([]),
+  tags: z.array(z.string()).default([]),
+});
+
+export const BallotSchema = z.object({
+  version: z.literal('tsb.ballot.v1'),
+  title: z.string().min(1, 'Ballot title required'),
+  election: ElectionInfo,
+  offices: z.array(Office).min(1, 'At least one office required'),
+  measures: z.array(Measure).default([]),
+  metadata: BallotMetadata,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+// Ballot types
+export type ElectionInfo = z.infer<typeof ElectionInfo>;
+export type Candidate = z.infer<typeof Candidate>;
+export type ReasoningLink = z.infer<typeof ReasoningLink>;
+export type Office = z.infer<typeof Office>;
+export type Measure = z.infer<typeof Measure>;
+export type BallotMetadata = z.infer<typeof BallotMetadata>;
+export type Ballot = z.infer<typeof BallotSchema>;
+
+// Parse incoming ballot JSON
+export const parseIncomingBallot = (data: unknown): Ballot => {
+  return BallotSchema.parse(data);
+};
+
 // Backward compatibility aliases
 export const TemplateSchema = PreferenceSetSchema;
 export const LegacyTemplateSchema = LegacyPreferenceSetSchema;

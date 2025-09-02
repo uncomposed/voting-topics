@@ -8,6 +8,8 @@ import { TopicList } from './components/TopicList';
 import { Topic } from './schema';
 import { StarterPackPicker } from './components/StarterPackPicker';
 import { PreferenceSetComparison } from './components/PreferenceSetComparison';
+import { BallotBuilder } from './components/ballot';
+import { LLMIntegration } from './components/LLMIntegration';
 
 export const App: React.FC = () => {
   const { 
@@ -19,7 +21,9 @@ export const App: React.FC = () => {
     addTopic, 
     removeTopic, 
     patchTopic, 
-    clearAll 
+    clearAll,
+    ballotMode,
+    setBallotMode
   } = useStore();
 
   const topicListRef = useRef<{ toggleAll: () => void; updateButtonText: () => void }>(null);
@@ -29,6 +33,7 @@ export const App: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDiffComparison, setShowDiffComparison] = useState(false);
+  const [showLLMIntegration, setShowLLMIntegration] = useState(false);
 
   // Set up button event handlers once on mount
   useEffect(() => {
@@ -161,14 +166,28 @@ export const App: React.FC = () => {
       diffBtn.className = 'btn';
       diffBtn.textContent = 'Compare Preference Sets';
       
+      const ballotBtn = document.createElement('button');
+      ballotBtn.id = 'btn-ballot-mode';
+      ballotBtn.className = 'btn';
+      ballotBtn.textContent = 'Create Ballot';
+      
+      const llmBtn = document.createElement('button');
+      llmBtn.id = 'btn-llm-integration';
+      llmBtn.className = 'btn';
+      llmBtn.textContent = 'LLM Integration';
+      
       // Insert after the first button
       const firstBtn = toolbar.querySelector('.btn');
       if (firstBtn) {
         firstBtn.parentNode?.insertBefore(toggleBtn, firstBtn.nextSibling);
         firstBtn.parentNode?.insertBefore(diffBtn, toggleBtn.nextSibling);
+        firstBtn.parentNode?.insertBefore(ballotBtn, diffBtn.nextSibling);
+        firstBtn.parentNode?.insertBefore(llmBtn, ballotBtn.nextSibling);
       } else {
         toolbar.appendChild(toggleBtn);
         toolbar.appendChild(diffBtn);
+        toolbar.appendChild(ballotBtn);
+        toolbar.appendChild(llmBtn);
       }
     }
   }, []); // Only run once on mount
@@ -177,10 +196,14 @@ export const App: React.FC = () => {
   useEffect(() => {
     const toggleBtn = document.getElementById('btn-toggle-view');
     if (toggleBtn) {
-      if (showDiffComparison) {
-        // When in diff comparison view, show "Back to Main View"
+      if (showDiffComparison || showLLMIntegration || ballotMode === 'ballot') {
+        // When in any special view, show "Back to Main View"
         toggleBtn.textContent = 'Back to Main View';
-        toggleBtn.onclick = () => setShowDiffComparison(false);
+        toggleBtn.onclick = () => {
+          setShowDiffComparison(false);
+          setShowLLMIntegration(false);
+          setBallotMode('preference');
+        };
       } else {
         // When in main view, show the normal toggle
         toggleBtn.textContent = showCards ? 'Show List View' : 'Show Card View';
@@ -201,6 +224,28 @@ export const App: React.FC = () => {
       }
     }
     
+    const ballotBtn = document.getElementById('btn-ballot-mode');
+    if (ballotBtn) {
+      if (ballotMode === 'ballot') {
+        ballotBtn.textContent = 'Back to Preferences';
+        ballotBtn.onclick = () => setBallotMode('preference');
+      } else {
+        ballotBtn.textContent = 'Create Ballot';
+        ballotBtn.onclick = () => setBallotMode('ballot');
+      }
+    }
+    
+    const llmBtn = document.getElementById('btn-llm-integration');
+    if (llmBtn) {
+      if (showLLMIntegration) {
+        llmBtn.textContent = 'Close LLM Integration';
+        llmBtn.onclick = () => setShowLLMIntegration(false);
+      } else {
+        llmBtn.textContent = 'LLM Integration';
+        llmBtn.onclick = () => setShowLLMIntegration(true);
+      }
+    }
+    
     // Update expand all button text when switching views
     const btnExpandAll = document.getElementById('btn-expand-all');
     if (btnExpandAll) {
@@ -213,7 +258,7 @@ export const App: React.FC = () => {
         setTimeout(() => topicListRef.current?.updateButtonText(), 100);
       }
     }
-  }, [showCards, showDiffComparison]);
+  }, [showCards, showDiffComparison, showLLMIntegration, ballotMode]);
 
   // Card view handlers
   const handleTopicReorder = (topicId: string, newImportance: number) => {
@@ -242,6 +287,18 @@ export const App: React.FC = () => {
   if (showDiffComparison) {
     return (
       <PreferenceSetComparison onClose={() => setShowDiffComparison(false)} />
+    );
+  }
+
+  if (showLLMIntegration) {
+    return (
+      <LLMIntegration />
+    );
+  }
+
+  if (ballotMode === 'ballot') {
+    return (
+      <BallotBuilder />
     );
   }
 
