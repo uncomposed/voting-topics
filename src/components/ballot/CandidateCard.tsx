@@ -17,7 +17,7 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
   onSelect,
   onRemove
 }) => {
-  const { updateCandidate } = useStore();
+  const updateCandidate = useStore(state => state.updateCandidate);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     name: candidate.name,

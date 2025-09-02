@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { PreferenceSet } from '../schema';
 import { computePreferenceSetDiff, computePriorityComparison } from '../utils/diff';
-import type { PreferenceSetDiff } from '../types/diff';
+
 import { PriorityHeatmap } from './PriorityHeatmap';
 import { TopicDiffSection } from './TopicDiffSection';
 import { DirectionsDiffView } from './DirectionsDiffView';
@@ -22,11 +22,7 @@ export const PreferenceSetDiffView: React.FC<PreferenceSetDiffViewProps> = ({
   const diff = computePreferenceSetDiff(leftPreferenceSet, rightPreferenceSet);
   const priorityComparison = computePriorityComparison(leftPreferenceSet, rightPreferenceSet);
   
-  const getChangeColor = (count: number) => {
-    if (count === 0) return 'var(--muted)';
-    if (count < 3) return 'var(--warn)';
-    return 'var(--danger)';
-  };
+
   
   return (
     <div className="diff-container">

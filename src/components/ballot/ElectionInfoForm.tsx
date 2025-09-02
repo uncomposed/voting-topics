@@ -13,7 +13,7 @@ export const ElectionInfoForm: React.FC<ElectionInfoFormProps> = ({
   onSubmit, 
   isEditing = false 
 }) => {
-  const { updateBallotElection } = useStore();
+  const updateBallotElection = useStore(state => state.updateBallotElection);
   
   const [formData, setFormData] = useState<ElectionInfo>({
     name: electionInfo?.name || '',

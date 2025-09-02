@@ -40,10 +40,7 @@ export const DiffComparison: React.FC<DiffComparisonProps> = ({ onClose }) => {
     }
   };
 
-  const handleBackToUpload = () => {
-    setStep('upload');
-    setError('');
-  };
+
 
   if (step === 'compare' && leftTemplate && rightTemplate) {
     return (

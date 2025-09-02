@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Template } from '../schema';
-import { computeTemplateDiff, computePriorityComparison, type TemplateDiff } from '../diff';
+import { computeTemplateDiff, computePriorityComparison } from '../diff';
 import { PriorityHeatmap } from './PriorityHeatmap';
 import { TopicDiffSection } from './TopicDiffSection';
 
@@ -20,11 +20,7 @@ export const TemplateDiffView: React.FC<TemplateDiffViewProps> = ({
   const diff = computeTemplateDiff(leftTemplate, rightTemplate);
   const priorityComparison = computePriorityComparison(leftTemplate, rightTemplate);
   
-  const getChangeColor = (count: number) => {
-    if (count === 0) return 'var(--muted)';
-    if (count < 3) return 'var(--warn)';
-    return 'var(--danger)';
-  };
+
   
   return (
     <div className="diff-container">
@@ -158,11 +154,7 @@ export const TemplateDiffView: React.FC<TemplateDiffViewProps> = ({
                                 {topicDiff.changes.importance.left}→{topicDiff.changes.importance.right}
                               </span>
                             )}
-                            {topicDiff.changes.stance.left !== topicDiff.changes.stance.right && (
-                              <span className="change-badge stance">
-                                {topicDiff.changes.stance.left}→{topicDiff.changes.stance.right}
-                              </span>
-                            )}
+
                           </div>
                         </li>
                       ))}
@@ -206,8 +198,8 @@ export const TemplateDiffView: React.FC<TemplateDiffViewProps> = ({
         
         {activeTab === 'priorities' && (
           <PriorityHeatmap 
-            leftTemplate={leftTemplate} 
-            rightTemplate={rightTemplate} 
+            leftPreferenceSet={leftTemplate} 
+            rightPreferenceSet={rightTemplate} 
           />
         )}
       </div>

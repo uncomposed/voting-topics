@@ -11,7 +11,10 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
   officeId,
   candidateId
 }) => {
-  const { topics, currentBallot, addReasoningLink, removeReasoningLink } = useStore();
+  const topics = useStore(state => state.topics);
+  const currentBallot = useStore(state => state.currentBallot);
+  const addReasoningLink = useStore(state => state.addReasoningLink);
+  const removeReasoningLink = useStore(state => state.removeReasoningLink);
   const [showAddReasoning, setShowAddReasoning] = useState(false);
   const [newReasoning, setNewReasoning] = useState({
     type: 'topic' as 'topic' | 'direction',

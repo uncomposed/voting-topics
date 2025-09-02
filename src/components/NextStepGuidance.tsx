@@ -2,7 +2,8 @@ import React from 'react';
 import { useStore } from '../store';
 
 export const NextStepGuidance: React.FC = () => {
-  const { topics, ballotMode } = useStore();
+  const topics = useStore(state => state.topics);
+  const ballotMode = useStore(state => state.ballotMode);
   
   // Determine current step and next step
   const getCurrentStep = () => {

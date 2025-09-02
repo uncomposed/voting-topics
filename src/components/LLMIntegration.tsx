@@ -4,13 +4,11 @@ import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { buildTemplate, buildBallot } from '../exporters';
 
 export const LLMIntegration: React.FC = () => {
-  const { 
-    ballotMode, 
-    setBallotMode,
-    clearAll,
-    clearBallot,
-    currentBallot
-  } = useStore();
+  const ballotMode = useStore(state => state.ballotMode);
+  const setBallotMode = useStore(state => state.setBallotMode);
+  const clearAll = useStore(state => state.clearAll);
+  const clearBallot = useStore(state => state.clearBallot);
+  const currentBallot = useStore(state => state.currentBallot);
   
   const [activeTab, setActiveTab] = useState<'export' | 'import'>('export');
   const [importJson, setImportJson] = useState('');

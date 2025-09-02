@@ -3,7 +3,7 @@ import { useStore } from '../../store';
 import { exportBallotJSON, exportBallotPDF, exportBallotJPEG } from '../../exporters';
 
 export const BallotPreview: React.FC = () => {
-  const { currentBallot } = useStore();
+  const currentBallot = useStore(state => state.currentBallot);
 
   if (!currentBallot) {
     return <div>No ballot found</div>;

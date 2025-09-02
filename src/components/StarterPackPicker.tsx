@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store';
-import { uid } from '../utils';
+
 
 interface StarterTopic { 
   id: string; 

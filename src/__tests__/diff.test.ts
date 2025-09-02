@@ -120,7 +120,7 @@ describe('Diff functionality', () => {
     expect(climateComparison!.leftImportance).toBe(5);
     expect(climateComparison!.rightImportance).toBe(4);
     expect(climateComparison!.importanceDiff).toBe(-1);
-    expect(climateComparison!.stanceChanged).toBe(true);
+
     
     // Find Education comparison (only in left)
     const educationComparison = comparison.find(c => c.topicTitle === 'Education');

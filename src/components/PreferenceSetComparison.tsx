@@ -40,10 +40,7 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
     }
   };
 
-  const handleBackToUpload = () => {
-    setStep('upload');
-    setError('');
-  };
+
 
   if (step === 'compare' && leftPreferenceSet && rightPreferenceSet) {
     return (
