@@ -279,6 +279,83 @@ npm run build
 3. **Look at similar components** - Use existing code as examples
 4. **Ask questions** - Don't hesitate to ask for clarification
 
+## 🐛 Debugging Guidelines
+
+### **When Things Go Wrong: Start with Observable Data**
+
+When debugging React state issues, always start with **observable behavior** rather than descriptions of expected behavior.
+
+#### **1. Add Console Logs First**
+```typescript
+// Add logging to trace execution flow
+console.log('Component render:', { stateValue, propsValue });
+console.log('State update:', { before: oldValue, after: newValue });
+console.log('Event handler called:', eventType);
+```
+
+#### **2. Check React DevTools**
+- Is the state actually updating in the store?
+- Are components re-rendering when state changes?
+- Are there any React warnings or errors?
+
+#### **3. Look for Error Messages**
+Even seemingly unrelated errors can be clues:
+- React Hooks violations
+- Zustand subscription issues
+- Component lifecycle problems
+
+### **Common React + Zustand Issues**
+
+#### **❌ Problem: State Updates But No Re-renders**
+```typescript
+// BAD: Destructuring can prevent proper subscriptions
+const { topics, addTopic } = useStore();
+```
+
+```typescript
+// GOOD: Use explicit selectors
+const topics = useStore(state => state.topics);
+const addTopic = useStore(state => state.addTopic);
+```
+
+#### **❌ Problem: React Hooks Violations**
+```typescript
+// BAD: Early return before all hooks
+if (topics.length === 0) {
+  return <EmptyState />; // This prevents hooks below from running
+}
+
+useEffect(() => { /* ... */ }, []);
+```
+
+```typescript
+// GOOD: Early return after all hooks
+useEffect(() => { /* ... */ }, []);
+
+if (topics.length === 0) {
+  return <EmptyState />;
+}
+```
+
+### **Debugging Checklist**
+
+When debugging state/UI issues:
+
+1. **Add console logs** to trace execution flow
+2. **Check React DevTools** for state and re-render issues
+3. **Look for error messages** in console
+4. **Test in isolation** - try to reproduce with minimal code
+5. **Check Zustand subscriptions** - use explicit selectors
+6. **Verify hook order** - no early returns before hooks
+
+### **What Information Helps Most**
+
+When reporting bugs, include:
+- **Console logs** showing actual vs expected behavior
+- **React DevTools screenshots** of state and component tree
+- **Error messages** (even if they seem unrelated)
+- **Minimal reproduction steps** that isolate the issue
+
 ## 🎯 Contributing Checklist
 
 Before submitting a PR:
@@ -291,6 +368,8 @@ Before submitting a PR:
 - [ ] No linting errors
 - [ ] Followed existing code patterns
 - [ ] Added documentation for complex logic
+- [ ] Used explicit Zustand selectors (not destructuring)
+- [ ] No early returns before React hooks
 
 ---
 

@@ -151,9 +151,15 @@
 
 .office-selector-header {
   display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.office-selector-header .header-content {
+  display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 30px;
 }
 
 .office-selector-header h2 {
@@ -447,9 +453,15 @@
 
 .measure-selector-header {
   display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.measure-selector-header .header-content {
+  display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 30px;
 }
 
 .measure-selector-header h2 {
@@ -582,6 +594,17 @@
   color: var(--muted);
 }
 
+.ballot-warning {
+  background: rgba(255, 209, 102, 0.1);
+  color: var(--warn);
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid var(--warn);
+  margin-top: 15px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .ballot-preview-content {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -684,6 +707,17 @@
 .candidate-preview.selected {
   border-color: var(--primary);
   background: var(--primary-light);
+}
+
+.unselected-warning {
+  background: rgba(255, 209, 102, 0.1);
+  color: var(--warn);
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--warn);
+  margin-top: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .candidate-info {
@@ -942,9 +976,9 @@
 }
 
 .btn.danger {
-  background: var(--danger);
-  border-color: var(--danger);
-  color: white;
+  background: var(--danger) !important;
+  border-color: var(--danger) !important;
+  color: white !important;
 }
 
 .btn.danger:hover {

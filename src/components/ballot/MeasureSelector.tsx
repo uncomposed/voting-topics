@@ -45,15 +45,18 @@ export const MeasureSelector: React.FC = () => {
   return (
     <div className="measure-selector">
       <div className="measure-selector-header">
-        <h2>Ballot Measures</h2>
-        <p>Add ballot measures and propositions for this election</p>
-        
-        <button 
-          onClick={() => setShowAddMeasure(true)}
-          className="btn primary"
-        >
-          + Add Measure
-        </button>
+        <div className="header-content">
+          <div>
+            <h2>Ballot Measures</h2>
+            <p>Add ballot measures and propositions for this election</p>
+          </div>
+          <button 
+            onClick={() => setShowAddMeasure(true)}
+            className="btn primary"
+          >
+            + Add Measure
+          </button>
+        </div>
       </div>
 
       {showAddMeasure && (

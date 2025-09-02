@@ -42,7 +42,11 @@ const wireToolbar = () => {
         try {
           const obj = JSON.parse(String(reader.result || '{}'));
           const parsed = parseIncomingTemplate(obj);
-          useStore.setState({ title: parsed.title, notes: parsed.notes || '', topics: parsed.topics });
+          useStore.getState().importData({ 
+            title: parsed.title, 
+            notes: parsed.notes || '', 
+            topics: parsed.topics 
+          });
         } catch (e: unknown) {
           alert('Import failed: ' + (e instanceof Error ? e.message : String(e)));
         } finally {

@@ -31,6 +31,7 @@ interface Store {
   removeDirection: (topicId: string, directionId: string) => void;
   patchDirection: (topicId: string, directionId: string, patch: Partial<Direction>) => void;
   clearAll: () => void;
+  importData: (data: { title: string; notes: string; topics: Topic[] }) => void;
   
   // Ballot actions
   setBallotMode: (mode: 'preference' | 'ballot') => void;
@@ -172,9 +173,16 @@ export const useStore = create<Store>()(
         title: '', 
         notes: '', 
         topics: [], 
+        __createdAt: undefined,
         ballotMode: 'preference',
         currentBallot: null,
         ballotHistory: []
+      }),
+      importData: (data) => set({ 
+        title: data.title, 
+        notes: data.notes, 
+        topics: data.topics,
+        __createdAt: new Date().toISOString()
       }),
       
       // Ballot actions

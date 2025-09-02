@@ -53,15 +53,18 @@ export const OfficeSelector: React.FC = () => {
   return (
     <div className="office-selector">
       <div className="office-selector-header">
-        <h2>Offices & Candidates</h2>
-        <p>Add offices and candidates for this election</p>
-        
-        <button 
-          onClick={() => setShowAddOffice(true)}
-          className="btn primary"
-        >
-          + Add Office
-        </button>
+        <div className="header-content">
+          <div>
+            <h2>Offices & Candidates</h2>
+            <p>Add offices and candidates for this election</p>
+          </div>
+          <button 
+            onClick={() => setShowAddOffice(true)}
+            className="btn primary"
+          >
+            + Add Office
+          </button>
+        </div>
       </div>
 
       {showAddOffice && (

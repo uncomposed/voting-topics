@@ -10,12 +10,23 @@ export const BallotPreview: React.FC = () => {
   }
 
   const { election, offices, measures } = currentBallot;
+  
+  // Check for unselected candidates
+  const unselectedOffices = offices.filter(office => 
+    office.candidates.length > 0 && !office.selectedCandidateId
+  );
 
   return (
     <div className="ballot-preview">
       <div className="ballot-preview-header">
         <h2>Ballot Preview</h2>
         <p>Review your sample ballot before exporting</p>
+        {unselectedOffices.length > 0 && (
+          <div className="ballot-warning">
+            ⚠️ You have {unselectedOffices.length} office{unselectedOffices.length > 1 ? 's' : ''} without selected candidates. 
+            Select candidates to ensure your ballot export is complete.
+          </div>
+        )}
       </div>
 
       <div className="ballot-preview-content">
@@ -65,6 +76,11 @@ export const BallotPreview: React.FC = () => {
                       )}
                     </div>
                   ))}
+                  {!office.selectedCandidateId && office.candidates.length > 0 && (
+                    <div className="unselected-warning">
+                      ⚠️ No candidate selected for this office
+                    </div>
+                  )}
                 </div>
 
                 {office.selectedCandidateId && office.reasoning.length > 0 && (
