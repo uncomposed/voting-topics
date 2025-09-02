@@ -168,7 +168,14 @@ export const useStore = create<Store>()(
           };
         })
       })),
-      clearAll: () => set({ title: '', notes: '', topics: [] }),
+      clearAll: () => set({ 
+        title: '', 
+        notes: '', 
+        topics: [], 
+        ballotMode: 'preference',
+        currentBallot: null,
+        ballotHistory: []
+      }),
       
       // Ballot actions
       setBallotMode: (mode) => set({ ballotMode: mode }),

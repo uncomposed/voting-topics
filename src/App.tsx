@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from './store';
-import { exportJSON, exportPDF, exportJPEG } from './exporters';
-import { parseIncomingPreferenceSet } from './schema';
 import { TopicCards } from './components/TopicCards';
 import { TopicModal } from './components/TopicModal';
 import { TopicList } from './components/TopicList';
@@ -12,19 +10,15 @@ import { BallotBuilder } from './components/ballot';
 import { LLMIntegration } from './components/LLMIntegration';
 
 export const App: React.FC = () => {
-  const { 
-    title, 
-    notes, 
-    topics, 
-    setTitle, 
-    setNotes, 
-    addTopic, 
-    removeTopic, 
-    patchTopic, 
-    clearAll,
-    ballotMode,
-    setBallotMode
-  } = useStore();
+  const title = useStore(state => state.title);
+  const notes = useStore(state => state.notes);
+  const topics = useStore(state => state.topics);
+  const setTitle = useStore(state => state.setTitle);
+  const setNotes = useStore(state => state.setNotes);
+  const removeTopic = useStore(state => state.removeTopic);
+  const patchTopic = useStore(state => state.patchTopic);
+  const ballotMode = useStore(state => state.ballotMode);
+  const setBallotMode = useStore(state => state.setBallotMode);
 
   const topicListRef = useRef<{ toggleAll: () => void; updateButtonText: () => void }>(null);
   const topicCardsRef = useRef<{ toggleExpanded: () => void; updateButtonText: () => void }>(null);
@@ -35,86 +29,9 @@ export const App: React.FC = () => {
   const [showDiffComparison, setShowDiffComparison] = useState(false);
   const [showLLMIntegration, setShowLLMIntegration] = useState(false);
 
-  // Set up button event handlers once on mount
+  // Set up expand/collapse button handler (other buttons are wired in main.tsx)
   useEffect(() => {
-    const btnNewTopic = document.getElementById('btn-new-topic');
-    const btnClear = document.getElementById('btn-clear');
-    const btnExportJson = document.getElementById('btn-export-json');
-    const btnExportPdf = document.getElementById('btn-export-pdf');
-    const btnExportJpeg = document.getElementById('btn-export-jpeg');
-    const btnImport = document.getElementById('btn-import');
     const btnExpandAll = document.getElementById('btn-expand-all');
-    const fileInput = document.getElementById('file-input') as HTMLInputElement;
-    const privacyLink = document.getElementById('privacy-link');
-
-    if (btnNewTopic) {
-      btnNewTopic.onclick = () => {
-        addTopic(0); // Create topic at the top with no stars
-      };
-    }
-    
-    if (btnClear) {
-      btnClear.onclick = () => {
-        if (confirm('Clear all data? This only affects your browser.')) clearAll();
-      };
-    }
-    
-    if (btnExportJson) {
-      btnExportJson.onclick = () => {
-        try { 
-          exportJSON(); 
-        } catch (e: unknown) { 
-          const error = e instanceof Error ? e.message : String(e);
-          alert(error); 
-        }
-      };
-    }
-    
-    if (btnExportPdf) {
-      btnExportPdf.onclick = () => {
-        exportPDF().catch((e: unknown) => {
-          const error = e instanceof Error ? e.message : String(e);
-          alert(error);
-        });
-      };
-    }
-    
-    if (btnExportJpeg) {
-      btnExportJpeg.onclick = () => {
-        exportJPEG().catch((e: unknown) => {
-          const error = e instanceof Error ? e.message : String(e);
-          alert(error);
-        });
-      };
-    }
-    
-    if (btnImport && fileInput) {
-      btnImport.onclick = () => fileInput.click();
-      fileInput.onchange = (ev) => {
-        const target = ev.target as HTMLInputElement;
-        const file = target.files?.[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const obj = JSON.parse(String(reader.result || '{}'));
-            const parsed = parseIncomingPreferenceSet(obj);
-            useStore.setState({
-              title: parsed.title,
-              notes: parsed.notes || '',
-              topics: parsed.topics,
-            });
-          } catch (e: unknown) {
-            const error = e instanceof Error ? e.message : String(e);
-            alert('Import failed: ' + error);
-          } finally {
-            fileInput.value = '';
-          }
-        };
-        reader.readAsText(file);
-      };
-    }
     
     if (btnExpandAll) {
       btnExpandAll.onclick = () => {
@@ -127,14 +44,7 @@ export const App: React.FC = () => {
         }
       };
     }
-    
-    if (privacyLink) {
-      privacyLink.onclick = (e) => {
-        e.preventDefault();
-        alert('Privacy: This app stores data only in your browser (localStorage). No accounts, no analytics, no network calls.\nDisclaimers: This is an informational tool; verify official ballot info via your local election authority.');
-      };
-    }
-  }, [addTopic, clearAll, showCards]);
+  }, [showCards]);
 
   // Set up form inputs once on mount
   useEffect(() => {

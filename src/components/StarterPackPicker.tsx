@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store';
+import { uid } from '../utils';
 
 interface StarterTopic { 
   id: string; 
@@ -8,7 +9,8 @@ interface StarterTopic {
 }
 
 export const StarterPackPicker: React.FC = () => {
-  const addTopicFromStarter = useStore(s => s.addTopicFromStarter);
+  const topics = useStore(state => state.topics);
+  const addTopicFromStarter = useStore(state => state.addTopicFromStarter);
   const [pool, setPool] = useState<StarterTopic[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -37,7 +39,9 @@ export const StarterPackPicker: React.FC = () => {
 
   const addSelected = () => {
     const selectedTopics = pool.filter(p => selected.includes(p.id));
-    selectedTopics.forEach(topic => addTopicFromStarter(topic));
+    selectedTopics.forEach(topic => {
+      addTopicFromStarter(topic);
+    });
     setSelected([]);
   };
 
@@ -49,7 +53,8 @@ export const StarterPackPicker: React.FC = () => {
     }
   };
 
-  if (pool.length === 0) return null;
+  // Show starter pack when there are no topics (empty state)
+  if (topics.length > 0) return null;
 
   return (
     <div className="panel" style={{ marginTop: 16 }}>

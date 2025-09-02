@@ -12,14 +12,6 @@ export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: (
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(topics.map(t => t.id)));
   const [allExpanded, setAllExpanded] = useState(true);
 
-  if (topics.length === 0) {
-    return (
-      <div className="empty">
-        No topics yet. Click <b>New Topic</b> to get started.
-      </div>
-    );
-  }
-
   const toggleTopic = (topicId: string) => {
     const newExpanded = new Set(expandedTopics);
     if (newExpanded.has(topicId)) {
@@ -71,6 +63,15 @@ export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: (
       }
     }
   }));
+
+  // Early return after all hooks
+  if (topics.length === 0) {
+    return (
+      <div className="empty">
+        No topics yet. Click <b>New Topic</b> to get started.
+      </div>
+    );
+  }
 
   return (
     <div className="list">

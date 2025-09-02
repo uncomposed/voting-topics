@@ -6,10 +6,9 @@ import { useStore } from './store';
 import { exportJSON, exportPDF, exportJPEG } from './exporters';
 import { parseIncomingTemplate } from './schema';
 
+
 // Wire toolbar buttons that live outside the React root
 const wireToolbar = () => {
-  const state = useStore.getState();
-
   const byId = (id: string) => document.getElementById(id);
 
   const btnNewTopic = byId('btn-new-topic');
@@ -21,8 +20,14 @@ const wireToolbar = () => {
   const fileInput = byId('file-input') as HTMLInputElement | null;
   const privacyLink = byId('privacy-link');
 
-  if (btnNewTopic) btnNewTopic.onclick = () => state.addTopic(0);
-  if (btnClear) btnClear.onclick = () => { if (confirm('Clear all data? This only affects your browser.')) state.clearAll(); };
+  if (btnNewTopic) btnNewTopic.onclick = () => {
+    useStore.getState().addTopic();
+  };
+  if (btnClear) btnClear.onclick = () => { 
+    if (confirm('Clear all data? This only affects your browser.')) {
+      useStore.getState().clearAll();
+    }
+  };
   if (btnExportJson) btnExportJson.onclick = () => { try { exportJSON(); } catch (e: unknown) { alert(e instanceof Error ? e.message : String(e)); } };
   if (btnExportPdf) btnExportPdf.onclick = () => { exportPDF().catch((e: unknown) => alert(e instanceof Error ? e.message : String(e))); };
   if (btnExportJpeg) btnExportJpeg.onclick = () => { exportJPEG().catch((e: unknown) => alert(e instanceof Error ? e.message : String(e))); };
