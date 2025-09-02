@@ -1,6 +1,7 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { Topic } from '../schema';
 import { SmartDirectionDots } from './SmartDirectionDots';
+import { Stars } from './Stars';
 
 interface TopicCardsProps {
   topics: Topic[];
@@ -141,11 +142,10 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
           >
             <div className="importance-header">
               <div className="importance-stars">
-                {Array.from({ length: 6 }, (_, n) => (
-                  <span key={n} className={`star ${n <= importance ? 'filled' : ''}`}>
-                    {n === 0 ? '–' : (n <= importance ? '★' : '☆')}
-                  </span>
-                ))}
+                <Stars 
+                  value={importance} 
+                  onChange={() => {}} 
+                />
               </div>
               <h3>{getImportanceLabel(importance)}</h3>
               <span className="topic-count">{topics.length} topic{topics.length !== 1 ? 's' : ''}</span>

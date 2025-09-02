@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Topic } from '../schema';
 import { DirectionsList } from './DirectionsList';
+import { Stars } from './Stars';
 
 interface TopicModalProps {
   topic: Topic | null;
@@ -109,18 +110,10 @@ export const TopicModal: React.FC<TopicModalProps> = ({
 
               <div className="form-group">
                 <label>Importance</label>
-                <div className="stars">
-                  {Array.from({ length: 6 }, (_, n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      className={`star-btn ${formData.importance === n ? 'active' : ''}`}
-                      onClick={() => updateField('importance', n)}
-                    >
-                      {n === 0 ? '–' : (n <= (formData.importance || 0) ? '★' : '☆')}
-                    </button>
-                  ))}
-                </div>
+                <Stars 
+                  value={formData.importance || 0} 
+                  onChange={(value) => updateField('importance', value)} 
+                />
               </div>
 
 

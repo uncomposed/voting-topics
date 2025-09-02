@@ -41,12 +41,12 @@ export const StarterPackPicker: React.FC = () => {
     setSelected([]);
   };
 
-  const selectAll = () => {
-    setSelected(pool.map(p => p.id));
-  };
-
-  const selectNone = () => {
-    setSelected([]);
+  const toggleAll = () => {
+    if (selected.length === pool.length) {
+      setSelected([]);
+    } else {
+      setSelected(pool.map(p => p.id));
+    }
   };
 
   if (pool.length === 0) return null;
@@ -67,8 +67,9 @@ export const StarterPackPicker: React.FC = () => {
       {!isCollapsed && (
         <>
           <div className="starter-pack-controls" style={{ marginBottom: 12 }}>
-            <button className="btn ghost" onClick={selectAll}>Select All</button>
-            <button className="btn ghost" onClick={selectNone}>Select None</button>
+            <button className="btn ghost" onClick={toggleAll}>
+              {selected.length === pool.length ? 'Deselect All' : 'Select All'}
+            </button>
             <span className="muted" style={{ marginLeft: 'auto' }}>
               {selected.length} of {pool.length} selected
             </span>
