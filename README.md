@@ -11,7 +11,6 @@ A lightweight, open-source project for building and sharing transferable sample 
 
 ### **Example Usage**
 For a topic like "Firearms":
-- **Stance**: Lean Against (overall position)
 - **Directions**: 
   - "Much less death and injury by firearms" (5 stars)
   - "Allow responsible ownership and use" (4 stars) 
