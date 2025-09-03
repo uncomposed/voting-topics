@@ -15,6 +15,9 @@ interface Store {
   currentBallot: Ballot | null;
   ballotHistory: Ballot[];
   
+  // Flow state for guided user experience
+  currentFlowStep: 'starter' | 'cards' | 'list' | 'complete';
+  
   // Preference set actions
   setTitle: (title: string) => void;
   setNotes: (notes: string) => void;
@@ -32,6 +35,10 @@ interface Store {
   patchDirection: (topicId: string, directionId: string, patch: Partial<Direction>) => void;
   clearAll: () => void;
   importData: (data: { title: string; notes: string; topics: Topic[] }) => void;
+  
+  // Flow actions
+  setCurrentFlowStep: (step: 'starter' | 'cards' | 'list' | 'complete') => void;
+  advanceFlowStep: () => void;
   
   // Ballot actions
   setBallotMode: (mode: 'preference' | 'ballot') => void;
@@ -65,6 +72,9 @@ export const useStore = create<Store>()(
       ballotMode: 'preference' as const,
       currentBallot: null,
       ballotHistory: [],
+      
+      // Flow state
+      currentFlowStep: 'starter' as const,
       setTitle: (title) => set({ title }),
       setNotes: (notes) => set({ notes }),
       addTopic: (importance?: number) => set((state) => ({
@@ -183,6 +193,15 @@ export const useStore = create<Store>()(
         notes: data.notes, 
         topics: data.topics,
         __createdAt: new Date().toISOString()
+      }),
+      
+      // Flow actions
+      setCurrentFlowStep: (step) => set({ currentFlowStep: step }),
+      advanceFlowStep: () => set((state) => {
+        const steps: Array<'starter' | 'cards' | 'list' | 'complete'> = ['starter', 'cards', 'list', 'complete'];
+        const currentIndex = steps.indexOf(state.currentFlowStep);
+        const nextIndex = Math.min(currentIndex + 1, steps.length - 1);
+        return { currentFlowStep: steps[nextIndex] };
       }),
       
       // Ballot actions

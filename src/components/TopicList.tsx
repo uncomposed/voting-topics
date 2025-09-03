@@ -1,6 +1,7 @@
 import { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { TopicCard } from './TopicCard';
 import type { Topic } from '../schema';
+import { useStore } from '../store';
 
 interface TopicListProps {
   topics: Topic[];
@@ -9,6 +10,8 @@ interface TopicListProps {
 }
 
 export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: () => void }, TopicListProps>(({ topics, onChange, onDelete }, ref) => {
+  const currentFlowStep = useStore(state => state.currentFlowStep);
+  const setCurrentFlowStep = useStore(state => state.setCurrentFlowStep);
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(topics.map(t => t.id)));
   const [allExpanded, setAllExpanded] = useState(true);
 
@@ -85,6 +88,52 @@ export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: (
           onToggleExpand={() => toggleTopic(topic.id)}
         />
       ))}
+      
+      {/* Next Button - only show when in list flow step */}
+      {currentFlowStep === 'list' && topics.length > 0 && (
+        <div className="row" style={{ justifyContent: 'center', marginTop: 24, padding: '16px 0', borderTop: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button 
+              className="btn" 
+              onClick={() => {
+                setCurrentFlowStep('complete');
+                // Trigger export functionality
+                const exportBtn = document.getElementById('btn-export');
+                if (exportBtn) exportBtn.click();
+              }}
+              style={{ 
+                fontSize: '1rem', 
+                padding: '12px 24px',
+                fontWeight: '600',
+                background: 'var(--accent)',
+                color: 'var(--bg)',
+                border: 'none'
+              }}
+            >
+              📤 Export Preference Set
+            </button>
+            <button 
+              className="btn" 
+              onClick={() => {
+                setCurrentFlowStep('complete');
+                // Trigger ballot creation
+                const ballotBtn = document.getElementById('btn-ballot-mode');
+                if (ballotBtn) ballotBtn.click();
+              }}
+              style={{ 
+                fontSize: '1rem', 
+                padding: '12px 24px',
+                fontWeight: '600',
+                background: 'var(--accent-2)',
+                color: 'var(--bg)',
+                border: 'none'
+              }}
+            >
+              🗳️ Create Sample Ballot
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 });

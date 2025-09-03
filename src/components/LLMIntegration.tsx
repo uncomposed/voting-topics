@@ -239,8 +239,8 @@ This tool validates all imported JSON against the schema. Invalid data will be r
   return (
     <div className="llm-integration">
       <div className="llm-header">
-        <h1>LLM Integration</h1>
-        <p>Export your data for LLM analysis or import LLM-generated content</p>
+        <h1>🤖 LLM Integration</h1>
+        <p>Export your data for AI analysis or import AI-generated content. Perfect for getting help with topic generation, direction refinement, and ballot creation.</p>
       </div>
 
       <div className="llm-tabs">
@@ -262,8 +262,8 @@ This tool validates all imported JSON against the schema. Invalid data will be r
         {activeTab === 'export' && (
           <div className="export-section">
             <div className="export-header">
-              <h2>Current Data Export</h2>
-              <p>Copy this JSON to share with your LLM:</p>
+              <h2>📋 Copy to Chat</h2>
+              <p>Copy this JSON to share with your language model:</p>
             </div>
             
             <div className="json-export">
@@ -297,6 +297,55 @@ This tool validates all imported JSON against the schema. Invalid data will be r
               >
                 Copy Schema to Clipboard
               </button>
+            </div>
+
+            <div className="example-prompts">
+              <h2>💡 Example Prompts for Your AI</h2>
+              <p>Try these prompts with your language model:</p>
+              
+              <div className="prompt-examples">
+                <div className="prompt-example">
+                  <h3>Generate Topics:</h3>
+                  <div className="prompt-text">
+                    "Based on this preference set schema, create a preference set for someone who prioritizes environmental protection, affordable housing, and public transportation. Include 5-7 topics with multiple directions each."
+                  </div>
+                  <button 
+                    onClick={() => navigator.clipboard.writeText('Based on this preference set schema, create a preference set for someone who prioritizes environmental protection, affordable housing, and public transportation. Include 5-7 topics with multiple directions each.')}
+                    className="btn ghost"
+                    style={{ fontSize: '0.8rem', padding: '4px 8px' }}
+                  >
+                    Copy Prompt
+                  </button>
+                </div>
+
+                <div className="prompt-example">
+                  <h3>Refine Directions:</h3>
+                  <div className="prompt-text">
+                    "Review this preference set and suggest more specific, actionable directions for each topic. Make them more concrete and measurable."
+                  </div>
+                  <button 
+                    onClick={() => navigator.clipboard.writeText('Review this preference set and suggest more specific, actionable directions for each topic. Make them more concrete and measurable.')}
+                    className="btn ghost"
+                    style={{ fontSize: '0.8rem', padding: '4px 8px' }}
+                  >
+                    Copy Prompt
+                  </button>
+                </div>
+
+                <div className="prompt-example">
+                  <h3>Create Ballot:</h3>
+                  <div className="prompt-text">
+                    "Based on this ballot schema and the provided preference set, create a sample ballot for the 2024 Portland mayoral election. Link candidate choices to relevant preference topics with reasoning."
+                  </div>
+                  <button 
+                    onClick={() => navigator.clipboard.writeText('Based on this ballot schema and the provided preference set, create a sample ballot for the 2024 Portland mayoral election. Link candidate choices to relevant preference topics with reasoning.')}
+                    className="btn ghost"
+                    style={{ fontSize: '0.8rem', padding: '4px 8px' }}
+                  >
+                    Copy Prompt
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

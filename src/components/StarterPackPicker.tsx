@@ -11,6 +11,8 @@ interface StarterTopic {
 export const StarterPackPicker: React.FC = () => {
   const topics = useStore(state => state.topics);
   const addTopicFromStarter = useStore(state => state.addTopicFromStarter);
+  const currentFlowStep = useStore(state => state.currentFlowStep);
+  const setCurrentFlowStep = useStore(state => state.setCurrentFlowStep);
   const [pool, setPool] = useState<StarterTopic[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -33,6 +35,13 @@ export const StarterPackPicker: React.FC = () => {
       .catch(() => setPool([]));
   }, []);
 
+  // Auto-collapse when topics are added
+  useEffect(() => {
+    if (topics.length > 0 && !isCollapsed) {
+      setIsCollapsed(true);
+    }
+  }, [topics.length, isCollapsed]);
+
   const toggle = (id: string) => {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
@@ -53,17 +62,28 @@ export const StarterPackPicker: React.FC = () => {
     }
   };
 
-  // Show starter pack when there are no topics (empty state)
-  if (topics.length > 0) return null;
+  // Always show starter pack, but in minimized state when topics exist
+  const hasTopics = topics.length > 0;
 
   return (
     <div className="panel starter-pack-panel" style={{ marginTop: 16 }}>
       <div className="panel-header-collapsible">
         <div>
-          <h2 className="panel-title">🚀 Get Started with Starter Pack</h2>
-          <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>
-            Choose from {pool.length} pre-built topics to jumpstart your preferences
-          </p>
+          {hasTopics ? (
+            <>
+              <h2 className="panel-title">➕ Add More Topics</h2>
+              <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>
+                Choose from {pool.length} additional topics to expand your preferences
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="panel-title">🚀 Get Started with Starter Pack</h2>
+              <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>
+                Choose from {pool.length} pre-built topics to jumpstart your preferences
+              </p>
+            </>
+          )}
         </div>
         <button 
           className="btn ghost starter-toggle"
@@ -84,6 +104,23 @@ export const StarterPackPicker: React.FC = () => {
               {selected.length} of {pool.length} selected
             </span>
           </div>
+          
+          {/* Top Add Button */}
+          {selected.length > 0 && (
+            <div className="row" style={{ justifyContent: 'center', marginBottom: 16, padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
+              <button 
+                className="btn primary" 
+                onClick={addSelected} 
+                style={{ 
+                  fontSize: '0.95rem', 
+                  padding: '10px 20px',
+                  fontWeight: '600'
+                }}
+              >
+                ✨ Add {selected.length} Selected Topic{selected.length !== 1 ? 's' : ''} to My List
+              </button>
+            </div>
+          )}
           <div className="starter-pack-list">
             {pool.map((item) => (
               <label key={item.id} className="starter-pack-item">
@@ -96,20 +133,49 @@ export const StarterPackPicker: React.FC = () => {
               </label>
             ))}
           </div>
+          {/* Bottom Add Button */}
           <div className="row" style={{ justifyContent: 'center', marginTop: 20, padding: '16px 0', borderTop: '1px solid var(--border)' }}>
             <button 
               className="btn primary" 
               onClick={addSelected} 
               disabled={selected.length === 0}
               style={{ 
-                fontSize: '1rem', 
-                padding: '12px 24px',
+                fontSize: '0.95rem', 
+                padding: '10px 20px',
                 fontWeight: '600'
               }}
             >
               ✨ Add {selected.length} Selected Topic{selected.length !== 1 ? 's' : ''} to My List
             </button>
           </div>
+          
+          {/* Next Button - only show when in starter flow step and topics will be added */}
+          {currentFlowStep === 'starter' && selected.length > 0 && (
+            <div className="row" style={{ justifyContent: 'center', marginTop: 12, padding: '12px 0' }}>
+              <button 
+                className="btn" 
+                onClick={() => {
+                  addSelected();
+                  setCurrentFlowStep('cards');
+                  // Trigger view change to card view
+                  const toggleBtn = document.getElementById('btn-toggle-view');
+                  if (toggleBtn && !toggleBtn.textContent?.includes('Card View')) {
+                    toggleBtn.click();
+                  }
+                }}
+                style={{ 
+                  fontSize: '0.95rem', 
+                  padding: '10px 20px',
+                  fontWeight: '600',
+                  background: 'var(--accent-2)',
+                  color: 'var(--bg)',
+                  border: 'none'
+                }}
+              >
+                ➡️ Next: Sort Priorities in Card View
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

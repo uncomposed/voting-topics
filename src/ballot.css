@@ -933,6 +933,57 @@
   color: var(--muted);
 }
 
+/* Example Prompts */
+.example-prompts {
+  margin-top: 40px;
+}
+
+.example-prompts h2 {
+  margin: 0 0 15px 0;
+  color: var(--text);
+}
+
+.example-prompts p {
+  margin: 0 0 20px 0;
+  color: var(--muted);
+}
+
+.prompt-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.prompt-example {
+  background: rgba(139, 211, 255, 0.05);
+  border: 1px solid rgba(139, 211, 255, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.prompt-example h3 {
+  margin: 0 0 12px 0;
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+.prompt-text {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.prompt-example button {
+  margin-top: 8px;
+}
+
 /* Button Styles */
 .btn {
   padding: 10px 20px;

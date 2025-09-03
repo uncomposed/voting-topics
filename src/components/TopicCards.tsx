@@ -2,6 +2,7 @@ import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } f
 import { Topic } from '../schema';
 import { SmartDirectionDots } from './SmartDirectionDots';
 import { Stars } from './Stars';
+import { useStore } from '../store';
 
 interface TopicCardsProps {
   topics: Topic[];
@@ -16,6 +17,8 @@ interface DragState {
 }
 
 export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonText: () => void }, TopicCardsProps>(({ topics, onReorder, onTopicClick }, ref) => {
+  const currentFlowStep = useStore(state => state.currentFlowStep);
+  const setCurrentFlowStep = useStore(state => state.setCurrentFlowStep);
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     draggedTopic: null,
@@ -203,6 +206,33 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
           </div>
         ))}
       </div>
+      
+      {/* Next Button - only show when in cards flow step */}
+      {currentFlowStep === 'cards' && topics.length > 0 && (
+        <div className="row" style={{ justifyContent: 'center', marginTop: 24, padding: '16px 0', borderTop: '1px solid var(--border)' }}>
+          <button 
+            className="btn" 
+            onClick={() => {
+              setCurrentFlowStep('list');
+              // Trigger view change to list view
+              const toggleBtn = document.getElementById('btn-toggle-view');
+              if (toggleBtn && !toggleBtn.textContent?.includes('List View')) {
+                toggleBtn.click();
+              }
+            }}
+            style={{ 
+              fontSize: '1rem', 
+              padding: '12px 24px',
+              fontWeight: '600',
+              background: 'var(--accent-2)',
+              color: 'var(--bg)',
+              border: 'none'
+            }}
+          >
+            ➡️ Next: Add Details in List View
+          </button>
+        </div>
+      )}
     </div>
   );
 });
