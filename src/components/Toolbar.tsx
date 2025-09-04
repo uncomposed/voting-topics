@@ -38,7 +38,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const fileRef = useRef<HTMLInputElement>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const moreBtnRef = useRef<HTMLButtonElement>(null);
+  const prevOpenRef = useRef(false);
   useEffect(() => {
+    // focus return when closing
+    if (prevOpenRef.current && !moreOpen) {
+      moreBtnRef.current?.focus();
+    }
+    prevOpenRef.current = moreOpen;
     if (!moreOpen) return;
     const onClick = (e: MouseEvent) => {
       if (!moreRef.current) return;
@@ -65,10 +72,27 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       setShowLLMIntegration(true);
     };
     window.addEventListener('vt-open-llm', openLlm as EventListener);
+    const openDiff = () => {
+      setMoreOpen(false);
+      setShowLLMIntegration(false);
+      setBallotMode('preference');
+      setShowDiffComparison(true);
+    };
+    const openGS = () => { setMoreOpen(false); setShowGettingStarted(true); };
+    const createBallot = () => { setMoreOpen(false); setShowLLMIntegration(false); setShowDiffComparison(false); setBallotMode('ballot'); };
+    const backPrefs = () => { setMoreOpen(false); setBallotMode('preference'); };
+    window.addEventListener('vt-open-diff', openDiff as EventListener);
+    window.addEventListener('vt-open-getting-started', openGS as EventListener);
+    window.addEventListener('vt-create-ballot', createBallot as EventListener);
+    window.addEventListener('vt-back-preferences', backPrefs as EventListener);
     return () => {
       window.removeEventListener('vt-open-llm', openLlm as EventListener);
+      window.removeEventListener('vt-open-diff', openDiff as EventListener);
+      window.removeEventListener('vt-open-getting-started', openGS as EventListener);
+      window.removeEventListener('vt-create-ballot', createBallot as EventListener);
+      window.removeEventListener('vt-back-preferences', backPrefs as EventListener);
     };
-  }, [setBallotMode, setShowDiffComparison, setShowLLMIntegration]);
+  }, [setBallotMode, setShowDiffComparison, setShowLLMIntegration, setShowGettingStarted]);
 
   const onImportFile = (file: File) => {
     const reader = new FileReader();
@@ -112,7 +136,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       <button id="btn-export-json" className="btn primary" onClick={() => { try { exportJSON(); } catch (e) { alert(e instanceof Error ? e.message : String(e)); } }}>Export JSON</button>
 
       <div className="toolbar-more" ref={moreRef}>
-        <button className="btn" aria-haspopup="true" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}>
+        <button ref={moreBtnRef} className="btn" aria-haspopup="true" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}>
           More ▾
         </button>
         {moreOpen && (

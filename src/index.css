@@ -299,6 +299,21 @@ textarea {
   color: var(--text);
 }
 
+/* Multi-column layout for wide screens */
+@media (min-width: 1000px) {
+  .starter-pack-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(380px, 1fr));
+    gap: 4px 16px;
+  }
+  .starter-pack-item {
+    padding: 10px 8px;
+    border-bottom: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+}
+
 .topic {
   display: grid; 
   gap: 10px; 
@@ -567,17 +582,17 @@ textarea {
 
 /* Mobile sticky action bar */
 .mobile-action-bar {
-  position: sticky;
-  bottom: 0;
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
   display: none;
   gap: 8px;
-  padding: 10px;
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px));
   background: rgba(12, 17, 40, 0.9);
   backdrop-filter: blur(8px);
   border-top: 1px solid var(--border);
-  z-index: 1000;
+  z-index: 1100;
 }
 
 .mobile-action-bar .btn {
@@ -599,6 +614,53 @@ textarea {
 
 @media (max-width: 768px) {
   .mobile-action-bar { display: flex; }
+  /* hide desktop toolbar on small screens */
+  header .toolbar { display: none; }
+  /* prevent content from being obscured by fixed action bar */
+  .container { padding-bottom: 110px; }
+}
+
+/* Mobile slide-out menu */
+.mobile-hamburger {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 2000;
+  display: none;
+  background: #1a2144;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  line-height: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-menu-overlay {
+  position: fixed; inset: 0; z-index: 1199;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: flex-start;
+}
+
+.mobile-menu-panel {
+  width: min(92vw, 420px);
+  margin-top: 48px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+.mobile-menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.mobile-menu-items { display: grid; gap: 8px; }
+
+@media (max-width: 768px) {
+  .mobile-hamburger { display: inline-flex; }
 }
 
 /* Topic Cards View */

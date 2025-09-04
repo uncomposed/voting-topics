@@ -16,17 +16,7 @@ export const Layout: React.FC = () => {
       </header>
 
       <section className="panel">
-        <div className="panel-header-with-controls">
-          <div className="panel-header-left">
-            <h2 className="panel-title">Your Topics</h2>
-            <p className="muted">Drag cards to reorder by importance. Click to edit details.</p>
-          </div>
-          <div className="panel-controls">
-            <button id="btn-expand-all" className="btn ghost">▼ Expand All</button>
-          </div>
-        </div>
-
-        {/* Main app content */}
+        {/* Main app content and conditional header live inside App */}
         <App />
       </section>
 
@@ -45,4 +35,3 @@ export const Layout: React.FC = () => {
     </div>
   );
 };
-

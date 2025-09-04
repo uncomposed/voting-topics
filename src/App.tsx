@@ -12,6 +12,7 @@ import { NextStepGuidance } from './components/NextStepGuidance';
 import { GettingStartedGuide } from './components/GettingStartedGuide';
 import { TemplateInfoPanel } from './components/TemplateInfoPanel';
 import { MobileActionBar } from './components/MobileActionBar';
+import { MobileMenu } from './components/MobileMenu';
 import { Toolbar } from './components/Toolbar';
 
 export const App: React.FC = () => {
@@ -38,18 +39,31 @@ export const App: React.FC = () => {
   // Set up expand/collapse button handler (other buttons are wired in main.tsx)
   useEffect(() => {
     const btnExpandAll = document.getElementById('btn-expand-all');
-    
-    if (btnExpandAll) {
-      btnExpandAll.onclick = () => {
-        if (showCards) {
-          topicCardsRef.current?.toggleExpanded();
-          topicCardsRef.current?.updateButtonText();
-        } else {
-          topicListRef.current?.toggleAll();
-          topicListRef.current?.updateButtonText();
+    if (!btnExpandAll) return;
+    btnExpandAll.onclick = () => {
+      if (showCards) {
+        // If card view just mounted, ref may not be ready on first tick
+        if (!topicCardsRef.current) {
+          setTimeout(() => {
+            topicCardsRef.current?.toggleExpanded();
+            setTimeout(() => topicCardsRef.current?.updateButtonText(), 0);
+          }, 0);
+          return;
         }
-      };
-    }
+        topicCardsRef.current.toggleExpanded();
+        setTimeout(() => topicCardsRef.current?.updateButtonText(), 0);
+      } else {
+        if (!topicListRef.current) {
+          setTimeout(() => {
+            topicListRef.current?.toggleAll();
+            setTimeout(() => topicListRef.current?.updateButtonText(), 0);
+          }, 0);
+          return;
+        }
+        topicListRef.current.toggleAll();
+        setTimeout(() => topicListRef.current?.updateButtonText(), 0);
+      }
+    };
   }, [showCards]);
 
   // Template title/notes are now managed via React in TemplateInfoPanel
@@ -89,6 +103,17 @@ export const App: React.FC = () => {
     specialView = <BallotBuilder />;
   }
 
+  // Sync expand button label when view switches or topics change
+  useEffect(() => {
+    const btn = document.getElementById('btn-expand-all');
+    if (!btn) return;
+    if (showCards) {
+      setTimeout(() => topicCardsRef.current?.updateButtonText(), 0);
+    } else {
+      setTimeout(() => topicListRef.current?.updateButtonText(), 0);
+    }
+  }, [showCards, topics.length]);
+
   return (
     <>
       {/* Toolbar (portaled into header .toolbar) */}
@@ -103,6 +128,21 @@ export const App: React.FC = () => {
         setShowLLMIntegration={setShowLLMIntegration}
         setShowGettingStarted={setShowGettingStarted}
       />
+      {/* Panel header only for list/cards views */}
+      {!specialView && (
+        <div className="panel-header-with-controls">
+          <div className="panel-header-left">
+            <h2 className="panel-title">Your Topics</h2>
+            {showCards && (
+              <p className="muted">Drag cards to reorder by importance. Click to edit details.</p>
+            )}
+          </div>
+          <div className="panel-controls">
+            <button id="btn-expand-all" className="btn ghost">▼ Expand All</button>
+          </div>
+        </div>
+      )}
+
       {specialView ? (
         specialView
       ) : (
@@ -157,6 +197,9 @@ export const App: React.FC = () => {
         showCards={showCards}
         onToggleView={() => setShowCards(!showCards)}
       />
+
+      {/* Mobile slide-out menu */}
+      <MobileMenu />
     </>
   );
 };
