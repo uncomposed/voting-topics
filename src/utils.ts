@@ -1,4 +1,13 @@
-export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+export const uid = () => {
+  const bytes = new Uint8Array(12);
+  // crypto.getRandomValues is available in modern browsers
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  }
+  // Fallback (rare/non-browser): keep previous behavior
+  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+};
 
 export const nowISO = () => new Date().toISOString();
 

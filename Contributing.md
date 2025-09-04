@@ -39,6 +39,16 @@ src/
 - **Business logic** - Complex computations (diff algorithms, etc.)
 - **Validation helpers** - Schema validation utilities
 
+### Grounding in the project plan
+##### Pull GitHub issues into JSON document
+```
+gh issue list \
+  --repo uncomposed/AddressExpo \
+  --state all \
+  --limit 1000 \
+  --json number,title,body,labels,comments,createdAt,closedAt,milestone \
+  > issues.json
+  
 ## 🔍 Preventing Code Duplication
 
 ### Search Strategies Before Creating New Code

@@ -549,6 +549,42 @@ textarea {
   color: var(--accent-2);
 }
 
+/* Mobile sticky action bar */
+.mobile-action-bar {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: none;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(12, 17, 40, 0.9);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border);
+  z-index: 1000;
+}
+
+.mobile-action-bar .btn {
+  flex: 1;
+}
+
+.mobile-export { position: relative; }
+.mobile-export-menu {
+  position: absolute;
+  right: 0;
+  bottom: 42px;
+  display: flex;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+@media (max-width: 768px) {
+  .mobile-action-bar { display: flex; }
+}
+
 /* Topic Cards View */
 .topic-cards {
   margin-top: 24px;

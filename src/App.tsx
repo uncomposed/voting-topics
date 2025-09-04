@@ -10,6 +10,8 @@ import { BallotBuilder } from './components/ballot';
 import { LLMIntegration } from './components/LLMIntegration';
 import { NextStepGuidance } from './components/NextStepGuidance';
 import { GettingStartedGuide } from './components/GettingStartedGuide';
+import { TemplateInfoPanel } from './components/TemplateInfoPanel';
+import { MobileActionBar } from './components/MobileActionBar';
 
 export const App: React.FC = () => {
   const title = useStore(state => state.title);
@@ -49,21 +51,7 @@ export const App: React.FC = () => {
     }
   }, [showCards]);
 
-  // Set up form inputs once on mount
-  useEffect(() => {
-    const titleEl = document.getElementById('tpl-title') as HTMLInputElement;
-    const notesEl = document.getElementById('tpl-notes') as HTMLTextAreaElement;
-    
-    if (titleEl) {
-      titleEl.value = title || '';
-      titleEl.oninput = (e) => setTitle((e.target as HTMLInputElement).value);
-    }
-    
-    if (notesEl) {
-      notesEl.value = notes || '';
-      notesEl.oninput = (e) => setNotes((e.target as HTMLTextAreaElement).value);
-    }
-  }, [title, notes, setTitle, setNotes]);
+  // Template title/notes are now managed via React in TemplateInfoPanel
 
   // Add view toggle and diff comparison buttons to the toolbar (only once on mount)
   useEffect(() => {
@@ -269,6 +257,15 @@ export const App: React.FC = () => {
       {showGettingStarted && (
         <GettingStartedGuide onClose={() => setShowGettingStarted(false)} />
       )}
+
+      {/* Template Info (portaled into aside area) */}
+      <TemplateInfoPanel />
+
+      {/* Mobile sticky action bar */}
+      <MobileActionBar
+        showCards={showCards}
+        onToggleView={() => setShowCards(!showCards)}
+      />
     </>
   );
 };
