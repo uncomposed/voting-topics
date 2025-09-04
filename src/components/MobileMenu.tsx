@@ -60,7 +60,7 @@ export const MobileMenu: React.FC = () => {
       <button
         className="mobile-hamburger"
         aria-label="Open menu"
-        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+        onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }}
       >
         ☰
       </button>

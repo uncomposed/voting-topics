@@ -35,6 +35,9 @@
   width: 100%;
   max-width: 500px;
 }
+@media (max-width: 640px) {
+  .ballot-title-input { max-width: none; }
+}
 
 .ballot-election-info {
   display: flex;
@@ -55,6 +58,9 @@
   gap: 10px;
   margin-bottom: 30px;
   border-bottom: 1px solid var(--border);
+}
+@media (max-width: 640px) {
+  .ballot-tabs { overflow-x: auto; flex-wrap: nowrap; }
 }
 
 .tab {
@@ -713,6 +719,7 @@
 
 .candidate-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .candidate-bottom { display: flex; align-items: flex-start; gap: 8px; }
+.candidate-bottom .selected-check { margin-right: 6px; }
 .candidate-description-inline { color: var(--muted); font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; }
 
 .candidate-name {

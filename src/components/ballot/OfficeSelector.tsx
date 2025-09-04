@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { CandidateCard } from './CandidateCard';
+import { CandidateModal } from './CandidateModal';
 import { ReasoningLinker } from './ReasoningLinker';
 
 export const OfficeSelector: React.FC = () => {
@@ -16,6 +17,7 @@ export const OfficeSelector: React.FC = () => {
   const [showAddOffice, setShowAddOffice] = useState(false);
   const [newOfficeTitle, setNewOfficeTitle] = useState('');
   const [newOfficeDescription, setNewOfficeDescription] = useState('');
+  const [editing, setEditing] = useState<{ officeId: string; candidateId: string } | null>(null);
 
   if (!currentBallot) {
     return <div>No ballot found</div>;
@@ -37,6 +39,7 @@ export const OfficeSelector: React.FC = () => {
   };
 
   const handleAddCandidate = (officeId: string) => {
+    const before = new Set((useStore.getState().currentBallot?.offices.find(o => o.id === officeId)?.candidates || []).map(c => c.id));
     addCandidate(officeId, {
       name: '',
       party: undefined,
@@ -44,6 +47,11 @@ export const OfficeSelector: React.FC = () => {
       website: undefined,
       sources: []
     });
+    setTimeout(() => {
+      const off = useStore.getState().currentBallot?.offices.find(o => o.id === officeId);
+      const newCand = off?.candidates.find(c => !before.has(c.id));
+      if (newCand) setEditing({ officeId, candidateId: newCand.id });
+    }, 0);
   };
 
   const handleSelectCandidate = (officeId: string, candidateId: string) => {
@@ -142,6 +150,7 @@ export const OfficeSelector: React.FC = () => {
                     isSelected={office.selectedCandidateId === candidate.id}
                     onSelect={() => handleSelectCandidate(office.id, candidate.id)}
                     onRemove={() => removeCandidate(office.id, candidate.id)}
+                    onEdit={() => setEditing({ officeId: office.id, candidateId: candidate.id })}
                   />
                 ))
               )}
@@ -165,6 +174,20 @@ export const OfficeSelector: React.FC = () => {
           <p>No offices added yet. Click "Add Office" to get started.</p>
         </div>
       )}
+
+      {editing && (() => {
+        const off = currentBallot.offices.find(o => o.id === editing.officeId);
+        const cand = off?.candidates.find(c => c.id === editing.candidateId);
+        if (!off || !cand) return null;
+        return (
+          <CandidateModal
+            officeId={off.id}
+            candidate={cand}
+            isOpen={true}
+            onClose={() => setEditing(null)}
+          />
+        );
+      })()}
     </div>
   );
 };
