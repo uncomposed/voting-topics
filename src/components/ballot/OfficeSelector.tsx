@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { CandidateCard } from './CandidateCard';
 import { CandidateModal } from './CandidateModal';
+import { OfficeModal } from './OfficeModal';
 import { ReasoningLinker } from './ReasoningLinker';
 
 export const OfficeSelector: React.FC = () => {
@@ -18,6 +19,7 @@ export const OfficeSelector: React.FC = () => {
   const [newOfficeTitle, setNewOfficeTitle] = useState('');
   const [newOfficeDescription, setNewOfficeDescription] = useState('');
   const [editing, setEditing] = useState<{ officeId: string; candidateId: string } | null>(null);
+  const [editingOfficeId, setEditingOfficeId] = useState<string | null>(null);
 
   if (!currentBallot) {
     return <div>No ballot found</div>;
@@ -128,6 +130,12 @@ export const OfficeSelector: React.FC = () => {
                   + Add Candidate
                 </button>
                 <button 
+                  onClick={() => setEditingOfficeId(office.id)}
+                  className="btn small ghost"
+                >
+                  Edit Office
+                </button>
+                <button 
                   onClick={() => removeOffice(office.id)}
                   className="btn small danger"
                 >
@@ -185,6 +193,18 @@ export const OfficeSelector: React.FC = () => {
             candidate={cand}
             isOpen={true}
             onClose={() => setEditing(null)}
+          />
+        );
+      })()}
+
+      {editingOfficeId && (() => {
+        const off = currentBallot.offices.find(o => o.id === editingOfficeId);
+        if (!off) return null;
+        return (
+          <OfficeModal
+            office={off}
+            isOpen={true}
+            onClose={() => setEditingOfficeId(null)}
           />
         );
       })()}
