@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { buildTemplate, buildBallot } from '../exporters';
+import { ImportPreview } from './ImportPreview';
+import { mergePreferenceSets, mergePreferenceSetsSelective } from '../utils/merge';
 
 export const LLMIntegration: React.FC = () => {
   const ballotMode = useStore(state => state.ballotMode);
@@ -14,6 +16,19 @@ export const LLMIntegration: React.FC = () => {
   const [importJson, setImportJson] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<{ current: any; incoming: any } | null>(null);
+
+  const currentPreferenceSet = useMemo(() => {
+    const s = useStore.getState();
+    return {
+      version: 'tsb.v1' as const,
+      title: s.title || 'Untitled',
+      notes: s.notes || '',
+      topics: s.topics || [],
+      createdAt: s.__createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }, [ballotMode, currentBallot]);
 
   const handleImport = () => {
     if (!importJson.trim()) {
@@ -28,34 +43,38 @@ export const LLMIntegration: React.FC = () => {
       if (data.version === 'tsb.v1' || data.version === 'tsb.v0') {
         // It's a preference set
         const preferenceSet = parseIncomingPreferenceSet(data);
-        clearAll();
-        
-        // Set the preference set data
-        useStore.setState({
-          title: preferenceSet.title,
-          notes: preferenceSet.notes || '',
-          topics: preferenceSet.topics,
-          __createdAt: preferenceSet.createdAt
-        });
-        
-        setImportSuccess('Preference set imported successfully!');
-        setBallotMode('preference');
+        if ((currentPreferenceSet.topics?.length || 0) > 0) {
+          setPreviewData({ current: currentPreferenceSet, incoming: preferenceSet });
+          setImportError(null);
+          setImportSuccess(null);
+        } else {
+          clearAll();
+          useStore.setState({
+            title: preferenceSet.title,
+            notes: preferenceSet.notes || '',
+            topics: preferenceSet.topics,
+            __createdAt: preferenceSet.createdAt
+          });
+          setImportSuccess('Preference set imported successfully!');
+          setBallotMode('preference');
+          setImportJson('');
+        }
       } else if (data.version === 'tsb.ballot.v1') {
         // It's a ballot
         const ballot = parseIncomingBallot(data);
+        if (currentBallot) {
+          const confirmReplace = confirm('Replace current ballot with imported ballot?');
+          if (!confirmReplace) return;
+        }
         clearBallot();
-        
-        useStore.setState({
-          currentBallot: ballot
-        });
-        
+        useStore.setState({ currentBallot: ballot });
         setImportSuccess('Ballot imported successfully!');
         setBallotMode('ballot');
       } else {
         setImportError('Unknown data format. Expected tsb.v1, tsb.v0, or tsb.ballot.v1');
       }
       
-      setImportJson('');
+      if (!previewData) setImportJson('');
     } catch (error) {
       setImportError(error instanceof Error ? error.message : 'Invalid JSON');
     }
@@ -389,6 +408,40 @@ This tool validates all imported JSON against the schema. Invalid data will be r
                 Import JSON
               </button>
             </div>
+
+            {previewData && (
+              <ImportPreview
+                current={previewData.current}
+                incoming={previewData.incoming}
+                onCancel={() => setPreviewData(null)}
+                onOverwrite={() => {
+                  clearAll();
+                  useStore.setState({
+                    title: previewData.incoming.title,
+                    notes: previewData.incoming.notes || '',
+                    topics: previewData.incoming.topics,
+                    __createdAt: previewData.incoming.createdAt
+                  });
+                  setPreviewData(null);
+                  setImportSuccess('Preference set overwritten with imported data');
+                  setBallotMode('preference');
+                }}
+                onMerge={(accepted?: Set<string>) => {
+                  const merged = accepted && accepted.size > 0
+                    ? mergePreferenceSetsSelective(previewData.current, previewData.incoming, accepted)
+                    : mergePreferenceSets(previewData.current, previewData.incoming);
+                  useStore.setState({
+                    title: merged.title,
+                    notes: merged.notes || '',
+                    topics: merged.topics,
+                    __createdAt: merged.createdAt
+                  });
+                  setPreviewData(null);
+                  setImportSuccess('Imported changes merged successfully');
+                  setBallotMode('preference');
+                }}
+              />
+            )}
 
             <div className="import-help">
               <h3>Import Help</h3>

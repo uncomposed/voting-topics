@@ -12,6 +12,7 @@ import { NextStepGuidance } from './components/NextStepGuidance';
 import { GettingStartedGuide } from './components/GettingStartedGuide';
 import { TemplateInfoPanel } from './components/TemplateInfoPanel';
 import { MobileActionBar } from './components/MobileActionBar';
+import { Toolbar } from './components/Toolbar';
 
 export const App: React.FC = () => {
   const title = useStore(state => state.title);
@@ -53,126 +54,7 @@ export const App: React.FC = () => {
 
   // Template title/notes are now managed via React in TemplateInfoPanel
 
-  // Add view toggle and diff comparison buttons to the toolbar (only once on mount)
-  useEffect(() => {
-    const toolbar = document.querySelector('.toolbar');
-    if (toolbar && !document.getElementById('btn-toggle-view')) {
-      const toggleBtn = document.createElement('button');
-      toggleBtn.id = 'btn-toggle-view';
-      toggleBtn.className = 'btn';
-      toggleBtn.textContent = 'Show Card View';
-      
-      const diffBtn = document.createElement('button');
-      diffBtn.id = 'btn-diff-comparison';
-      diffBtn.className = 'btn';
-      diffBtn.textContent = 'Compare Preference Sets';
-      
-      const ballotBtn = document.createElement('button');
-      ballotBtn.id = 'btn-ballot-mode';
-      ballotBtn.className = 'btn';
-      ballotBtn.textContent = 'Create Ballot';
-      
-      const llmBtn = document.createElement('button');
-      llmBtn.id = 'btn-llm-integration';
-      llmBtn.className = 'btn';
-      llmBtn.textContent = 'LLM Integration';
-      
-      const helpBtn = document.createElement('button');
-      helpBtn.id = 'btn-getting-started';
-      helpBtn.className = 'btn ghost';
-      helpBtn.textContent = 'Getting Started';
-      
-      // Insert after the first button
-      const firstBtn = toolbar.querySelector('.btn');
-      if (firstBtn) {
-        firstBtn.parentNode?.insertBefore(toggleBtn, firstBtn.nextSibling);
-        firstBtn.parentNode?.insertBefore(diffBtn, toggleBtn.nextSibling);
-        firstBtn.parentNode?.insertBefore(ballotBtn, diffBtn.nextSibling);
-        firstBtn.parentNode?.insertBefore(llmBtn, ballotBtn.nextSibling);
-        firstBtn.parentNode?.insertBefore(helpBtn, llmBtn.nextSibling);
-      } else {
-        toolbar.appendChild(toggleBtn);
-        toolbar.appendChild(diffBtn);
-        toolbar.appendChild(ballotBtn);
-        toolbar.appendChild(llmBtn);
-        toolbar.appendChild(helpBtn);
-      }
-    }
-  }, []); // Only run once on mount
-
-  // Update button text and handler when showCards or showDiffComparison changes
-  useEffect(() => {
-    const toggleBtn = document.getElementById('btn-toggle-view');
-    if (toggleBtn) {
-      if (showDiffComparison || showLLMIntegration || ballotMode === 'ballot') {
-        // When in any special view, show "Back to Main View"
-        toggleBtn.textContent = 'Back to Main View';
-        toggleBtn.onclick = () => {
-          setShowDiffComparison(false);
-          setShowLLMIntegration(false);
-          setBallotMode('preference');
-        };
-      } else {
-        // When in main view, show the normal toggle
-        toggleBtn.textContent = showCards ? 'Show List View' : 'Show Card View';
-        toggleBtn.onclick = () => setShowCards(!showCards);
-      }
-    }
-    
-    const diffBtn = document.getElementById('btn-diff-comparison');
-    if (diffBtn) {
-      if (showDiffComparison) {
-        // When in diff comparison view, show "Close Comparison"
-        diffBtn.textContent = 'Close Comparison';
-        diffBtn.onclick = () => setShowDiffComparison(false);
-      } else {
-        // When in main view, show "Compare Preference Sets"
-        diffBtn.textContent = 'Compare Preference Sets';
-        diffBtn.onclick = () => setShowDiffComparison(true);
-      }
-    }
-    
-    const ballotBtn = document.getElementById('btn-ballot-mode');
-    if (ballotBtn) {
-      if (ballotMode === 'ballot') {
-        ballotBtn.textContent = 'Back to Preferences';
-        ballotBtn.onclick = () => setBallotMode('preference');
-      } else {
-        ballotBtn.textContent = 'Create Ballot';
-        ballotBtn.onclick = () => setBallotMode('ballot');
-      }
-    }
-    
-    const llmBtn = document.getElementById('btn-llm-integration');
-    if (llmBtn) {
-      if (showLLMIntegration) {
-        llmBtn.textContent = 'Close LLM Integration';
-        llmBtn.onclick = () => setShowLLMIntegration(false);
-      } else {
-        llmBtn.textContent = 'LLM Integration';
-        llmBtn.onclick = () => setShowLLMIntegration(true);
-      }
-    }
-    
-    const helpBtn = document.getElementById('btn-getting-started');
-    if (helpBtn) {
-      helpBtn.textContent = 'Getting Started';
-      helpBtn.onclick = () => setShowGettingStarted(true);
-    }
-    
-    // Update expand all button text when switching views
-    const btnExpandAll = document.getElementById('btn-expand-all');
-    if (btnExpandAll) {
-      // Update button text based on current view state
-      if (showCards && topicCardsRef.current) {
-        // In card view, get the current expanded state
-        setTimeout(() => topicCardsRef.current?.updateButtonText(), 100);
-      } else if (!showCards && topicListRef.current) {
-        // In list view, get the current expanded state
-        setTimeout(() => topicListRef.current?.updateButtonText(), 100);
-      }
-    }
-  }, [showCards, showDiffComparison, showLLMIntegration, ballotMode]);
+  // Toolbar is now managed by React component via portal
 
   // Card view handlers
   const handleTopicReorder = (topicId: string, newImportance: number) => {
@@ -218,6 +100,20 @@ export const App: React.FC = () => {
 
   return (
     <>
+      {/* Toolbar (portaled into header .toolbar) */}
+      <Toolbar
+        showCards={showCards}
+        setShowCards={setShowCards}
+        showDiffComparison={showDiffComparison}
+        setShowDiffComparison={setShowDiffComparison}
+        ballotMode={ballotMode}
+        setBallotMode={setBallotMode}
+        showLLMIntegration={showLLMIntegration}
+        setShowLLMIntegration={setShowLLMIntegration}
+        setShowGettingStarted={setShowGettingStarted}
+        topicListRef={topicListRef}
+        topicCardsRef={topicCardsRef}
+      />
       {/* Next Step Guidance */}
       <NextStepGuidance />
 

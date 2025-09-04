@@ -1,4 +1,4 @@
-import { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import { TopicCard } from './TopicCard';
 import type { Topic } from '../schema';
 import { useStore } from '../store';
@@ -36,26 +36,7 @@ export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: (
     }
   };
 
-  // Wire up the main button directly
-  useEffect(() => {
-    const btnExpandAll = document.getElementById('btn-expand-all');
-    if (btnExpandAll) {
-      // Remove any existing click handlers
-      btnExpandAll.replaceWith(btnExpandAll.cloneNode(true));
-      
-      // Get the fresh reference
-      const freshBtn = document.getElementById('btn-expand-all');
-      if (freshBtn) {
-        freshBtn.onclick = () => {
-          console.log('Main button clicked in list view! Current state:', allExpanded);
-          toggleAll();
-        };
-        
-        // Set initial button text
-        freshBtn.textContent = allExpanded ? '▼ Collapse All' : '▶ Expand All';
-      }
-    }
-  }, [allExpanded]);
+  // Expand/Collapse all button is now controlled from the Toolbar; expose methods via ref
 
   useImperativeHandle(ref, () => ({
     toggleAll,

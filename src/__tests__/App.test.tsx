@@ -17,38 +17,15 @@ vi.mock('../exporters', () => ({
 
 // Mock DOM elements that the app expects
 const mockDOMElements = () => {
-  // Create toolbar
+  // Create toolbar container (buttons are rendered by React Toolbar)
   const toolbar = document.createElement('div');
   toolbar.className = 'toolbar';
-  toolbar.innerHTML = `
-    <button id="btn-new-topic" class="btn">New Topic</button>
-    <button id="btn-clear" class="btn">Clear All</button>
-    <button id="btn-export-json" class="btn">Export JSON</button>
-    <button id="btn-export-pdf" class="btn">Export PDF</button>
-    <button id="btn-export-jpeg" class="btn">Export JPEG</button>
-    <button id="btn-import" class="btn">Import</button>
-    <a id="privacy-link" href="#">Privacy</a>
-  `;
-  
-  // Create form inputs
-  const titleInput = document.createElement('input');
-  titleInput.id = 'tpl-title';
-  titleInput.className = 'input';
-  
-  const notesTextarea = document.createElement('textarea');
-  notesTextarea.id = 'tpl-notes';
-  notesTextarea.className = 'input';
-  
-  // Create file input
-  const fileInput = document.createElement('input');
-  fileInput.id = 'file-input';
-  fileInput.type = 'file';
   
   // Append to document
   document.body.appendChild(toolbar);
-  document.body.appendChild(titleInput);
-  document.body.appendChild(notesTextarea);
-  document.body.appendChild(fileInput);
+  const templateInfo = document.createElement('div');
+  templateInfo.id = 'template-info';
+  document.body.appendChild(templateInfo);
 };
 
 const cleanupDOM = () => {
@@ -123,6 +100,17 @@ describe('App Component', () => {
 
   afterEach(() => {
     cleanupDOM();
+  });
+
+  describe('React Toolbar', () => {
+    it('renders toolbar buttons into .toolbar via portal', () => {
+      render(<App />);
+      expect(document.getElementById('btn-toggle-view')).toBeInTheDocument();
+      expect(document.getElementById('btn-new-topic')).toBeInTheDocument();
+      expect(document.getElementById('btn-export-json')).toBeInTheDocument();
+      expect(document.getElementById('btn-diff-comparison')).toBeInTheDocument();
+      expect(document.getElementById('btn-llm-integration')).toBeInTheDocument();
+    });
   });
 
   describe('View Toggle Functionality', () => {

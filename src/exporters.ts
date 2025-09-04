@@ -1,5 +1,3 @@
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import { useStore } from './store';
 import { TemplateSchema, BallotSchema } from './schema';
 import { nowISO, sanitize, downloadFile } from './utils';
@@ -38,6 +36,8 @@ export const exportJSON = () => {
 
 export const exportPDF = async () => {
   const tpl = buildTemplate();
+  document.body.style.cursor = 'progress';
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const margin = 40; 
   let y = margin;
@@ -146,6 +146,7 @@ export const exportPDF = async () => {
 
   const name = `${sanitize(tpl.title)}-${tpl.topics.length}t.pdf`;
   doc.save(name);
+  document.body.style.cursor = '';
 };
 
 export const renderSocialCard = (tpl: Template): HTMLElement => {
@@ -195,13 +196,16 @@ export const renderSocialCard = (tpl: Template): HTMLElement => {
 
 export const exportJPEG = async () => {
   const tpl = buildTemplate();
+  document.body.style.cursor = 'progress';
   const node = renderSocialCard(tpl);
+  const html2canvas = (await import('html2canvas')).default;
   const canvas = await html2canvas(node, { backgroundColor: null, scale: 2 });
   canvas.toBlob((blob) => {
     if (!blob) return alert('Could not capture image.');
     const name = `${sanitize(tpl.title)}-share.jpg`;
     downloadFile(blob, name);
   }, 'image/jpeg', 0.95);
+  document.body.style.cursor = '';
 };
 
 // Ballot export functions
@@ -236,6 +240,8 @@ export const exportBallotJSON = () => {
 
 export const exportBallotPDF = async () => {
   const ballot = buildBallot();
+  document.body.style.cursor = 'progress';
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const margin = 40; 
   let y = margin;
@@ -391,6 +397,7 @@ export const exportBallotPDF = async () => {
 
   const name = `${sanitize(ballot.title)}-ballot.pdf`;
   doc.save(name);
+  document.body.style.cursor = '';
 };
 
 export const renderBallotCard = (ballot: Ballot): HTMLElement => {
@@ -444,11 +451,14 @@ export const renderBallotCard = (ballot: Ballot): HTMLElement => {
 
 export const exportBallotJPEG = async () => {
   const ballot = buildBallot();
+  document.body.style.cursor = 'progress';
   const node = renderBallotCard(ballot);
+  const html2canvas = (await import('html2canvas')).default;
   const canvas = await html2canvas(node, { backgroundColor: null, scale: 2 });
   canvas.toBlob((blob) => {
     if (!blob) return alert('Could not capture image.');
     const name = `${sanitize(ballot.title)}-ballot.jpg`;
     downloadFile(blob, name);
   }, 'image/jpeg', 0.95);
+  document.body.style.cursor = '';
 };
