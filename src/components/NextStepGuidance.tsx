@@ -188,9 +188,8 @@ export const NextStepGuidance: React.FC = () => {
               textDecoration: 'underline'
             }}
             onClick={() => {
-              // This will be handled by the App component
-              const llmBtn = document.getElementById('btn-llm-integration');
-              if (llmBtn) llmBtn.click();
+              // Dispatch a global event; Toolbar listens and opens LLM view directly
+              window.dispatchEvent(new Event('vt-open-llm'));
             }}
           >
             Try LLM Integration →

@@ -15,6 +15,7 @@ export const LLMIntegration: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'export' | 'import'>('export');
   const [importJson, setImportJson] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
+  const [importIssues, setImportIssues] = useState<Array<{ path: string; message: string }> | null>(null);
   const [importSuccess, setImportSuccess] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<{ current: any; incoming: any } | null>(null);
 
@@ -75,8 +76,16 @@ export const LLMIntegration: React.FC = () => {
       }
       
       if (!previewData) setImportJson('');
-    } catch (error) {
-      setImportError(error instanceof Error ? error.message : 'Invalid JSON');
+      setImportIssues(null);
+    } catch (error: any) {
+      // Capture Zod issues when available
+      if (error && Array.isArray(error.issues)) {
+        setImportIssues(error.issues.map((i: any) => ({ path: (i.path || []).join('.'), message: i.message })));
+        setImportError('Validation failed. See details below.');
+      } else {
+        setImportIssues(null);
+        setImportError(error instanceof Error ? error.message : 'Invalid JSON');
+      }
     }
   };
 
@@ -280,6 +289,34 @@ This tool validates all imported JSON against the schema. Invalid data will be r
       <div className="llm-content">
         {activeTab === 'export' && (
           <div className="export-section">
+            {/* Quick Start */}
+            <div className="export-header" style={{ marginBottom: 16 }}>
+              <h2>🚀 Quick Start with AI</h2>
+              <p>Copy your current data and ask your LLM to help. Prompts below assume it has your data and can request the schema if needed.</p>
+              <div className="row" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button className="btn primary" onClick={() => navigator.clipboard.writeText(getCurrentDataJson())}>Copy My Data (JSON)</button>
+                <button className="btn" onClick={() => navigator.clipboard.writeText(getSchemaDocumentation())}>Copy Schema Docs</button>
+              </div>
+            </div>
+
+            {/* Quick Prompts */}
+            <div className="prompt-examples" style={{ marginBottom: 24 }}>
+              <div className="prompt-example">
+                <h3>Explore My Preferences</h3>
+                <div className="prompt-text">Use the JSON I provided to summarize my top priorities and suggest 3 specific, measurable directions for any topic that is missing them.</div>
+                <button className="btn ghost" onClick={() => navigator.clipboard.writeText('Use the JSON I provided to summarize my top priorities and suggest 3 specific, measurable directions for any topic that is missing them.')}>Copy Prompt</button>
+              </div>
+              <div className="prompt-example">
+                <h3>Develop a Preference Set</h3>
+                <div className="prompt-text">Based on the schema and my current data, propose 5–7 topics I might care about given my current preferences. Make each direction concrete and testable.</div>
+                <button className="btn ghost" onClick={() => navigator.clipboard.writeText('Based on the schema and my current data, propose 5–7 topics I might care about given my current preferences. Make each direction concrete and testable.')}>Copy Prompt</button>
+              </div>
+              <div className="prompt-example">
+                <h3>Create a Sample Ballot</h3>
+                <div className="prompt-text">Using my current preference set and the ballot schema, create a sample ballot for my jurisdiction. Cite reasoning links to relevant topics or directions.</div>
+                <button className="btn ghost" onClick={() => navigator.clipboard.writeText('Using my current preference set and the ballot schema, create a sample ballot for my jurisdiction. Cite reasoning links to relevant topics or directions.')}>Copy Prompt</button>
+              </div>
+            </div>
             <div className="export-header">
               <h2>📋 Copy to Chat</h2>
               <p>Copy this JSON to share with your language model:</p>
@@ -379,6 +416,20 @@ This tool validates all imported JSON against the schema. Invalid data will be r
             {importError && (
               <div className="error-message">
                 <strong>Import Error:</strong> {importError}
+              </div>
+            )}
+
+            {importIssues && importIssues.length > 0 && (
+              <div className="panel" style={{ margin: '12px 0' }}>
+                <h3 className="panel-title">Validation Details</h3>
+                <ul className="muted" style={{ margin: 0, paddingLeft: 16 }}>
+                  {importIssues.map((iss, idx) => (
+                    <li key={idx}><code>{iss.path || '(root)'}</code>: {iss.message}</li>
+                  ))}
+                </ul>
+                <div className="muted" style={{ marginTop: 8, fontSize: '0.9rem' }}>
+                  Need the exact schema? Use the <em>Copy Schema Docs</em> button in the Export tab.
+                </div>
               </div>
             )}
 

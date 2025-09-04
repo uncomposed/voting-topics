@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
@@ -27,9 +27,48 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   setShowLLMIntegration,
   setShowGettingStarted,
 }) => {
+  // Portal target resolution (after mount) so initial render doesn't miss it
+  const [toolbarEl, setToolbarEl] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setToolbarEl(document.querySelector('.toolbar') as HTMLElement | null);
+  }, []);
+
   const addTopic = useStore(s => s.addTopic);
   const clearAll = useStore(s => s.clearAll);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (!moreRef.current) return;
+      const target = e.target as Node;
+      if (!moreRef.current.contains(target)) setMoreOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false);
+    };
+    document.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('click', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [moreOpen]);
+
+  // Global event to open LLM Integration (used by guidance banner)
+  useEffect(() => {
+    const openLlm = () => {
+      setMoreOpen(false);
+      setShowDiffComparison(false);
+      setBallotMode('preference');
+      setShowLLMIntegration(true);
+    };
+    window.addEventListener('vt-open-llm', openLlm as EventListener);
+    return () => {
+      window.removeEventListener('vt-open-llm', openLlm as EventListener);
+    };
+  }, [setBallotMode, setShowDiffComparison, setShowLLMIntegration]);
 
   const onImportFile = (file: File) => {
     const reader = new FileReader();
@@ -60,23 +99,34 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     reader.readAsText(file);
   };
 
-  const toolbar = typeof document !== 'undefined' ? document.querySelector('.toolbar') : null;
-  if (!toolbar) return null;
+  if (!toolbarEl) return null;
 
   const isInSpecialView = showDiffComparison || showLLMIntegration || ballotMode === 'ballot';
   const toggleViewLabel = isInSpecialView ? 'Back to Main View' : (showCards ? 'Show List View' : 'Show Card View');
   const ballotLabel = ballotMode === 'ballot' ? 'Back to Preferences' : 'Create Ballot';
-  const llmLabel = showLLMIntegration ? 'Close LLM Integration' : 'LLM Integration';
+
 
   return createPortal(
     <>
       <button id="btn-new-topic" className="btn" onClick={() => addTopic(0)}>New Topic</button>
-      <button id="btn-clear" className="btn ghost danger" onClick={() => { if (confirm('Clear all data? This only affects your browser.')) clearAll(); }}>Clear All</button>
-      <button id="btn-import" className="btn ghost" onClick={() => fileRef.current?.click()}>Import JSON</button>
-      <input ref={fileRef} id="file-input" type="file" className="sr-only" accept="application/json" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onImportFile(f); }} />
       <button id="btn-export-json" className="btn primary" onClick={() => { try { exportJSON(); } catch (e) { alert(e instanceof Error ? e.message : String(e)); } }}>Export JSON</button>
-      <button id="btn-export-pdf" className="btn" onClick={() => exportPDF().catch(e => alert(String(e)))}>Export PDF</button>
-      <button id="btn-export-jpeg" className="btn" onClick={() => exportJPEG().catch(e => alert(String(e)))}>Export JPEG</button>
+
+      <div className="toolbar-more" ref={moreRef}>
+        <button className="btn" aria-haspopup="true" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}>
+          More ▾
+        </button>
+        {moreOpen && (
+          <div className="toolbar-menu" role="menu">
+            <button id="btn-import" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import JSON</button>
+            <button id="btn-export-pdf" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
+            <button id="btn-export-jpeg" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
+            <button id="btn-llm-integration" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowLLMIntegration(!showLLMIntegration); }}>LLM Integration</button>
+            <button id="btn-getting-started" className="btn ghost" role="menuitem" onClick={() => { setMoreOpen(false); setShowGettingStarted(true); }}>Getting Started</button>
+            <button id="btn-clear" className="btn danger" role="menuitem" onClick={() => { setMoreOpen(false); if (confirm('Clear all data? This only affects your browser.')) clearAll(); }}>Clear All</button>
+          </div>
+        )}
+        <input ref={fileRef} id="file-input" type="file" className="sr-only" accept="application/json" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onImportFile(f); }} />
+      </div>
 
       <button id="btn-toggle-view" className="btn" onClick={() => {
         if (isInSpecialView) {
@@ -104,12 +154,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {ballotLabel}
       </button>
 
-      <button id="btn-llm-integration" className="btn" onClick={() => setShowLLMIntegration(!showLLMIntegration)}>
-        {llmLabel}
-      </button>
-
-      <button id="btn-getting-started" className="btn ghost" onClick={() => setShowGettingStarted(true)}>Getting Started</button>
+      {/* LLM + Getting Started moved into More menu */}
     </>,
-    toolbar
+    toolbarEl
   );
 };

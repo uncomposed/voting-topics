@@ -7,46 +7,6 @@
   </head>
   <body>
     <div id="root"></div>
-    
-    <div class="container">
-      <header>
-        <div class="brand">
-          <div class="logo" aria-hidden="true"></div>
-          <div>
-            <div class="title">Voting Topics</div>
-            <div class="muted">Draft, prioritize, and export your positions — locally, no account needed.</div>
-          </div>
-        </div>
-        <div class="toolbar"></div>
-      </header>
-
-      <section class="panel">
-        <div class="panel-header-with-controls">
-          <div class="panel-header-left">
-            <h2 class="panel-title">Your Topics</h2>
-            <p class="muted">Drag cards to reorder by importance. Click to edit details.</p>
-          </div>
-          <div class="panel-controls">
-            <button id="btn-expand-all" class="btn ghost">▼ Expand All</button>
-          </div>
-        </div>
-        <div id="topic-list" class="list"></div>
-        <div id="empty" class="empty" hidden>No topics yet. Click <b>New Topic</b> to get started.</div>
-      </section>
-
-      <aside class="panel" style="margin-top: 24px;">
-        <h2 class="panel-title">Template Info</h2>
-        <div id="template-info"></div>
-      </aside>
-
-      <div class="footer">
-        <div>Keyboard: <span class="kbd">Tab</span>/<span class="kbd">Shift+Tab</span>, stars: <span class="kbd">ArrowLeft</span>/<span class="kbd">ArrowRight</span></div>
-        <div><a href="#" id="privacy-link">Privacy & disclaimers</a></div>
-      </div>
-
-      <!-- Hidden social-card render target for JPEG export -->
-      <div id="social-card" style="position:absolute; left:-99999px; top:-99999px" aria-hidden="true"></div>
-    </div>
 
     <script type="module" src="/src/main.tsx"></script>
   </body>
