@@ -1,4 +1,4 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Topic } from '../schema';
 import { SmartDirectionDots } from './SmartDirectionDots';
 import { Stars } from './Stars';
@@ -83,33 +83,11 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
     return 'Critical Priority';
   };
 
-  // Wire up the main button directly
-  useEffect(() => {
-    const btnExpandAll = document.getElementById('btn-expand-all');
-    if (btnExpandAll) {
-      // Remove any existing click handlers
-      btnExpandAll.replaceWith(btnExpandAll.cloneNode(true));
-      
-      // Get the fresh reference
-      const freshBtn = document.getElementById('btn-expand-all');
-      if (freshBtn) {
-        freshBtn.onclick = () => {
-          console.log('Main button clicked! Current state:', isExpanded);
-          setIsExpanded(!isExpanded);
-        };
-        
-        // Set initial button text
-        freshBtn.textContent = isExpanded ? '▼ Collapse All' : '▶ Expand All';
-      }
-    }
-  }, [isExpanded]);
 
   useImperativeHandle(ref, () => ({
     toggleExpanded: () => {
-      console.log('TopicCards toggleExpanded called, current state:', isExpanded);
       setIsExpanded(prev => {
         const newState = !prev;
-        console.log('Setting isExpanded to:', newState);
         
         // Update button text after state change
         setTimeout(() => {

@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
-import { parseIncomingTemplate } from '../schema';
+import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 
 interface ToolbarProps {
   showCards: boolean;
@@ -14,8 +14,6 @@ interface ToolbarProps {
   showLLMIntegration: boolean;
   setShowLLMIntegration: (v: boolean) => void;
   setShowGettingStarted: (v: boolean) => void;
-  topicListRef: React.RefObject<{ toggleAll: () => void; updateButtonText: () => void }>;
-  topicCardsRef: React.RefObject<{ toggleExpanded: () => void; updateButtonText: () => void }>;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -28,8 +26,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   showLLMIntegration,
   setShowLLMIntegration,
   setShowGettingStarted,
-  topicListRef,
-  topicCardsRef,
 }) => {
   const addTopic = useStore(s => s.addTopic);
   const clearAll = useStore(s => s.clearAll);
@@ -40,12 +36,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     reader.onload = () => {
       try {
         const obj = JSON.parse(String(reader.result || '{}'));
-        const parsed = parseIncomingTemplate(obj);
-        useStore.getState().importData({
-          title: parsed.title,
-          notes: parsed.notes || '',
-          topics: parsed.topics,
-        });
+        if (obj?.version === 'tsb.ballot.v1') {
+          const ballot = parseIncomingBallot(obj);
+          useStore.setState({ currentBallot: ballot });
+          setShowLLMIntegration(false);
+          setShowDiffComparison(false);
+          setBallotMode('ballot');
+        } else {
+          const preferenceSet = parseIncomingPreferenceSet(obj);
+          useStore.getState().importData({
+            title: preferenceSet.title,
+            notes: preferenceSet.notes || '',
+            topics: preferenceSet.topics,
+          });
+          setBallotMode('preference');
+        }
       } catch (e: unknown) {
         alert('Import failed: ' + (e instanceof Error ? e.message : String(e)));
       } finally {
@@ -87,7 +92,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {showDiffComparison ? 'Close Comparison' : 'Compare Preference Sets'}
       </button>
 
-      <button id="btn-ballot-mode" className="btn" onClick={() => setBallotMode(ballotMode === 'ballot' ? 'preference' : 'ballot')}>
+      <button id="btn-ballot-mode" className="btn" onClick={() => {
+        if (ballotMode === 'ballot') {
+          setBallotMode('preference');
+        } else {
+          setShowLLMIntegration(false);
+          setShowDiffComparison(false);
+          setBallotMode('ballot');
+        }
+      }}>
         {ballotLabel}
       </button>
 
@@ -96,18 +109,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       </button>
 
       <button id="btn-getting-started" className="btn ghost" onClick={() => setShowGettingStarted(true)}>Getting Started</button>
-
-      <button id="btn-expand-all" className="btn ghost" onClick={() => {
-        if (showCards) {
-          topicCardsRef.current?.toggleExpanded();
-          topicCardsRef.current?.updateButtonText();
-        } else {
-          topicListRef.current?.toggleAll();
-          topicListRef.current?.updateButtonText();
-        }
-      }}>▼ Expand All</button>
     </>,
     toolbar
   );
 };
-

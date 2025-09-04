@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 
 
@@ -16,6 +16,7 @@ export const StarterPackPicker: React.FC = () => {
   const [pool, setPool] = useState<StarterTopic[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const autoCollapsed = useRef(false);
 
   useEffect(() => {
     // Load lazily from bundled JSON (tsconfig resolves JSON imports)
@@ -35,10 +36,11 @@ export const StarterPackPicker: React.FC = () => {
       .catch(() => setPool([]));
   }, []);
 
-  // Auto-collapse when topics are added
+  // Auto-collapse once when topics first appear
   useEffect(() => {
-    if (topics.length > 0 && !isCollapsed) {
+    if (topics.length > 0 && !isCollapsed && !autoCollapsed.current) {
       setIsCollapsed(true);
+      autoCollapsed.current = true;
     }
   }, [topics.length, isCollapsed]);
 
@@ -181,5 +183,4 @@ export const StarterPackPicker: React.FC = () => {
     </div>
   );
 };
-
 

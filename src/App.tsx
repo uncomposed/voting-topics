@@ -79,23 +79,14 @@ export const App: React.FC = () => {
     removeTopic(topicId);
   };
 
-  // Render the appropriate view based on state
+  // Decide main content view
+  let specialView: React.ReactNode = null;
   if (showDiffComparison) {
-    return (
-      <PreferenceSetComparison onClose={() => setShowDiffComparison(false)} />
-    );
-  }
-
-  if (showLLMIntegration) {
-    return (
-      <LLMIntegration />
-    );
-  }
-
-  if (ballotMode === 'ballot') {
-    return (
-      <BallotBuilder />
-    );
+    specialView = <PreferenceSetComparison onClose={() => setShowDiffComparison(false)} />;
+  } else if (showLLMIntegration) {
+    specialView = <LLMIntegration />;
+  } else if (ballotMode === 'ballot') {
+    specialView = <BallotBuilder />;
   }
 
   return (
@@ -111,34 +102,38 @@ export const App: React.FC = () => {
         showLLMIntegration={showLLMIntegration}
         setShowLLMIntegration={setShowLLMIntegration}
         setShowGettingStarted={setShowGettingStarted}
-        topicListRef={topicListRef}
-        topicCardsRef={topicCardsRef}
       />
-      {/* Next Step Guidance */}
-      <NextStepGuidance />
+      {specialView ? (
+        specialView
+      ) : (
+        <>
+          {/* Next Step Guidance */}
+          <NextStepGuidance />
 
-      {/* Card View */}
-      {showCards && (
-        <TopicCards
-          ref={topicCardsRef}
-          topics={topics}
-          onReorder={handleTopicReorder}
-          onTopicClick={handleTopicClick}
-        />
+          {/* Card View */}
+          {showCards && (
+            <TopicCards
+              ref={topicCardsRef}
+              topics={topics}
+              onReorder={handleTopicReorder}
+              onTopicClick={handleTopicClick}
+            />
+          )}
+
+          {/* List View */}
+          {!showCards && (
+            <TopicList
+              ref={topicListRef}
+              topics={topics}
+              onChange={patchTopic}
+              onDelete={removeTopic}
+            />
+          )}
+
+          {/* Starter Pack Picker below both views */}
+          <StarterPackPicker />
+        </>
       )}
-
-      {/* List View */}
-      {!showCards && (
-        <TopicList
-          ref={topicListRef}
-          topics={topics}
-          onChange={patchTopic}
-          onDelete={removeTopic}
-        />
-      )}
-
-      {/* Starter Pack Picker below both views */}
-      <StarterPackPicker />
 
       {/* Modal (available in both views) */}
       <TopicModal

@@ -57,25 +57,30 @@ export const BallotPreview: React.FC = () => {
                 )}
                 
                 <div className="candidates-preview">
-                  {office.candidates.map((candidate) => (
-                    <div 
-                      key={candidate.id} 
-                      className={`candidate-preview ${office.selectedCandidateId === candidate.id ? 'selected' : ''}`}
-                    >
-                      <div className="candidate-info">
-                        <span className="candidate-name">{candidate.name}</span>
-                        {candidate.party && (
-                          <span className="candidate-party">({candidate.party})</span>
-                        )}
-                        {office.selectedCandidateId === candidate.id && (
-                          <span className="selected-indicator">✓ SELECTED</span>
-                        )}
+                  {office.candidates.map((candidate) => {
+                    const isSelected = office.selectedCandidateId === candidate.id;
+                    return (
+                      <div 
+                        key={candidate.id} 
+                        className={`candidate-preview ${isSelected ? 'selected' : ''}`}
+                      >
+                        <div className="candidate-top">
+                          <span className="candidate-name">{candidate.name}</span>
+                          {candidate.party && (
+                            <span className="candidate-party">({candidate.party})</span>
+                          )}
+                        </div>
+                        <div className="candidate-bottom">
+                          {isSelected && (
+                            <span className="selected-check" aria-label="Selected" title="Selected">✓</span>
+                          )}
+                          {candidate.description && (
+                            <span className="candidate-description-inline">{candidate.description}</span>
+                          )}
+                        </div>
                       </div>
-                      {candidate.description && (
-                        <p className="candidate-description">{candidate.description}</p>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                   {!office.selectedCandidateId && office.candidates.length > 0 && (
                     <div className="unselected-warning">
                       ⚠️ No candidate selected for this office
