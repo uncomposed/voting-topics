@@ -213,7 +213,7 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
 
       <div className="reasoning-list">
         {office.reasoning.length === 0 ? (
-          <p className="no-reasoning">No reasoning added yet. Add reasoning to explain your candidate choice.</p>
+          <p className="no-reasoning">No reasoning added yet. Add your perferences for this office.</p>
         ) : (
           office.reasoning.map((reasoning, index) => (
             <div key={index} className="reasoning-item">

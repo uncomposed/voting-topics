@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../../store';
 import { ElectionInfoForm } from './ElectionInfoForm';
 import { OfficeSelector } from './OfficeSelector';
@@ -15,6 +15,30 @@ export const BallotBuilder: React.FC = () => {
   } = useStore();
   
   const [activeTab, setActiveTab] = useState<'election' | 'offices' | 'measures' | 'preview'>('election');
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const tabRefs = {
+    election: useRef<HTMLButtonElement>(null),
+    offices: useRef<HTMLButtonElement>(null),
+    measures: useRef<HTMLButtonElement>(null),
+    preview: useRef<HTMLButtonElement>(null),
+  } as const;
+
+  // When active tab changes, ensure it's scrolled into view (centered) on mobile
+  useEffect(() => {
+    const el = tabRefs[activeTab].current;
+    if (el && tabsContainerRef.current) {
+      try {
+        el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      } catch {
+        // Fallback manual centering
+        const c = tabsContainerRef.current;
+        const rect = el.getBoundingClientRect();
+        const cRect = c.getBoundingClientRect();
+        const delta = rect.left - cRect.left - (cRect.width / 2 - rect.width / 2);
+        c.scrollLeft += delta;
+      }
+    }
+  }, [activeTab]);
 
   const handleCreateBallot = (electionInfo: ElectionInfo) => {
     createBallot(electionInfo);
@@ -71,26 +95,30 @@ export const BallotBuilder: React.FC = () => {
         </div>
       </div>
 
-      <div className="ballot-tabs">
-        <button 
+      <div className="ballot-tabs" ref={tabsContainerRef}>
+        <button
+          ref={tabRefs.election}
           className={`tab ${activeTab === 'election' ? 'active' : ''}`}
           onClick={() => setActiveTab('election')}
         >
           Election Info
         </button>
-        <button 
+        <button
+          ref={tabRefs.offices}
           className={`tab ${activeTab === 'offices' ? 'active' : ''}`}
           onClick={() => setActiveTab('offices')}
         >
           Offices ({currentBallot.offices.length})
         </button>
-        <button 
+        <button
+          ref={tabRefs.measures}
           className={`tab ${activeTab === 'measures' ? 'active' : ''}`}
           onClick={() => setActiveTab('measures')}
         >
           Measures ({currentBallot.measures.length})
         </button>
-        <button 
+        <button
+          ref={tabRefs.preview}
           className={`tab ${activeTab === 'preview' ? 'active' : ''}`}
           onClick={() => setActiveTab('preview')}
         >

@@ -158,7 +158,7 @@ export const OfficeSelector: React.FC = () => {
 
             {office.selectedCandidateId && (
               <div className="reasoning-section">
-                <h4>Reasoning for Selection</h4>
+                <h4>Reasoning for Office</h4>
                 <ReasoningLinker 
                   officeId={office.id}
                   candidateId={office.selectedCandidateId}

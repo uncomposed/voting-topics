@@ -22,7 +22,18 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
   const updateCandidate = useStore(state => state.updateCandidate);
 
   return (
-    <div className={`candidate-card ${isSelected ? 'selected' : ''}`}>
+    <div className={`candidate-card ${isSelected ? 'selected' : ''}`} onClick={onSelect}>
+      {isSelected && (
+        <span className="candidate-selected-badge">✓ Selected</span>
+      )}
+      <button
+        className="btn small ghost candidate-edit-btn"
+        onClick={(e) => { e.stopPropagation(); onEdit(); }}
+        aria-label={`Edit ${candidate.name || 'candidate'}`}
+      >
+        ✎ Edit
+      </button>
+
       <div className="candidate-header" style={{ gap: 12 }}>
         <div className="candidate-info">
           <div className="candidate-display">
@@ -32,29 +43,7 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
             )}
           </div>
         </div>
-        
-        <div className="candidate-actions">
-          <>
-            <button 
-              onClick={onSelect}
-              className={`btn small ${isSelected ? 'selected' : 'primary'}`}
-            >
-              {isSelected ? 'Selected' : 'Select'}
-            </button>
-            <button 
-              onClick={onEdit}
-              className="btn small ghost"
-            >
-              Edit
-            </button>
-            <button 
-              onClick={onRemove}
-              className="btn small danger"
-            >
-              Remove
-            </button>
-          </>
-        </div>
+
       </div>
 
       <div className="candidate-details">

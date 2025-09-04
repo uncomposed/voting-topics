@@ -24,11 +24,12 @@ export const CandidateModal: React.FC<Props> = ({ officeId, candidate, isOpen, o
     setWebsite(candidate.website || '');
   }, [candidate.id]);
 
+  const nameInputId = `cand-name-${candidate.id}`;
   if (!isOpen) return null;
 
   return (
-    <div className="modal" role="dialog" aria-modal="true">
-      <div className="modal-content">
+    <div className="modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 className="panel-title">Edit Candidate</h3>
           <button className="btn ghost modal-close" onClick={onClose} aria-label="Close">✕</button>
@@ -36,7 +37,7 @@ export const CandidateModal: React.FC<Props> = ({ officeId, candidate, isOpen, o
         <div className="modal-body">
           <div className="form-group">
             <label>Name</label>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Candidate name" />
+            <input id={nameInputId} className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Candidate name" />
           </div>
           <div className="form-group">
             <label>Party (optional)</label>
@@ -73,4 +74,3 @@ export const CandidateModal: React.FC<Props> = ({ officeId, candidate, isOpen, o
     </div>
   );
 };
-

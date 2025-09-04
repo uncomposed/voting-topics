@@ -209,6 +209,10 @@
   align-items: flex-start;
   margin-bottom: 20px;
 }
+@media (max-width: 640px) {
+  .office-header { flex-direction: column; gap: 12px; }
+  .office-actions { order: 3; }
+}
 
 .office-header h3 {
   margin: 0 0 10px 0;
@@ -225,12 +229,19 @@
   display: flex;
   gap: 10px;
 }
+@media (max-width: 640px) {
+  .office-actions { flex-wrap: wrap; }
+}
 
 .candidates-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
+
+/* Make candidate card row itself selectable with larger hit area */
+.candidate-card { cursor: pointer; }
+.candidate-card .btn { cursor: default; }
 
 .no-candidates {
   text-align: center;
@@ -246,13 +257,32 @@
   background: var(--bg);
   border: 2px solid var(--border);
   border-radius: 8px;
-  padding: 15px;
+  padding: 15px 15px 44px 15px; /* extra bottom space for badges */
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .candidate-card.selected {
   border-color: var(--primary);
   background: var(--primary-light);
+}
+
+.candidate-selected-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+}
+
+.candidate-edit-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
 }
 
 .candidate-header {
@@ -535,6 +565,7 @@
 .position-options {
   display: flex;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .position-option {
