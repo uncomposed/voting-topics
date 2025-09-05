@@ -1,4 +1,4 @@
-import { useState, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { TopicCard } from './TopicCard';
 import type { Topic } from '../schema';
 import { useStore } from '../store';
@@ -48,6 +48,21 @@ export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: (
       }
     }
   }));
+
+  // Keep newly added topics expanded by default and prune removed ids
+  useEffect(() => {
+    const currentIds = new Set(topics.map(t => t.id));
+    setExpandedTopics(prev => {
+      // Keep previously expanded items that still exist
+      const next = new Set<string>(Array.from(prev).filter(id => currentIds.has(id)));
+      // Expand any new items by default
+      for (const id of currentIds) {
+        if (!prev.has(id)) next.add(id);
+      }
+      setAllExpanded(next.size === topics.length);
+      return next;
+    });
+  }, [topics]);
 
   // Early return after all hooks
   if (topics.length === 0) {

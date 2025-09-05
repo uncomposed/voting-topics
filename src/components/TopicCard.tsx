@@ -21,9 +21,18 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   onToggleExpand 
 }) => {
 
+  const handleHeaderClick = (e: React.MouseEvent) => {
+    if (!onToggleExpand) return;
+    const target = e.target as HTMLElement;
+    // Ignore clicks on interactive controls
+    const interactive = target.closest('button, input, textarea, select, a, [contenteditable="true"], .input, .star-btn, .expand-toggle');
+    if (interactive) return;
+    onToggleExpand();
+  };
+
   return (
     <div className="topic" data-topic-id={topic.id} aria-label={`Topic ${topic.title || topic.id}`}>
-      <div className="topic-header">
+      <div className="topic-header" onClick={handleHeaderClick}>
         <div className="topic-header-main">
           <input
             className="input"

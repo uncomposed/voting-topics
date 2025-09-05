@@ -92,10 +92,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   }, [exportOpen]);
 
   // Close menus when major UI state changes to avoid stale popovers
+  // Note: intentionally do not include `moreOpen`/`exportOpen` as deps to avoid
+  // immediately re-closing after toggling open.
   useEffect(() => {
     if (exportOpen) setExportOpen(false);
     if (moreOpen) setMoreOpen(false);
-  }, [showCards, showDiffComparison, showLLMIntegration, ballotMode, exportOpen, moreOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCards, showDiffComparison, showLLMIntegration, ballotMode]);
 
   // Track starter pack selection count to surface Add Selected in nav
   useEffect(() => {
@@ -347,6 +350,23 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       )}
 
+      {/* Desktop: show Export in ballot view when ballot is complete */}
+      {ballotMode === 'ballot' && ballotReadyToShare && (
+        <div className="toolbar-more" ref={exportRef}>
+          <button ref={exportBtnRef} className="btn" aria-haspopup="true" aria-expanded={exportOpen} onClick={() => setExportOpen(v => !v)}>
+            Share / Export
+          </button>
+          {exportOpen && (
+            <div className="toolbar-menu" role="menu">
+              <div className="muted" style={{ padding: '4px 6px' }}>Export</div>
+              <button id="btn-export-json-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
+              <button id="btn-export-pdf-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
+              <button id="btn-export-jpeg-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Ballot view: if not ready to share, surface Import Ballot */}
       {ballotMode === 'ballot' && !ballotReadyToShare && (
         <div className="toolbar-more">
@@ -441,13 +461,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       )}
 
       {/* Move the menu/hamburger to the end so it stays at the right */}
-      <div className="toolbar-more" ref={moreRef}>
+      <div className="toolbar-more pin-right" ref={moreRef}>
         <button ref={moreBtnRef} className="btn" aria-haspopup="true" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}>
           ☰
         </button>
         {moreOpen && (
           <div className="toolbar-menu" role="menu">
             <div className="muted" style={{ padding: '4px 6px' }}>Menu</div>
+            {ballotMode === 'ballot' && (
+              <button id="btn-import-ballot" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import Ballot</button>
+            )}
             {/* Collapsed items will be injected here via conditions below */}
             {/* Collapsed Toggle / Compare shortcuts */}
             {collapseToggle && (

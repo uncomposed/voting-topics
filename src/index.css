@@ -95,10 +95,10 @@ header {
   flex-wrap: wrap; 
 }
 
-/* Pin the toolbar menu button to the top-right on desktop */
+/* Pin only the menu (with .pin-right) to the top-right on desktop */
 @media (min-width: 769px) {
-  header .toolbar { position: relative; padding-right: 56px; }
-  header .toolbar .toolbar-more { position: absolute; right: 0; top: 0; }
+  header .toolbar { position: relative; padding-right: 72px; }
+  header .toolbar .pin-right { position: absolute; right: 0; top: 0; }
 }
 
 .toolbar-more { position: relative; }
