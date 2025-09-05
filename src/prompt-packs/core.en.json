@@ -1,0 +1,31 @@
+{
+  "version": "vt.promptpack.v1",
+  "name": "Core",
+  "language": "en",
+  "prompts": [
+    {
+      "id": "explore-preferences",
+      "title": "Explore My Preferences",
+      "text": "Using the JSON I provided (and ask me for it if you don't have it), summarize my top priorities and suggest {{count}} specific, measurable directions for any topic that is missing them.",
+      "variables": {
+        "count": { "type": "number", "min": 1, "max": 10, "default": 3 }
+      }
+    },
+    {
+      "id": "develop-preferences",
+      "title": "Develop a Preference Set",
+      "text": "Using the schema I provided (ask me if you need it) and my current data, propose {{count}} topics I might care about. For each topic, include 2–3 concrete, testable directions.",
+      "variables": {
+        "count": { "type": "number", "min": 3, "max": 10, "default": 6 }
+      }
+    },
+    {
+      "id": "create-ballot",
+      "title": "Create a Sample Ballot",
+      "text": "Using my current preference set and the ballot schema, create a sample ballot for {{jurisdiction}}. Link choices to relevant topics or directions with a one‑sentence rationale.",
+      "variables": {
+        "jurisdiction": { "type": "string", "placeholder": "City, County, State", "default": "my jurisdiction" }
+      }
+    }
+  ]
+}

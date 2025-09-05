@@ -90,7 +90,7 @@ export const BallotPreview: React.FC = () => {
 
                 {office.selectedCandidateId && office.reasoning.length > 0 && (
                   <div className="reasoning-preview">
-                    <h4>Reasoning for Selection:</h4>
+                    <h4>Reasoning for Office:</h4>
                     <ul>
                       {office.reasoning.map((reasoning, index) => {
                         // Find the topic for display

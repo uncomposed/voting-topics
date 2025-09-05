@@ -1,9 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { buildTemplate, buildBallot } from '../exporters';
 import { ImportPreview } from './ImportPreview';
 import { mergePreferenceSets, mergePreferenceSetsSelective } from '../utils/merge';
+import type { PromptPack, PromptItem } from '../utils/prompt';
+import { renderTemplate } from '../utils/prompt';
 
 export const LLMIntegration: React.FC = () => {
   const ballotMode = useStore(state => state.ballotMode);
@@ -17,6 +19,9 @@ export const LLMIntegration: React.FC = () => {
   const [importError, setImportError] = useState<string | null>(null);
   const [importIssues, setImportIssues] = useState<Array<{ path: string; message: string }> | null>(null);
   const [importSuccess, setImportSuccess] = useState<string | null>(null);
+  const [promptPack, setPromptPack] = useState<PromptPack | null>(null);
+  const [activePrompt, setActivePrompt] = useState<PromptItem | null>(null);
+  const [promptVars, setPromptVars] = useState<Record<string, string | number>>({});
   const [previewData, setPreviewData] = useState<{ current: any; incoming: any } | null>(null);
 
   const currentPreferenceSet = useMemo(() => {
@@ -30,6 +35,13 @@ export const LLMIntegration: React.FC = () => {
       updatedAt: new Date().toISOString(),
     };
   }, [ballotMode, currentBallot]);
+
+  // Load prompt pack lazily
+  useEffect(() => {
+    import('../prompt-packs/core.en.json')
+      .then((m) => setPromptPack((m as any).default as PromptPack))
+      .catch(() => setPromptPack(null));
+  }, []);
 
   const handleImport = () => {
     if (!importJson.trim()) {
@@ -88,6 +100,12 @@ export const LLMIntegration: React.FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    import("../prompt-packs/core.en.json")
+      .then(m => setPromptPack(m.default as PromptPack))
+      .catch(() => setPromptPack(null));
+  }, []);
 
   const getSchemaDocumentation = () => {
     return `# Voting Topics Builder - Schema Documentation
@@ -304,24 +322,68 @@ This tool validates all imported JSON against the schema. Invalid data will be r
               </div>
             </div>
 
-            {/* Quick Prompts */}
-            <div className="prompt-examples" style={{ marginBottom: 24 }}>
-              <div className="prompt-example">
-                <h3>Explore My Preferences</h3>
-                <div className="prompt-text">Use the JSON I provided to summarize my top priorities and suggest 3 specific, measurable directions for any topic that is missing them.</div>
-                <button className="btn ghost" onClick={() => navigator.clipboard.writeText('Use the JSON I provided to summarize my top priorities and suggest 3 specific, measurable directions for any topic that is missing them.')}>Copy Prompt</button>
+            {/* Prompt Packs */}
+            {promptPack && (
+              <div style={{ marginBottom: 24 }}>
+                <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+                  {promptPack.prompts.map((p) => (
+                    <button
+                      key={p.id}
+                      className={`btn ${activePrompt?.id === p.id ? 'primary' : ''}`}
+                      onClick={() => {
+                        setActivePrompt(p);
+                        const defaults = Object.fromEntries(
+                          Object.entries(p.variables || {}).map(([k, v]: any) => [k, v.default ?? (v.type === 'number' ? 0 : '')])
+                        );
+                        setPromptVars(defaults);
+                      }}
+                    >
+                      {p.title}
+                    </button>
+                  ))}
+                </div>
+                {activePrompt && (
+                  <div className="panel" style={{ marginTop: 12 }}>
+                    <h3 className="panel-title">{activePrompt.title}</h3>
+                    {activePrompt.variables && (
+                      <div className="grid" style={{ marginBottom: 12 }}>
+                        {Object.entries(activePrompt.variables).map(([name, spec]: any) => (
+                          <label key={name}>{name}
+                            {spec.type === 'number' ? (
+                              <input
+                                type="number"
+                                className="input"
+                                min={spec.min}
+                                max={spec.max}
+                                value={Number(promptVars[name] ?? spec.default ?? 0)}
+                                onChange={(e) => setPromptVars({ ...promptVars, [name]: Number(e.target.value) })}
+                              />
+                            ) : (
+                              <input
+                                type="text"
+                                className="input"
+                                placeholder={spec.placeholder}
+                                value={String(promptVars[name] ?? spec.default ?? '')}
+                                onChange={(e) => setPromptVars({ ...promptVars, [name]: e.target.value })}
+                              />
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    <div className="prompt-text" style={{ marginBottom: 12 }}>
+                      {renderTemplate(activePrompt.text, promptVars)}
+                    </div>
+                    <button
+                      className="btn primary"
+                      onClick={() => navigator.clipboard.writeText(renderTemplate(activePrompt.text, promptVars))}
+                    >
+                      Copy Prompt
+                    </button>
+                  </div>
+                )}
               </div>
-              <div className="prompt-example">
-                <h3>Develop a Preference Set</h3>
-                <div className="prompt-text">Based on the schema and my current data, propose 5–7 topics I might care about given my current preferences. Make each direction concrete and testable.</div>
-                <button className="btn ghost" onClick={() => navigator.clipboard.writeText('Based on the schema and my current data, propose 5–7 topics I might care about given my current preferences. Make each direction concrete and testable.')}>Copy Prompt</button>
-              </div>
-              <div className="prompt-example">
-                <h3>Create a Sample Ballot</h3>
-                <div className="prompt-text">Using my current preference set and the ballot schema, create a sample ballot for my jurisdiction. Cite reasoning links to relevant topics or directions.</div>
-                <button className="btn ghost" onClick={() => navigator.clipboard.writeText('Using my current preference set and the ballot schema, create a sample ballot for my jurisdiction. Cite reasoning links to relevant topics or directions.')}>Copy Prompt</button>
-              </div>
-            </div>
+            )}
             <div className="export-header">
               <h2>📋 Copy to Chat</h2>
               <p>Copy this JSON to share with your language model:</p>
@@ -359,6 +421,38 @@ This tool validates all imported JSON against the schema. Invalid data will be r
                 Copy Schema to Clipboard
               </button>
             </div>
+
+            {promptPack && (
+              <div style={{ marginBottom: 24 }}>
+                <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+                  {promptPack.prompts.map(p => (
+                    <button key={p.id} className={`btn ${activePrompt?.id === p.id ? "primary" : ""}`} onClick={() => { setActivePrompt(p); setPromptVars(Object.fromEntries(Object.entries(p.variables || {}).map(([k,v]) => [k, (v as any).default ?? ((v as any).type==="number"?0: "")]))); }}>
+                      {p.title}
+                    </button>
+                  ))}
+                </div>
+                {activePrompt && (
+                  <div className="panel" style={{ marginTop: 12 }}>
+                    <h3 className="panel-title">{activePrompt.title}</h3>
+                    {activePrompt.variables && (
+                      <div className="grid" style={{ marginBottom: 12 }}>
+                        {Object.entries(activePrompt.variables).map(([name, spec]) => (
+                          <label key={name}>{name}
+                            {(spec as any).type === "number" ? (
+                              <input type="number" className="input" min={(spec as any).min} max={(spec as any).max} value={Number(promptVars[name] ?? (spec as any).default ?? 0)} onChange={(e) => setPromptVars({ ...promptVars, [name]: Number(e.target.value) })} />
+                            ) : (
+                              <input type="text" className="input" placeholder={(spec as any).placeholder} value={String(promptVars[name] ?? (spec as any).default ?? "")} onChange={(e) => setPromptVars({ ...promptVars, [name]: e.target.value })} />
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    <div className="prompt-text" style={{ marginBottom: 12 }}>{renderTemplate(activePrompt.text, promptVars)}</div>
+                    <button className="btn primary" onClick={() => navigator.clipboard.writeText(renderTemplate(activePrompt.text, promptVars))}>Copy Prompt</button>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="example-prompts">
               <h2>💡 Example Prompts for Your AI</h2>
