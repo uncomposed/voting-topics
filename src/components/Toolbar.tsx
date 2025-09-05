@@ -38,6 +38,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const clearAll = useStore(s => s.clearAll);
   const fileRef = useRef<HTMLInputElement>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [starterSelectedCount, setStarterSelectedCount] = useState(0);
   const moreRef = useRef<HTMLDivElement>(null);
   const moreBtnRef = useRef<HTMLButtonElement>(null);
   const prevOpenRef = useRef(false);
@@ -64,6 +65,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     };
   }, [moreOpen]);
 
+  // Track starter pack selection count to surface Add Selected in nav
+  useEffect(() => {
+    const onSel = (e: Event) => {
+      const ce = e as CustomEvent<{ count: number }>;
+      setStarterSelectedCount(Math.max(0, Number(ce.detail?.count || 0)));
+    };
+    window.addEventListener('vt-starter-selection-changed', onSel as EventListener);
+    return () => window.removeEventListener('vt-starter-selection-changed', onSel as EventListener);
+  }, []);
+
   // Global event to open LLM Integration (used by guidance banner)
   useEffect(() => {
     const openLlm = () => {
@@ -86,6 +97,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     window.addEventListener('vt-open-getting-started', openGS as EventListener);
     window.addEventListener('vt-create-ballot', createBallot as EventListener);
     window.addEventListener('vt-back-preferences', backPrefs as EventListener);
+    const exitSpecial = () => { 
+      setMoreOpen(false);
+      setShowLLMIntegration(false); 
+      setShowDiffComparison(false); 
+      setBallotMode('preference'); 
+      setShowCards(false);
+    };
+    window.addEventListener('vt-exit-special', exitSpecial as EventListener);
     const closeLlm = () => { setShowLLMIntegration(false); setBallotMode('preference'); };
     window.addEventListener('vt-close-llm', closeLlm as EventListener);
     return () => {
@@ -95,6 +114,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       window.removeEventListener('vt-create-ballot', createBallot as EventListener);
       window.removeEventListener('vt-back-preferences', backPrefs as EventListener);
       window.removeEventListener('vt-close-llm', closeLlm as EventListener);
+      window.removeEventListener('vt-exit-special', exitSpecial as EventListener);
     };
   }, [setBallotMode, setShowDiffComparison, setShowLLMIntegration, setShowGettingStarted]);
 
@@ -181,8 +201,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   let nextAction: NextAction = null;
   if (!hasTopics) {
     nextAction = {
-      label: 'Starter Pack',
-      onClick: scrollToStarter
+      label: 'Get Started',
+      onClick: () => { scrollToStarter(); window.dispatchEvent(new Event('vt-open-starter')); }
     };
   } else if (anyUnratedTopic) {
     // Encourage organizing priorities: card on desktop, list on mobile
@@ -215,6 +235,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       ? { label: 'Share / Export', onClick: () => window.dispatchEvent(new Event('vt-open-ballot-preview')) }
       : { label: 'Preview Ballot', onClick: () => window.dispatchEvent(new Event('vt-open-ballot-preview')) };
   }
+
+  // If in empty state and there are selected starter topics, replace the Next CTA with Add (#)
+  if (!hasTopics && starterSelectedCount > 0) {
+    nextAction = {
+      label: `Add (${starterSelectedCount})`,
+      onClick: () => window.dispatchEvent(new Event('vt-starter-add-selected')),
+    };
+  }
   
   // If portal target not yet mounted, render nothing (avoid null target crash)
   if (!toolbarEl) return null;
@@ -224,7 +252,40 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {nextAction && (
         <button className="btn primary" onClick={nextAction.onClick} id="btn-next-action">{nextAction.label}</button>
       )}
-      <button id="btn-new-topic" className="btn" onClick={() => addTopic(0)}>New Topic</button>
+      {starterSelectedCount > 0 && hasTopics ? (
+        <button
+          id="btn-add-selected"
+          className="btn"
+          onClick={() => window.dispatchEvent(new Event('vt-starter-add-selected'))}
+        >
+          Add ({starterSelectedCount})
+        </button>
+      ) : (
+        <button
+          id="btn-new-topic"
+          className="btn"
+          onClick={() => {
+            const beforeFirst = useStore.getState().topics[0]?.id;
+            addTopic(0);
+            setTimeout(() => {
+              const newFirst = useStore.getState().topics[0]?.id;
+              if (newFirst && newFirst !== beforeFirst) {
+                const target = document.querySelector(`[data-topic-id="${newFirst}"]`) as HTMLElement | null;
+                if (target) {
+                  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  const input = target.querySelector('input[data-field="title"]') as HTMLInputElement | null;
+                  if (input) setTimeout(() => input.focus(), 300);
+                }
+              }
+            }, 0);
+          }}
+        >
+          New Topic
+        </button>
+      )}
+      {!hasTopics && ballotMode === 'preference' && (
+        <button id="btn-import-inline" className="btn" onClick={() => fileRef.current?.click()}>Import</button>
+      )}
       {hasTopics && (anyUnratedTopic || hasEmptyDirections || anyUnratedDirections) && (
         <button
           id="btn-jump-unrated"
@@ -234,17 +295,28 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           Jump to Unrated
         </button>
       )}
-      <button id="btn-export-json" className="btn primary" onClick={() => { try { exportJSON(); } catch (e) { alert(e instanceof Error ? e.message : String(e)); } }}>Export JSON</button>
+      {/* Export JSON moved into the Menu */}
 
       <div className="toolbar-more" ref={moreRef}>
         <button ref={moreBtnRef} className="btn" aria-haspopup="true" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}>
-          More ▾
+          ☰
         </button>
         {moreOpen && (
           <div className="toolbar-menu" role="menu">
+            <div className="muted" style={{ padding: '4px 6px' }}>Menu</div>
             <button id="btn-import" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import JSON</button>
-            <button id="btn-export-pdf" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
-            <button id="btn-export-jpeg" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
+            {(() => {
+              const hasAnyDirection = topics.some(t => t.directions.length > 0);
+              const hasAnyRatedDirection = topics.some(t => t.directions.some(d => d.stars > 0));
+              const exportReady = hasTopics && hasAnyDirection && hasAnyRatedDirection;
+              return exportReady ? (
+                <>
+                  <button id="btn-export-json" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
+                  <button id="btn-export-pdf" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
+                  <button id="btn-export-jpeg" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
+                </>
+              ) : null;
+            })()}
             <button id="btn-llm-integration" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowLLMIntegration(!showLLMIntegration); }}>LLM Integration</button>
             <button id="btn-getting-started" className="btn ghost" role="menuitem" onClick={() => { setMoreOpen(false); setShowGettingStarted(true); }}>Getting Started</button>
             <button

@@ -12,18 +12,24 @@ export const MobileMenu: React.FC = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
+  const ignoreNextDocClick = useRef(false);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     const onClick = (e: MouseEvent) => {
       if (!open) return;
       const t = e.target as Node;
+      if (ignoreNextDocClick.current) { ignoreNextDocClick.current = false; return; }
       if (panelRef.current && !panelRef.current.contains(t)) setOpen(false);
     };
+    const onOpen = () => { setOpen(true); ignoreNextDocClick.current = true; };
     document.addEventListener('keydown', onKey);
     document.addEventListener('click', onClick);
+    window.addEventListener('vt-open-mobile-menu', onOpen as EventListener);
     return () => {
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('click', onClick);
+      window.removeEventListener('vt-open-mobile-menu', onOpen as EventListener);
     };
   }, [open]);
 
@@ -71,15 +77,6 @@ export const MobileMenu: React.FC = () => {
 
   return (
     <>
-      {/* Floating hamburger (mobile only via CSS) */}
-      <button
-        className="mobile-hamburger"
-        aria-label="Open menu"
-        onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }}
-      >
-        ☰
-      </button>
-
       {open && (
         <div className="mobile-menu-overlay" role="dialog" aria-modal="true">
           <div className="mobile-menu-panel" ref={panelRef}>

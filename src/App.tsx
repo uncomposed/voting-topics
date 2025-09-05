@@ -187,13 +187,13 @@ export const App: React.FC = () => {
       {/* Template Info (portaled into aside area) */}
       <TemplateInfoPanel />
 
-      {/* Mobile sticky action bar (list/cards only) */}
-      {!specialView && (
-        <MobileActionBar
-          showCards={showCards}
-          onToggleView={() => setShowCards(!showCards)}
-        />
-      )}
+      {/* Mobile sticky action bar (always visible, adapts to context) */}
+      <MobileActionBar
+        showCards={showCards}
+        onToggleView={() => setShowCards(!showCards)}
+        showDiffComparison={showDiffComparison}
+        showLLMIntegration={showLLMIntegration}
+      />
 
       {/* Mobile slide-out menu */}
       <MobileMenu />

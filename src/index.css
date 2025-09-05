@@ -44,6 +44,19 @@ header {
   margin-bottom: 20px; 
 }
 
+/* Desktop: keep nav in view */
+@media (min-width: 769px) {
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+    padding: 10px 0;
+    background: rgba(11, 16, 32, 0.9);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+}
+
 .brand { 
   display: flex; 
   align-items: center; 
@@ -148,6 +161,11 @@ header {
   width: 100%;
   font-family: inherit;
   font-size: 0.95rem;
+}
+
+/* Prevent iOS zoom on focus by ensuring 16px minimum */
+@media (max-width: 768px) {
+  .input, select, textarea { font-size: 16px; }
 }
 
 /* Modern select styling */
@@ -613,8 +631,14 @@ textarea {
 
 .mobile-action-bar .btn {
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+@media (max-width: 768px) {
+  .mobile-action-bar .btn { font-size: 0.9rem; padding: 10px 12px; }
+}
 .mobile-export { position: relative; }
 .mobile-export-menu {
   position: absolute;
@@ -819,6 +843,12 @@ textarea {
 
 .toast-actions { display: flex; gap: 6px; }
 .btn.small { padding: 6px 10px; font-size: 0.85rem; }
+
+@media (max-width: 768px) {
+  .toast-container {
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px)); /* sit above mobile action bar */
+  }
+}
 
 .topic-card {
   background: var(--bg);

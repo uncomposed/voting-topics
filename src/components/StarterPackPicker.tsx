@@ -67,6 +67,23 @@ export const StarterPackPicker: React.FC = () => {
   // Always show starter pack, but in minimized state when topics exist
   const hasTopics = topics.length > 0;
 
+  // Open/expand when requested from toolbar
+  useEffect(() => {
+    const openStarter = () => setIsCollapsed(false);
+    const addSelectedHandler = () => addSelected();
+    window.addEventListener('vt-open-starter', openStarter as EventListener);
+    window.addEventListener('vt-starter-add-selected', addSelectedHandler as EventListener);
+    return () => {
+      window.removeEventListener('vt-open-starter', openStarter as EventListener);
+      window.removeEventListener('vt-starter-add-selected', addSelectedHandler as EventListener);
+    };
+  }, [pool, selected]);
+
+  // Broadcast selection count whenever it changes
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('vt-starter-selection-changed', { detail: { count: selected.length } }));
+  }, [selected.length]);
+
   return (
     <div id="starter-pack" className="panel starter-pack-panel" style={{ marginTop: 16 }}>
       <div className="panel-header-collapsible">
