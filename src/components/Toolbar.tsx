@@ -141,16 +141,99 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     reader.readAsText(file);
   };
 
-  if (!toolbarEl) return null;
-
   const isInSpecialView = showDiffComparison || showLLMIntegration || ballotMode === 'ballot';
   const toggleViewLabel = isInSpecialView ? 'Back to Main View' : (showCards ? 'Show List View' : 'Show Card View');
-  const ballotLabel = ballotMode === 'ballot' ? 'Back to Preferences' : 'Create Ballot';
+  const ballotLabel = ballotMode === 'ballot' ? 'Back to Preferences' : 'Ballot';
 
+  // Derive a suggested Next action based on current app state
+  const topics = useStore(s => s.topics);
+  const currentBallot = useStore(s => s.currentBallot);
+  const hasTopics = topics.length > 0;
+  const anyUnratedTopic = topics.some(t => t.importance === 0);
+  const hasEmptyDirections = topics.some(t => t.directions.length === 0);
+  const anyUnratedDirections = topics.some(t => t.directions.some(d => d.stars === 0));
+  const allTopicsRated = hasTopics && topics.every(t => t.importance > 0);
+  const hasSufficientPrefs = allTopicsRated; // lenient: directions may be intentionally left 0
+  const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+
+  const scrollToStarter = () => {
+    const el = document.getElementById('starter-pack');
+    if (el && 'scrollIntoView' in el) {
+      try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; } catch (_e) { /* noop */ }
+    }
+    try { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); } catch (_e) { /* noop */ }
+  };
+
+  const jumpToTopicId = (id: string | undefined) => {
+    if (!id) return;
+    const target = document.querySelector(`[data-topic-id="${id}"]`) as HTMLElement | null;
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = target.querySelector('input[data-field="title"]') as HTMLInputElement | null;
+      if (input) setTimeout(() => input.focus(), 350);
+    }
+  };
+
+  const firstUnratedTopicId = topics.find(t => t.importance === 0)?.id;
+  const firstNeedsDirectionsId = topics.find(t => t.directions.length === 0 || t.directions.some(d => d.stars === 0))?.id;
+
+  type NextAction = { label: string; onClick: () => void } | null;
+  let nextAction: NextAction = null;
+  if (!hasTopics) {
+    nextAction = {
+      label: 'Starter Pack',
+      onClick: scrollToStarter
+    };
+  } else if (anyUnratedTopic) {
+    // Encourage organizing priorities: card on desktop, list on mobile
+    if (isMobile) {
+      nextAction = {
+        label: 'List View',
+        onClick: () => { if (showCards) setShowCards(false); }
+      };
+    } else {
+      nextAction = {
+        label: 'Card View',
+        onClick: () => { if (!showCards && !isInSpecialView) setShowCards(true); }
+      };
+    }
+  } else if (hasEmptyDirections || anyUnratedDirections) {
+    nextAction = {
+      label: 'List View',
+      onClick: () => { if (showCards) setShowCards(false); }
+    };
+  } else if (ballotMode !== 'ballot' && hasSufficientPrefs) {
+    nextAction = {
+      label: 'Ballot',
+      onClick: () => { setShowLLMIntegration(false); setShowDiffComparison(false); setBallotMode('ballot'); }
+    };
+  } else if (ballotMode === 'ballot' && currentBallot) {
+    const allOfficesSelected = currentBallot.offices.length > 0 && currentBallot.offices.every(o => !!o.selectedCandidateId);
+    const allMeasuresPositioned = currentBallot.measures.every(m => !!m.position);
+    const readyToShare = allOfficesSelected && allMeasuresPositioned;
+    nextAction = readyToShare
+      ? { label: 'Share / Export', onClick: () => window.dispatchEvent(new Event('vt-open-ballot-preview')) }
+      : { label: 'Preview Ballot', onClick: () => window.dispatchEvent(new Event('vt-open-ballot-preview')) };
+  }
+  
+  // If portal target not yet mounted, render nothing (avoid null target crash)
+  if (!toolbarEl) return null;
 
   return createPortal(
     <>
+      {nextAction && (
+        <button className="btn primary" onClick={nextAction.onClick} id="btn-next-action">{nextAction.label}</button>
+      )}
       <button id="btn-new-topic" className="btn" onClick={() => addTopic(0)}>New Topic</button>
+      {hasTopics && (anyUnratedTopic || hasEmptyDirections || anyUnratedDirections) && (
+        <button
+          id="btn-jump-unrated"
+          className="btn"
+          onClick={() => jumpToTopicId(firstUnratedTopicId || firstNeedsDirectionsId)}
+        >
+          Jump to Unrated
+        </button>
+      )}
       <button id="btn-export-json" className="btn primary" onClick={() => { try { exportJSON(); } catch (e) { alert(e instanceof Error ? e.message : String(e)); } }}>Export JSON</button>
 
       <div className="toolbar-more" ref={moreRef}>

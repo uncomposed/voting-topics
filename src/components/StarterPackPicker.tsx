@@ -68,7 +68,7 @@ export const StarterPackPicker: React.FC = () => {
   const hasTopics = topics.length > 0;
 
   return (
-    <div className="panel starter-pack-panel" style={{ marginTop: 16 }}>
+    <div id="starter-pack" className="panel starter-pack-panel" style={{ marginTop: 16 }}>
       <div className="panel-header-collapsible">
         <div>
           {hasTopics ? (
@@ -183,4 +183,3 @@ export const StarterPackPicker: React.FC = () => {
     </div>
   );
 };
-

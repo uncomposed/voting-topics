@@ -137,6 +137,7 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
                 <div
                   key={topic.id}
                   className={`topic-card ${dragState.draggedTopic?.id === topic.id ? 'dragging' : ''}`}
+                  data-topic-id={topic.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, topic)}
                   onDragEnd={handleDragEnd}

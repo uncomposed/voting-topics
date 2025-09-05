@@ -40,6 +40,13 @@ export const BallotBuilder: React.FC = () => {
     }
   }, [activeTab]);
 
+  // Listen for external requests to open Preview tab
+  useEffect(() => {
+    const openPreview = () => setActiveTab('preview');
+    window.addEventListener('vt-open-ballot-preview', openPreview as EventListener);
+    return () => window.removeEventListener('vt-open-ballot-preview', openPreview as EventListener);
+  }, []);
+
   const handleCreateBallot = (electionInfo: ElectionInfo) => {
     createBallot(electionInfo);
     setActiveTab('offices');

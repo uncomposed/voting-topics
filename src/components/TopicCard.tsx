@@ -22,7 +22,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
 }) => {
 
   return (
-    <div className="topic" aria-label={`Topic ${topic.title || topic.id}`}>
+    <div className="topic" data-topic-id={topic.id} aria-label={`Topic ${topic.title || topic.id}`}>
       <div className="topic-header">
         <div className="topic-header-main">
           <input
@@ -168,4 +168,3 @@ export const TopicCard: React.FC<TopicCardProps> = ({
     </div>
   );
 };
-
