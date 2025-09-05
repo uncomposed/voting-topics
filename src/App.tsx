@@ -16,11 +16,8 @@ import { MobileMenu } from './components/MobileMenu';
 import { Toolbar } from './components/Toolbar';
 
 export const App: React.FC = () => {
-  const title = useStore(state => state.title);
-  const notes = useStore(state => state.notes);
+  // Title/notes managed inside TemplateInfoPanel via store
   const topics = useStore(state => state.topics);
-  const setTitle = useStore(state => state.setTitle);
-  const setNotes = useStore(state => state.setNotes);
   const removeTopic = useStore(state => state.removeTopic);
   const patchTopic = useStore(state => state.patchTopic);
   const ballotMode = useStore(state => state.ballotMode);

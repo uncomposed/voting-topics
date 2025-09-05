@@ -1,5 +1,4 @@
 import React from 'react';
-import { useStore } from '../../store';
 import type { Office, Candidate } from '../../schema';
 
 interface CandidateCardProps {
@@ -12,14 +11,11 @@ interface CandidateCardProps {
 }
 
 export const CandidateCard: React.FC<CandidateCardProps> = ({
-  office,
   candidate,
   isSelected,
   onSelect,
-  onRemove,
   onEdit
 }) => {
-  const updateCandidate = useStore(state => state.updateCandidate);
 
   return (
     <div className={`candidate-card ${isSelected ? 'selected' : ''}`} onClick={onSelect}>
