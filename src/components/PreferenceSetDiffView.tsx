@@ -24,6 +24,34 @@ export const PreferenceSetDiffView: React.FC<PreferenceSetDiffViewProps> = ({
   
 
   
+  // Keyboard navigation for tabs: Left/Right/Home/End
+  const onTabsKeyDown = (e: React.KeyboardEvent) => {
+    const order: Array<'overview' | 'topics' | 'priorities' | 'directions'> = ['overview', 'topics', 'priorities', 'directions'];
+    const idx = order.indexOf(activeTab);
+    let next = activeTab;
+    switch (e.key) {
+      case 'ArrowRight':
+        next = order[(idx + 1) % order.length];
+        break;
+      case 'ArrowLeft':
+        next = order[(idx - 1 + order.length) % order.length];
+        break;
+      case 'Home':
+        next = order[0];
+        break;
+      case 'End':
+        next = order[order.length - 1];
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    setActiveTab(next);
+    const id = `tab-${next}`;
+    const btn = document.getElementById(id) as HTMLButtonElement | null;
+    if (btn) btn.focus();
+  };
+
   return (
     <div className="diff-container">
       <div className="diff-header">
@@ -82,35 +110,55 @@ export const PreferenceSetDiffView: React.FC<PreferenceSetDiffViewProps> = ({
         </div>
       </div>
       
-      <div className="diff-tabs">
+      <div className="diff-tabs" role="tablist" aria-label="Preference comparison tabs" onKeyDown={onTabsKeyDown}>
         <button 
+          id="tab-overview"
+          role="tab"
+          aria-selected={activeTab === 'overview'}
+          aria-controls="panel-overview"
+          tabIndex={activeTab === 'overview' ? 0 : -1}
           className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
           Overview
         </button>
         <button 
+          id="tab-topics"
+          role="tab"
+          aria-selected={activeTab === 'topics'}
+          aria-controls="panel-topics"
+          tabIndex={activeTab === 'topics' ? 0 : -1}
           className={`tab ${activeTab === 'topics' ? 'active' : ''}`}
           onClick={() => setActiveTab('topics')}
         >
           Topic Details
         </button>
         <button 
+          id="tab-priorities"
+          role="tab"
+          aria-selected={activeTab === 'priorities'}
+          aria-controls="panel-priorities"
+          tabIndex={activeTab === 'priorities' ? 0 : -1}
           className={`tab ${activeTab === 'priorities' ? 'active' : ''}`}
           onClick={() => setActiveTab('priorities')}
         >
           Priority Heatmap
         </button>
         <button 
+          id="tab-directions"
+          role="tab"
+          aria-selected={activeTab === 'directions'}
+          aria-controls="panel-directions"
+          tabIndex={activeTab === 'directions' ? 0 : -1}
           className={`tab ${activeTab === 'directions' ? 'active' : ''}`}
           onClick={() => setActiveTab('directions')}
         >
           Directions
         </button>
       </div>
-      
+
       <div className="diff-content">
-        {activeTab === 'overview' && (
+        <div id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" hidden={activeTab !== 'overview'}>
           <div className="overview-tab">
             <div className="overview-section">
               <h3>Quick Summary</h3>
@@ -197,25 +245,25 @@ export const PreferenceSetDiffView: React.FC<PreferenceSetDiffViewProps> = ({
               </div>
             </div>
           </div>
-        )}
-        
-        {activeTab === 'topics' && (
+        </div>
+
+        <div id="panel-topics" role="tabpanel" aria-labelledby="tab-topics" hidden={activeTab !== 'topics'}>
           <TopicDiffSection diff={diff} />
-        )}
-        
-        {activeTab === 'priorities' && (
+        </div>
+
+        <div id="panel-priorities" role="tabpanel" aria-labelledby="tab-priorities" hidden={activeTab !== 'priorities'}>
           <PriorityHeatmap 
             leftPreferenceSet={leftPreferenceSet} 
             rightPreferenceSet={rightPreferenceSet} 
           />
-        )}
-        
-        {activeTab === 'directions' && (
+        </div>
+
+        <div id="panel-directions" role="tabpanel" aria-labelledby="tab-directions" hidden={activeTab !== 'directions'}>
           <DirectionsDiffView 
             leftPreferenceSet={leftPreferenceSet} 
             rightPreferenceSet={rightPreferenceSet} 
           />
-        )}
+        </div>
       </div>
     </div>
   );

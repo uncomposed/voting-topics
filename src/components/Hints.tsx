@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../store';
 
-type HintEventDetail = { key: string; anchorId: string; content: string };
+type HintEventDetail = { key: string; anchorId: string; content: string; source?: 'auto' | 'manual' };
 
 interface ActiveHint {
   key: string;
@@ -23,7 +23,17 @@ export const HintManager: React.FC = () => {
   const bubbleRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 20, left: 20 });
 
-  const canShow = (key: string) => hintsEnabled || !seenHints.includes(key);
+  // Throttle repeated show/dismiss per key and gate auto/manual
+  const recent = useRef<Map<string, number>>(new Map());
+  const cooldownMs = 1500;
+  const canShow = (d: HintEventDetail) => {
+    if (hintsEnabled && d.source === 'auto') return false; // in hint mode, ignore auto hints
+    if (!hintsEnabled && seenHints.includes(d.key)) return false;
+    const now = Date.now();
+    const last = recent.current.get(d.key) || 0;
+    if (now - last < cooldownMs) return false;
+    return true;
+  };
 
   const getSafeBottom = (): number => {
     const v = getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom').trim();
@@ -45,6 +55,7 @@ export const HintManager: React.FC = () => {
     const el = document.getElementById(detail.anchorId);
     if (!el) return;
     const rect = el.getBoundingClientRect();
+    recent.current.set(detail.key, Date.now());
     setActive({ key: detail.key, anchorId: detail.anchorId, content: detail.content, rect, placement: computePlacement(rect) });
   };
 
@@ -53,7 +64,7 @@ export const HintManager: React.FC = () => {
       const ce = e as CustomEvent<HintEventDetail>;
       const d = ce.detail;
       if (!d || !d.key || !d.anchorId) return;
-      if (!canShow(d.key)) return;
+      if (!canShow(d)) return;
       // If a hint is already showing, ignore duplicates for the same key; otherwise queue
       if (active) {
         if (active.key !== d.key) pending.current.set(d.key, d);
@@ -82,11 +93,12 @@ export const HintManager: React.FC = () => {
 
   const dismiss = (markSeen: boolean) => {
     if (active && markSeen) markHintSeen(active.key);
+    if (active) recent.current.set(active.key, Date.now());
     setActive(null);
     // If there are pending hints, show the latest one
     const next = Array.from(pending.current.values()).pop();
     pending.current.clear();
-    if (next && canShow(next.key)) setTimeout(() => showFor(next), 0);
+    if (next && canShow(next)) setTimeout(() => showFor(next), 0);
   };
 
   // Dismiss when user clicks the target element

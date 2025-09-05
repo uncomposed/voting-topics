@@ -2,6 +2,7 @@ import React from 'react';
 import { App } from './App';
 import { ToastContainer } from './components/ToastContainer';
 import { HintManager } from './components/Hints';
+import { ShortcutHelp } from './components/ShortcutHelp';
 
 export const Layout: React.FC = () => {
   return (
@@ -39,6 +40,8 @@ export const Layout: React.FC = () => {
       <ToastContainer />
       {/* Hints */}
       <HintManager />
+      {/* Keyboard shortcuts overlay */}
+      <ShortcutHelp />
     </div>
   );
 };

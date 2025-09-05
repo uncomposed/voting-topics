@@ -97,7 +97,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
 
   // Dispatch hint availability for mobile (no hover). Trigger when state changes.
   useEffect(() => {
-    const fire = (key: string, anchorId: string, content: string) => emitHint(key, anchorId, content);
+    const fire = (key: string, anchorId: string, content: string) => emitHint(key, anchorId, content, 'auto');
     // Next
     if (document.getElementById('m-next')) fire('next-action', 'm-next', 'Smart next step based on your progress.');
     // Toggle

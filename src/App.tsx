@@ -14,6 +14,7 @@ import { TemplateInfoPanel } from './components/TemplateInfoPanel';
 import { MobileActionBar } from './components/MobileActionBar';
 import { MobileMenu } from './components/MobileMenu';
 import { Toolbar } from './components/Toolbar';
+import { scrollIntoViewSmart } from './utils/scroll';
 
 export const App: React.FC = () => {
   // Title/notes managed inside TemplateInfoPanel via store
@@ -111,6 +112,52 @@ export const App: React.FC = () => {
 
   return (
     <>
+      {/* Global keyboard shortcuts: t (toggle view), b (ballot), c (compare), n (new), ? (shortcuts) */}
+      {(() => {
+        // Install once on mount
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        React.useEffect(() => {
+          const onKey = (e: KeyboardEvent) => {
+            if (e.altKey || e.ctrlKey || e.metaKey) return;
+            const tag = (e.target as HTMLElement | null)?.tagName?.toLowerCase();
+            const isTyping = tag === 'input' || tag === 'textarea' || (e.target as HTMLElement | null)?.isContentEditable;
+            if (isTyping) return;
+            switch (e.key) {
+              case 't':
+                if (!showDiffComparison && !showLLMIntegration && ballotMode === 'preference') {
+                  setShowCards(v => !v);
+                } else {
+                  setShowDiffComparison(false); setShowLLMIntegration(false); setBallotMode('preference');
+                }
+                break;
+              case 'b':
+                if (ballotMode === 'ballot') setBallotMode('preference');
+                else { setShowLLMIntegration(false); setShowDiffComparison(false); setBallotMode('ballot'); }
+                break;
+              case 'c':
+                setShowLLMIntegration(false); setBallotMode('preference'); setShowDiffComparison(v => !v);
+                break;
+              case 'n': {
+                const beforeFirst = useStore.getState().topics[0]?.id;
+                useStore.getState().addTopic(0);
+                setTimeout(() => {
+                  const newFirst = useStore.getState().topics[0]?.id;
+                  if (newFirst && newFirst !== beforeFirst) {
+                    const target = document.querySelector(`[data-topic-id="${newFirst}"]`) as HTMLElement | null;
+                    if (target) scrollIntoViewSmart(target);
+                  }
+                }, 0);
+                break; }
+              case '?':
+                window.dispatchEvent(new Event('vt-toggle-shortcuts'));
+                break;
+            }
+          };
+          document.addEventListener('keydown', onKey);
+          return () => document.removeEventListener('keydown', onKey);
+        }, [showDiffComparison, showLLMIntegration, ballotMode]);
+        return null;
+      })()}
       {/* Toolbar (portaled into header .toolbar) */}
       <Toolbar
         showCards={showCards}

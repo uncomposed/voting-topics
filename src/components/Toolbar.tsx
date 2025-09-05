@@ -364,7 +364,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Desktop: surface Export when preferences are export-ready (parity with mobile) */}
       {ballotMode !== 'ballot' && exportReady && (
         <div className="toolbar-more" ref={exportRef}>
-          <button id="btn-export-inline" ref={exportBtnRef} className="btn" aria-haspopup="true" aria-expanded={exportOpen} onClick={() => setExportOpen(v => !v)}
+          <button id="btn-export-inline" ref={exportBtnRef} className="btn" aria-haspopup="true" aria-expanded={exportOpen} aria-label="Share or Export" onClick={() => setExportOpen(v => !v)}
             onMouseEnter={() => emitHint('export', 'btn-export-inline', 'Export or share your work once you’ve rated items.')}
           >
             Share / Export
@@ -383,7 +383,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Desktop: show Export in ballot view when ballot is complete */}
       {ballotMode === 'ballot' && ballotReadyToShare && (
         <div className="toolbar-more" ref={exportRef}>
-          <button ref={exportBtnRef} className="btn" aria-haspopup="true" aria-expanded={exportOpen} onClick={() => setExportOpen(v => !v)}>
+          <button ref={exportBtnRef} className="btn" aria-label="Share or Export" aria-haspopup="true" aria-expanded={exportOpen} onClick={() => setExportOpen(v => !v)}>
             Share / Export
           </button>
           {exportOpen && (

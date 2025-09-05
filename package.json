@@ -9,6 +9,9 @@
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx,ts,tsx",
     "test": "vitest",
+    "test:a11y:unit": "vitest run tests/a11y/**/*.test.ts",
+    "test:e2e": "playwright test",
+    "test:a11y": "npm run test:a11y:unit && npm run test:e2e",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "storybook": "storybook dev -p 6006",
@@ -31,6 +34,9 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.9.1",
+    "@playwright/test": "^1.47.0",
+    "jest-axe": "^9.0.0",
     "@storybook/addon-docs": "^9.1.4",
     "@storybook/addon-onboarding": "^9.1.4",
     "@storybook/react-vite": "^9.1.4",
