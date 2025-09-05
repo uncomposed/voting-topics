@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Topic } from '../schema';
 import { DirectionsList } from './DirectionsList';
 import { Stars } from './Stars';
+import { useStore } from '../store';
+import { toast } from '../utils/toast';
 
 interface TopicModalProps {
   topic: Topic | null;
@@ -49,9 +51,29 @@ export const TopicModal: React.FC<TopicModalProps> = ({
   };
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this topic?')) {
-      onDelete(topic.id);
-      onClose();
+    // Snapshot topic and index for precise undo
+    const state = useStore.getState();
+    const idx = state.topics.findIndex(t => t.id === topic.id);
+    const snapshot = state.topics.find(t => t.id === topic.id);
+    onDelete(topic.id);
+    onClose();
+    if (snapshot && idx >= 0) {
+      toast.show({
+        variant: 'warn',
+        title: 'Topic deleted',
+        message: snapshot.title ? `"${snapshot.title}" was removed` : 'A topic was removed',
+        actionLabel: 'Undo',
+        onAction: () => {
+          useStore.setState(s => ({
+            topics: [
+              ...s.topics.slice(0, idx),
+              snapshot,
+              ...s.topics.slice(idx)
+            ]
+          }));
+        },
+        duration: 6000,
+      });
     }
   };
 

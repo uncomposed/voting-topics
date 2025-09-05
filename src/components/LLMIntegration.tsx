@@ -6,6 +6,7 @@ import { ImportPreview } from './ImportPreview';
 import { mergePreferenceSets, mergePreferenceSetsSelective } from '../utils/merge';
 import type { PromptPack, PromptItem } from '../utils/prompt';
 import { renderTemplate } from '../utils/prompt';
+import { toast } from '../utils/toast';
 
 export const LLMIntegration: React.FC = () => {
   const ballotMode = useStore(state => state.ballotMode);
@@ -75,14 +76,19 @@ export const LLMIntegration: React.FC = () => {
       } else if (data.version === 'tsb.ballot.v1') {
         // It's a ballot
         const ballot = parseIncomingBallot(data);
-        if (currentBallot) {
-          const confirmReplace = confirm('Replace current ballot with imported ballot?');
-          if (!confirmReplace) return;
-        }
+        const prev = useStore.getState().currentBallot;
         clearBallot();
         useStore.setState({ currentBallot: ballot });
         setImportSuccess('Ballot imported successfully!');
         setBallotMode('ballot');
+        toast.show({
+          variant: 'success',
+          title: 'Ballot imported',
+          message: 'Replaced your current ballot',
+          actionLabel: prev ? 'Undo' : undefined,
+          onAction: prev ? () => { useStore.setState({ currentBallot: prev }); setBallotMode('ballot'); } : undefined,
+          duration: 6000,
+        });
       } else {
         setImportError('Unknown data format. Expected tsb.v1, tsb.v0, or tsb.ballot.v1');
       }

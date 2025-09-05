@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
+import { toast } from '../utils/toast';
 
 export const MobileMenu: React.FC = () => {
   const addTopic = useStore(s => s.addTopic);
@@ -85,7 +86,33 @@ export const MobileMenu: React.FC = () => {
                 else { window.dispatchEvent(new Event('vt-create-ballot')); }
                 setOpen(false);
               }}>{ballotMode === 'ballot' ? 'Back to Preferences' : 'Create Ballot'}</button>
-              <button className="btn danger" onClick={() => { if (confirm('Clear all data? This only affects your browser.')) clearAll(); setOpen(false); }}>Clear All</button>
+              <button
+                className="btn danger"
+                onClick={() => {
+                  const state = useStore.getState();
+                  const snapshot = {
+                    title: state.title,
+                    notes: state.notes,
+                    topics: state.topics,
+                    __createdAt: state.__createdAt,
+                    ballotMode: state.ballotMode,
+                    currentBallot: state.currentBallot,
+                    ballotHistory: state.ballotHistory,
+                  } as const;
+                  clearAll();
+                  toast.show({
+                    variant: 'danger',
+                    title: 'All data cleared',
+                    message: 'Your browser data was cleared',
+                    actionLabel: 'Undo',
+                    onAction: () => { useStore.setState({ ...snapshot }); },
+                    duration: 7000,
+                  });
+                  setOpen(false);
+                }}
+              >
+                Clear All
+              </button>
               <hr />
               <button className="btn" onClick={() => fileRef.current?.click()}>Import JSON…</button>
               <input ref={fileRef} type="file" className="sr-only" accept="application/json" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onImportFile(f); }} />

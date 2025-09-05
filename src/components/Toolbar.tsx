@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
+import { toast } from '../utils/toast';
 
 interface ToolbarProps {
   showCards: boolean;
@@ -149,7 +150,37 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <button id="btn-export-jpeg" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
             <button id="btn-llm-integration" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowLLMIntegration(!showLLMIntegration); }}>LLM Integration</button>
             <button id="btn-getting-started" className="btn ghost" role="menuitem" onClick={() => { setMoreOpen(false); setShowGettingStarted(true); }}>Getting Started</button>
-            <button id="btn-clear" className="btn danger" role="menuitem" onClick={() => { setMoreOpen(false); if (confirm('Clear all data? This only affects your browser.')) clearAll(); }}>Clear All</button>
+            <button
+              id="btn-clear"
+              className="btn danger"
+              role="menuitem"
+              onClick={() => {
+                setMoreOpen(false);
+                const state = useStore.getState();
+                const snapshot = {
+                  title: state.title,
+                  notes: state.notes,
+                  topics: state.topics,
+                  __createdAt: state.__createdAt,
+                  ballotMode: state.ballotMode,
+                  currentBallot: state.currentBallot,
+                  ballotHistory: state.ballotHistory,
+                } as const;
+                clearAll();
+                toast.show({
+                  variant: 'danger',
+                  title: 'All data cleared',
+                  message: 'Your browser data was cleared',
+                  actionLabel: 'Undo',
+                  onAction: () => {
+                    useStore.setState({ ...snapshot });
+                  },
+                  duration: 7000,
+                });
+              }}
+            >
+              Clear All
+            </button>
           </div>
         )}
         <input ref={fileRef} id="file-input" type="file" className="sr-only" accept="application/json" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onImportFile(f); }} />

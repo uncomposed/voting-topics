@@ -1,5 +1,6 @@
 import React from 'react';
 import { App } from './App';
+import { ToastContainer } from './components/ToastContainer';
 
 export const Layout: React.FC = () => {
   return (
@@ -32,6 +33,9 @@ export const Layout: React.FC = () => {
 
       {/* Hidden social-card render target for JPEG export */}
       <div id="social-card" style={{ position:'absolute', left:-99999, top:-99999 }} aria-hidden="true"></div>
+
+      {/* Global toasts */}
+      <ToastContainer />
     </div>
   );
 };

@@ -774,9 +774,51 @@ textarea {
   color: var(--muted);
 }
 
-.topic-cards-container {
-  min-height: 100px;
+  .topic-cards-container {
+    min-height: 100px;
+  }
+
+/* Toasts */
+.toast-container {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2000;
+  pointer-events: none; /* only buttons capture events */
 }
+
+.toast {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  min-width: 260px;
+  max-width: min(92vw, 520px);
+  pointer-events: auto;
+}
+
+.toast.success { border-color: #2a6f3d; }
+.toast.warn { border-color: var(--warn); }
+.toast.danger { border-color: var(--danger); }
+
+.toast-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.toast-text { display: grid; gap: 2px; }
+.toast-title { font-weight: 600; }
+.toast-message { color: var(--muted); font-size: 0.9rem; }
+
+.toast-actions { display: flex; gap: 6px; }
+.btn.small { padding: 6px 10px; font-size: 0.85rem; }
 
 .topic-card {
   background: var(--bg);
