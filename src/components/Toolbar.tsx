@@ -108,7 +108,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           useStore.setState({ currentBallot: ballot });
           setShowLLMIntegration(false);
           setShowDiffComparison(false);
-          setBallotMode('ballot');
+          toast.show({
+            variant: 'success',
+            title: 'Ballot imported',
+            message: 'Review your ballot when ready',
+            actionLabel: 'View Ballot',
+            onAction: () => setBallotMode('ballot'),
+            duration: 6000,
+          });
         } else {
           const preferenceSet = parseIncomingPreferenceSet(obj);
           useStore.getState().importData({
@@ -116,7 +123,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             notes: preferenceSet.notes || '',
             topics: preferenceSet.topics,
           });
-          setBallotMode('preference');
+          toast.show({
+            variant: 'success',
+            title: 'Preferences imported',
+            message: 'Jump to your updated preferences',
+            actionLabel: 'View Preferences',
+            onAction: () => setBallotMode('preference'),
+            duration: 6000,
+          });
         }
       } catch (e: unknown) {
         alert('Import failed: ' + (e instanceof Error ? e.message : String(e)));

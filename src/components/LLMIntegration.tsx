@@ -80,15 +80,23 @@ export const LLMIntegration: React.FC = () => {
         clearBallot();
         useStore.setState({ currentBallot: ballot });
         setImportSuccess('Ballot imported successfully!');
-        setBallotMode('ballot');
         toast.show({
           variant: 'success',
           title: 'Ballot imported',
-          message: 'Replaced your current ballot',
-          actionLabel: prev ? 'Undo' : undefined,
-          onAction: prev ? () => { useStore.setState({ currentBallot: prev }); setBallotMode('ballot'); } : undefined,
-          duration: 6000,
+          message: 'View the imported ballot now?',
+          actionLabel: 'View Ballot',
+          onAction: () => setBallotMode('ballot'),
+          duration: 7000,
         });
+        if (prev) {
+          toast.show({
+            variant: 'info',
+            message: 'Previous ballot can be restored',
+            actionLabel: 'Undo Replace',
+            onAction: () => { useStore.setState({ currentBallot: prev }); },
+            duration: 7000,
+          });
+        }
       } else {
         setImportError('Unknown data format. Expected tsb.v1, tsb.v0, or tsb.ballot.v1');
       }
@@ -580,7 +588,14 @@ This tool validates all imported JSON against the schema. Invalid data will be r
                   });
                   setPreviewData(null);
                   setImportSuccess('Preference set overwritten with imported data');
-                  setBallotMode('preference');
+                  toast.show({
+                    variant: 'success',
+                    title: 'Preferences imported',
+                    message: 'View your updated preferences?',
+                    actionLabel: 'View Preferences',
+                    onAction: () => setBallotMode('preference'),
+                    duration: 7000,
+                  });
                 }}
                 onMerge={(accepted?: Set<string>) => {
                   const merged = accepted && accepted.size > 0
@@ -594,7 +609,14 @@ This tool validates all imported JSON against the schema. Invalid data will be r
                   });
                   setPreviewData(null);
                   setImportSuccess('Imported changes merged successfully');
-                  setBallotMode('preference');
+                  toast.show({
+                    variant: 'success',
+                    title: 'Preferences merged',
+                    message: 'View your updated preferences?',
+                    actionLabel: 'View Preferences',
+                    onAction: () => setBallotMode('preference'),
+                    duration: 7000,
+                  });
                 }}
               />
             )}

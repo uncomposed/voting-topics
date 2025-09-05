@@ -2,6 +2,7 @@ import { useState, forwardRef, useImperativeHandle } from 'react';
 import { TopicCard } from './TopicCard';
 import type { Topic } from '../schema';
 import { useStore } from '../store';
+import { toast } from '../utils/toast';
 
 interface TopicListProps {
   topics: Topic[];
@@ -64,7 +65,30 @@ export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: (
           key={topic.id}
           topic={topic}
           onChange={(patch) => onChange(topic.id, patch)}
-          onDelete={() => onDelete(topic.id)}
+          onDelete={() => {
+            // Capture snapshot and index for undo
+            const idx = topics.findIndex(t => t.id === topic.id);
+            const snapshot = topics.find(t => t.id === topic.id);
+            onDelete(topic.id);
+            if (snapshot && idx >= 0) {
+              toast.show({
+                variant: 'warn',
+                title: 'Topic deleted',
+                message: snapshot.title ? `"${snapshot.title}" was removed` : 'A topic was removed',
+                actionLabel: 'Undo',
+                onAction: () => {
+                  useStore.setState(s => ({
+                    topics: [
+                      ...s.topics.slice(0, idx),
+                      snapshot,
+                      ...s.topics.slice(idx)
+                    ]
+                  }));
+                },
+                duration: 6000,
+              });
+            }
+          }}
           isExpanded={expandedTopics.has(topic.id)}
           onToggleExpand={() => toggleTopic(topic.id)}
         />

@@ -35,14 +35,28 @@ export const MobileMenu: React.FC = () => {
         if (obj?.version === 'tsb.ballot.v1') {
           const ballot = parseIncomingBallot(obj);
           useStore.setState({ currentBallot: ballot });
-          window.dispatchEvent(new Event('vt-open-done-reset')); // no-op placeholder
-          window.dispatchEvent(new Event('vt-create-ballot'));
+          toast.show({
+            variant: 'success',
+            title: 'Ballot imported',
+            message: 'Review your ballot when ready',
+            actionLabel: 'View Ballot',
+            onAction: () => { window.dispatchEvent(new Event('vt-create-ballot')); },
+            duration: 6000,
+          });
         } else {
           const preferenceSet = parseIncomingPreferenceSet(obj);
           useStore.getState().importData({
             title: preferenceSet.title,
             notes: preferenceSet.notes || '',
             topics: preferenceSet.topics,
+          });
+          toast.show({
+            variant: 'success',
+            title: 'Preferences imported',
+            message: 'Jump to your updated preferences',
+            actionLabel: 'View Preferences',
+            onAction: () => { window.dispatchEvent(new Event('vt-back-preferences')); },
+            duration: 6000,
           });
         }
         setOpen(false);

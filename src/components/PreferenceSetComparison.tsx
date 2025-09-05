@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PreferenceSetDiffView } from './PreferenceSetDiffView';
 import { parseIncomingPreferenceSet } from '../schema';
 import type { PreferenceSet } from '../schema';
+import { buildTemplate } from '../exporters';
 
 interface PreferenceSetComparisonProps {
   onClose: () => void;
@@ -53,78 +54,104 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
   }
 
   return (
-    <div className="diff-comparison">
-      <div className="diff-comparison-header">
-        <h2>Compare Preference Sets</h2>
-        <button onClick={onClose} className="btn ghost">
-          ✕ Close
-        </button>
-      </div>
-
-      <div className="diff-comparison-content">
-        <div className="upload-section">
-          <div className="upload-card">
-            <h3>Left Preference Set</h3>
-            <div className="upload-area">
-              <input
-                type="file"
-                accept=".json"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileUpload(file, 'left');
-                }}
-                id="left-file-input"
-                className="file-input"
-              />
-              <label htmlFor="left-file-input" className="file-label">
-                {leftPreferenceSet ? (
-                  <div className="file-selected">
-                    <span className="file-name">{leftPreferenceSet.title}</span>
-                    <span className="file-meta">
-                      {leftPreferenceSet.topics.length} topics
-                    </span>
-                  </div>
-                ) : (
-                  <div className="file-placeholder">
-                    <span className="upload-icon">📁</span>
-                    <span>Click to upload JSON file</span>
-                  </div>
-                )}
-              </label>
-            </div>
-          </div>
-
-          <div className="upload-card">
-            <h3>Right Preference Set</h3>
-            <div className="upload-area">
-              <input
-                type="file"
-                accept=".json"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileUpload(file, 'right');
-                }}
-                id="right-file-input"
-                className="file-input"
-              />
-              <label htmlFor="right-file-input" className="file-label">
-                {rightPreferenceSet ? (
-                  <div className="file-selected">
-                    <span className="file-name">{rightPreferenceSet.title}</span>
-                    <span className="file-meta">
-                      {rightPreferenceSet.topics.length} topics
-                    </span>
-                  </div>
-                ) : (
-                  <div className="file-placeholder">
-                    <span className="upload-icon">📁</span>
-                    <span>Click to upload JSON file</span>
-                  </div>
-                )}
-              </label>
-            </div>
-          </div>
+      <div className="diff-comparison">
+        <div className="diff-comparison-header">
+          <h2>Compare Preference Sets</h2>
+          <button onClick={onClose} className="btn ghost">
+            ✕ Close
+          </button>
         </div>
+
+        <div className="diff-comparison-content">
+          <div className="upload-section">
+            <div className="upload-card">
+            <h3>Set A</h3>
+              <div className="upload-area">
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file, 'left');
+                  }}
+                  id="left-file-input"
+                  className="file-input"
+                />
+                <label htmlFor="left-file-input" className="file-label">
+                  {leftPreferenceSet ? (
+                    <div className="file-selected">
+                      <span className="file-name">{leftPreferenceSet.title}</span>
+                      <span className="file-meta">
+                        {leftPreferenceSet.topics.length} topics
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="file-placeholder">
+                      <span className="upload-icon">📁</span>
+                      <span>Click to upload JSON file</span>
+                    </div>
+                  )}
+                </label>
+              </div>
+              <div className="row" style={{ marginTop: 8 }}>
+                <button
+                  className="btn small"
+                  onClick={() => setLeftPreferenceSet(buildTemplate() as PreferenceSet)}
+                >
+                  Use Current
+                </button>
+                {leftPreferenceSet && (
+                  <button className="btn small ghost" onClick={() => setLeftPreferenceSet(null)}>
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="upload-card">
+            <h3>Set B</h3>
+              <div className="upload-area">
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file, 'right');
+                  }}
+                  id="right-file-input"
+                  className="file-input"
+                />
+                <label htmlFor="right-file-input" className="file-label">
+                  {rightPreferenceSet ? (
+                    <div className="file-selected">
+                      <span className="file-name">{rightPreferenceSet.title}</span>
+                      <span className="file-meta">
+                        {rightPreferenceSet.topics.length} topics
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="file-placeholder">
+                      <span className="upload-icon">📁</span>
+                      <span>Click to upload JSON file</span>
+                    </div>
+                  )}
+                </label>
+              </div>
+              <div className="row" style={{ marginTop: 8 }}>
+                <button
+                  className="btn small"
+                  onClick={() => setRightPreferenceSet(buildTemplate() as PreferenceSet)}
+                >
+                  Use Current
+                </button>
+                {rightPreferenceSet && (
+                  <button className="btn small ghost" onClick={() => setRightPreferenceSet(null)}>
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
 
         {error && (
           <div className="error-message">
