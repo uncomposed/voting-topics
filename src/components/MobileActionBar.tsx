@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
+import { scrollIntoViewSmart } from '../utils/scroll';
 
 interface Props {
   showCards: boolean;
@@ -38,9 +39,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
     if (!id) return;
     const target = document.querySelector(`[data-topic-id="${id}"]`) as HTMLElement | null;
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = target.querySelector('input[data-field="title"]') as HTMLInputElement | null;
-      if (input) setTimeout(() => input.focus(), 350);
+      scrollIntoViewSmart(target);
     }
   };
 
@@ -63,10 +62,19 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
     };
   } else if (anyUnratedTopic) {
     nextLabel = 'Unrated';
-    nextAction = () => jumpToTopicId(firstUnratedTopicId);
+    nextAction = () => {
+      // Ensure we're in preferences, then jump to first unrated topic
+      if (ballotMode === 'ballot') window.dispatchEvent(new Event('vt-back-preferences'));
+      if (showLLMIntegration || showDiffComparison) window.dispatchEvent(new Event('vt-exit-special'));
+      setTimeout(() => jumpToTopicId(firstUnratedTopicId), 60);
+    };
   } else if (hasEmptyDirections || anyUnratedDirections) {
     nextLabel = 'Unrated';
-    nextAction = () => jumpToTopicId(firstNeedsDirectionsId);
+    nextAction = () => {
+      if (ballotMode === 'ballot') window.dispatchEvent(new Event('vt-back-preferences'));
+      if (showLLMIntegration || showDiffComparison) window.dispatchEvent(new Event('vt-exit-special'));
+      setTimeout(() => jumpToTopicId(firstNeedsDirectionsId), 60);
+    };
   } else if (ballotMode !== 'ballot' && allTopicsRated) {
     nextLabel = 'Ballot';
     nextAction = () => { window.dispatchEvent(new Event('vt-create-ballot')); };

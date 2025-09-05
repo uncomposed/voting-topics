@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { toast } from '../utils/toast';
+import { scrollIntoViewSmart } from '../utils/scroll';
 
 interface ToolbarProps {
   showCards: boolean;
@@ -116,7 +117,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       window.removeEventListener('vt-close-llm', closeLlm as EventListener);
       window.removeEventListener('vt-exit-special', exitSpecial as EventListener);
     };
-  }, [setBallotMode, setShowDiffComparison, setShowLLMIntegration, setShowGettingStarted]);
+  }, [setBallotMode, setShowDiffComparison, setShowLLMIntegration, setShowGettingStarted, setShowCards]);
 
   const onImportFile = (file: File) => {
     const reader = new FileReader();
@@ -188,9 +189,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     if (!id) return;
     const target = document.querySelector(`[data-topic-id="${id}"]`) as HTMLElement | null;
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = target.querySelector('input[data-field="title"]') as HTMLInputElement | null;
-      if (input) setTimeout(() => input.focus(), 350);
+      scrollIntoViewSmart(target);
     }
   };
 
@@ -202,7 +201,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   if (!hasTopics) {
     nextAction = {
       label: 'Get Started',
-      onClick: () => { scrollToStarter(); window.dispatchEvent(new Event('vt-open-starter')); }
+      onClick: () => {
+        if (isInSpecialView) {
+          setShowDiffComparison(false);
+          setShowLLMIntegration(false);
+          setBallotMode('preference');
+          setShowCards(false);
+          setTimeout(() => { scrollToStarter(); window.dispatchEvent(new Event('vt-open-starter')); }, 50);
+        } else {
+          scrollToStarter(); window.dispatchEvent(new Event('vt-open-starter'));
+        }
+      }
     };
   } else if (anyUnratedTopic) {
     // Encourage organizing priorities: card on desktop, list on mobile
@@ -252,7 +261,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {nextAction && (
         <button className="btn primary" onClick={nextAction.onClick} id="btn-next-action">{nextAction.label}</button>
       )}
-      {starterSelectedCount > 0 && hasTopics ? (
+      {starterSelectedCount > 0 && hasTopics && !isInSpecialView ? (
         <button
           id="btn-add-selected"
           className="btn"
@@ -261,6 +270,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           Add ({starterSelectedCount})
         </button>
       ) : (
+        !isInSpecialView && (
         <button
           id="btn-new-topic"
           className="btn"
@@ -272,9 +282,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               if (newFirst && newFirst !== beforeFirst) {
                 const target = document.querySelector(`[data-topic-id="${newFirst}"]`) as HTMLElement | null;
                 if (target) {
-                  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  const input = target.querySelector('input[data-field="title"]') as HTMLInputElement | null;
-                  if (input) setTimeout(() => input.focus(), 300);
+                  scrollIntoViewSmart(target);
                 }
               }
             }, 0);
@@ -282,7 +290,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         >
           New Topic
         </button>
-      )}
+      ))}
       {!hasTopics && ballotMode === 'preference' && (
         <button id="btn-import-inline" className="btn" onClick={() => fileRef.current?.click()}>Import</button>
       )}
@@ -290,7 +298,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <button
           id="btn-jump-unrated"
           className="btn"
-          onClick={() => jumpToTopicId(firstUnratedTopicId || firstNeedsDirectionsId)}
+          onClick={() => {
+            const targetId = firstUnratedTopicId || firstNeedsDirectionsId;
+            if (isInSpecialView) {
+              setShowDiffComparison(false);
+              setShowLLMIntegration(false);
+              setBallotMode('preference');
+              setTimeout(() => jumpToTopicId(targetId), 60);
+            } else {
+              jumpToTopicId(targetId);
+            }
+          }}
         >
           Jump to Unrated
         </button>
