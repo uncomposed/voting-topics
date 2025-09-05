@@ -85,12 +85,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     window.addEventListener('vt-open-getting-started', openGS as EventListener);
     window.addEventListener('vt-create-ballot', createBallot as EventListener);
     window.addEventListener('vt-back-preferences', backPrefs as EventListener);
+    const closeLlm = () => { setShowLLMIntegration(false); setBallotMode('preference'); };
+    window.addEventListener('vt-close-llm', closeLlm as EventListener);
     return () => {
       window.removeEventListener('vt-open-llm', openLlm as EventListener);
       window.removeEventListener('vt-open-diff', openDiff as EventListener);
       window.removeEventListener('vt-open-getting-started', openGS as EventListener);
       window.removeEventListener('vt-create-ballot', createBallot as EventListener);
       window.removeEventListener('vt-back-preferences', backPrefs as EventListener);
+      window.removeEventListener('vt-close-llm', closeLlm as EventListener);
     };
   }, [setBallotMode, setShowDiffComparison, setShowLLMIntegration, setShowGettingStarted]);
 

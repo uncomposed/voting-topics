@@ -1,10 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from '../store';
 
 export const NextStepGuidance: React.FC = () => {
   const topics = useStore(state => state.topics);
   const ballotMode = useStore(state => state.ballotMode);
   const currentFlowStep = useStore(state => state.currentFlowStep);
+  const [seen, setSeen] = useState<boolean>(() => {
+    try { return localStorage.getItem('vt.seenGuide') === '1'; } catch { return false; }
+  });
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('vt.seenGuide') !== '1') {
+        localStorage.setItem('vt.seenGuide','1');
+      }
+    } catch (_e) {
+      // Ignore storage errors (e.g., privacy mode)
+      void 0;
+    }
+  }, []);
   
   // Determine current step and next step based on flow state
   const getCurrentStep = () => {
@@ -143,35 +157,51 @@ export const NextStepGuidance: React.FC = () => {
     }
   };
   
+  const containerStyle: React.CSSProperties = {
+    background: 'linear-gradient(135deg, rgba(139, 211, 255, 0.1) 0%, rgba(100, 255, 161, 0.05) 100%)',
+    border: '1px solid rgba(139, 211, 255, 0.3)',
+    borderRadius: 8,
+    // Match topic card horizontal rail (14px) to avoid left-edge drift on iOS
+    padding: seen ? '10px 14px' : '14px 14px',
+    marginBottom: 16,
+    display: seen ? 'flex' : 'block',
+    alignItems: seen ? 'center' : undefined,
+    minHeight: seen ? 56 : undefined,
+    width: '100%',
+    marginLeft: 0,
+    marginRight: 0,
+  };
+
   return (
-    <div className="next-step-guidance" style={{
-      background: 'linear-gradient(135deg, rgba(139, 211, 255, 0.1) 0%, rgba(100, 255, 161, 0.05) 100%)',
-      border: '1px solid rgba(139, 211, 255, 0.3)',
-      borderRadius: '8px',
-      padding: '12px 16px',
-      marginBottom: '16px'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        <span style={{ fontSize: '1.1rem' }}>🎯</span>
-        <span style={{ fontWeight: '600', color: 'var(--accent)' }}>
-          {step.current}
-        </span>
-      </div>
-      <div style={{ marginBottom: '8px' }}>
-        <strong>Next:</strong> {step.next}
-      </div>
-      {getActionButton()}
+    <div className="next-step-guidance" style={containerStyle}>
+      {!seen && (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span style={{ fontSize: '1.1rem' }}>🎯</span>
+            <span style={{ fontWeight: '600', color: 'var(--accent)' }}>
+              {step.current}
+            </span>
+          </div>
+          <div style={{ marginBottom: '8px' }}>
+            <strong>Next:</strong> {step.next}
+          </div>
+          {getActionButton()}
+          <div className="muted" style={{ marginTop: 6 }}>
+            <button className="btn ghost" style={{ padding: '2px 6px' }} onClick={() => setSeen(true)}>Hide guide</button>
+          </div>
+        </>
+      )}
       
       {/* LLM Integration Hint */}
       <div style={{ 
-        marginTop: '12px', 
+        marginTop: seen ? 0 : 12, 
         padding: '8px 12px', 
         background: 'rgba(155, 130, 255, 0.1)', 
         border: '1px solid rgba(155, 130, 255, 0.3)', 
         borderRadius: '6px',
         fontSize: '0.85rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 4 }}>
           <span style={{ fontSize: '1rem' }}>🤖</span>
           <span style={{ fontWeight: '600', color: 'var(--focus)' }}>
             Pro Tip: Use with AI

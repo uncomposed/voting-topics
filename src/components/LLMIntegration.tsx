@@ -266,6 +266,11 @@ This tool validates all imported JSON against the schema. Invalid data will be r
 
   return (
     <div className="llm-integration">
+      <div className="llm-header" style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <button className="btn ghost" onClick={() => window.dispatchEvent(new Event('vt-close-llm'))}>
+          ← Back to Preferences
+        </button>
+      </div>
       <div className="llm-header">
         <h1>🤖 LLM Integration</h1>
         <p>Export your data for AI analysis or import AI-generated content. Perfect for getting help with topic generation, direction refinement, and ballot creation.</p>

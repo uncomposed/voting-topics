@@ -64,7 +64,7 @@ export const App: React.FC = () => {
         setTimeout(() => topicListRef.current?.updateButtonText(), 0);
       }
     };
-  }, [showCards]);
+  }, [showCards, showDiffComparison, showLLMIntegration, ballotMode]);
 
   // Template title/notes are now managed via React in TemplateInfoPanel
 
@@ -107,12 +107,10 @@ export const App: React.FC = () => {
   useEffect(() => {
     const btn = document.getElementById('btn-expand-all');
     if (!btn) return;
-    if (showCards) {
-      setTimeout(() => topicCardsRef.current?.updateButtonText(), 0);
-    } else {
-      setTimeout(() => topicListRef.current?.updateButtonText(), 0);
-    }
-  }, [showCards, topics.length]);
+    if (showDiffComparison || showLLMIntegration || ballotMode === 'ballot') return;
+    if (showCards) setTimeout(() => topicCardsRef.current?.updateButtonText(), 0);
+    else setTimeout(() => topicListRef.current?.updateButtonText(), 0);
+  }, [showCards, topics.length, showDiffComparison, showLLMIntegration, ballotMode]);
 
   return (
     <>
@@ -192,11 +190,13 @@ export const App: React.FC = () => {
       {/* Template Info (portaled into aside area) */}
       <TemplateInfoPanel />
 
-      {/* Mobile sticky action bar */}
-      <MobileActionBar
-        showCards={showCards}
-        onToggleView={() => setShowCards(!showCards)}
-      />
+      {/* Mobile sticky action bar (list/cards only) */}
+      {!specialView && (
+        <MobileActionBar
+          showCards={showCards}
+          onToggleView={() => setShowCards(!showCards)}
+        />
+      )}
 
       {/* Mobile slide-out menu */}
       <MobileMenu />

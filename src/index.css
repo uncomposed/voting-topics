@@ -323,6 +323,7 @@ textarea {
   padding: 14px;
   transition: all 0.2s ease;
   position: relative;
+  width: 100%;
 }
 
 .topic:nth-child(even) {
@@ -399,9 +400,19 @@ textarea {
 }
 
 .stars { 
-  display: inline-flex; 
+  display: flex; 
   gap: 6px; 
   align-items: center; 
+  flex-wrap: wrap; 
+  min-width: 0; /* allow children to shrink on iOS Safari */
+}
+
+/* Ensure the meaning text wraps under the stars instead of pushing width */
+.stars .star-meaning {
+  flex-basis: 100%;
+  margin-left: 0 !important;
+  margin-top: 4px;
+  white-space: normal;
 }
 
 .star-btn {
@@ -446,6 +457,11 @@ textarea {
 .list { 
   display: grid; 
   gap: 10px; 
+  grid-template-columns: 1fr;
+  justify-items: stretch;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .list-controls {
