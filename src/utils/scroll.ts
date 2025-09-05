@@ -21,12 +21,21 @@ export const scrollIntoViewSmart = (el: HTMLElement, behavior: ScrollBehavior = 
   const headerH = getHeaderHeight();
   const bottomH = getBottomBarHeight();
   const usableH = Math.max(100, window.innerHeight - headerH - bottomH);
-
   const currentTop = window.scrollY + rect.top; // element top in document coords
-  const target = currentTop - headerH - (usableH - rect.height) / 2;
+
+  // Small visual offset so titles aren't tight against the header
+  const SAFETY = 8;
+
+  let target: number;
+  if (rect.height >= usableH) {
+    // If the element is taller than the usable viewport, align its top just below the header
+    target = currentTop - headerH - SAFETY;
+  } else {
+    // Otherwise, center within usable viewport
+    target = currentTop - headerH - (usableH - rect.height) / 2 - SAFETY;
+  }
 
   const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   const clamped = Math.min(Math.max(0, target), maxScroll);
   window.scrollTo({ top: clamped, behavior });
 };
-

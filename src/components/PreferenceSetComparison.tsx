@@ -56,7 +56,7 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
   return (
       <div className="diff-comparison">
         <div className="diff-comparison-header">
-          <h2>Compare Preference Sets</h2>
+          <h2>Compare Preferences</h2>
           <button onClick={onClose} className="btn ghost">
             ✕ Close
           </button>
@@ -166,7 +166,7 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
             disabled={!leftPreferenceSet || !rightPreferenceSet}
             className="btn primary"
           >
-            Compare Preference Sets
+            Compare Preferences
           </button>
         </div>
 
@@ -174,7 +174,7 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
           <h4>How to use:</h4>
           <ol>
             <li>Upload two JSON preference set files (exported from this app)</li>
-            <li>Click "Compare Preference Sets" to see detailed differences</li>
+            <li>Click "Compare Preferences" to see detailed differences</li>
             <li>Explore the Overview, Topic Details, Priority Heatmap, and Directions tabs</li>
           </ol>
         </div>

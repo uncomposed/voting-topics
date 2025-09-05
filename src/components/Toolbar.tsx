@@ -163,7 +163,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   };
 
   const isInSpecialView = showDiffComparison || showLLMIntegration || ballotMode === 'ballot';
-  const toggleViewLabel = isInSpecialView ? 'Back to Main View' : (showCards ? 'Show List View' : 'Show Card View');
+  const toggleViewLabel = isInSpecialView ? 'Back to Main View' : (showCards ? 'List View' : 'Card View');
   const ballotLabel = ballotMode === 'ballot' ? 'Back to Preferences' : 'Ballot';
 
   // Derive a suggested Next action based on current app state
@@ -216,21 +216,30 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   } else if (anyUnratedTopic) {
     // Encourage organizing priorities: card on desktop, list on mobile
     if (isMobile) {
-      nextAction = {
-        label: 'List View',
-        onClick: () => { if (showCards) setShowCards(false); }
-      };
+      // Only suggest List View if currently in Card View
+      if (showCards) {
+        nextAction = {
+          label: 'List View',
+          onClick: () => { setShowCards(false); }
+        };
+      }
     } else {
-      nextAction = {
-        label: 'Card View',
-        onClick: () => { if (!showCards && !isInSpecialView) setShowCards(true); }
-      };
+      // Only suggest Card View if currently in List View
+      if (!showCards && !isInSpecialView) {
+        nextAction = {
+          label: 'Card View',
+          onClick: () => { setShowCards(true); }
+        };
+      }
     }
   } else if (hasEmptyDirections || anyUnratedDirections) {
-    nextAction = {
-      label: 'List View',
-      onClick: () => { if (showCards) setShowCards(false); }
-    };
+    // Only suggest List View if currently in Card View
+    if (showCards) {
+      nextAction = {
+        label: 'List View',
+        onClick: () => { setShowCards(false); }
+      };
+    }
   } else if (ballotMode !== 'ballot' && hasSufficientPrefs) {
     nextAction = {
       label: 'Ballot',
@@ -315,6 +324,34 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       )}
       {/* Export JSON moved into the Menu */}
 
+
+      <button id="btn-toggle-view" className="btn" onClick={() => {
+        if (isInSpecialView) {
+          setShowDiffComparison(false);
+          setShowLLMIntegration(false);
+          setBallotMode('preference');
+        } else {
+          setShowCards(!showCards);
+        }
+      }}>{toggleViewLabel}</button>
+
+      <button id="btn-diff-comparison" className="btn" onClick={() => setShowDiffComparison(!showDiffComparison)}>
+        {showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}
+      </button>
+
+      <button id="btn-ballot-mode" className="btn" onClick={() => {
+        if (ballotMode === 'ballot') {
+          setBallotMode('preference');
+        } else {
+          setShowLLMIntegration(false);
+          setShowDiffComparison(false);
+          setBallotMode('ballot');
+        }
+      }}>
+        {ballotLabel}
+      </button>
+
+      {/* Move the menu/hamburger to the end so it stays at the right */}
       <div className="toolbar-more" ref={moreRef}>
         <button ref={moreBtnRef} className="btn" aria-haspopup="true" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}>
           ☰
@@ -372,32 +409,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         )}
         <input ref={fileRef} id="file-input" type="file" className="sr-only" accept="application/json" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onImportFile(f); }} />
       </div>
-
-      <button id="btn-toggle-view" className="btn" onClick={() => {
-        if (isInSpecialView) {
-          setShowDiffComparison(false);
-          setShowLLMIntegration(false);
-          setBallotMode('preference');
-        } else {
-          setShowCards(!showCards);
-        }
-      }}>{toggleViewLabel}</button>
-
-      <button id="btn-diff-comparison" className="btn" onClick={() => setShowDiffComparison(!showDiffComparison)}>
-        {showDiffComparison ? 'Close Comparison' : 'Compare Preference Sets'}
-      </button>
-
-      <button id="btn-ballot-mode" className="btn" onClick={() => {
-        if (ballotMode === 'ballot') {
-          setBallotMode('preference');
-        } else {
-          setShowLLMIntegration(false);
-          setShowDiffComparison(false);
-          setBallotMode('ballot');
-        }
-      }}>
-        {ballotLabel}
-      </button>
 
       {/* LLM + Getting Started moved into More menu */}
     </>,

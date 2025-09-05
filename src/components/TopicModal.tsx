@@ -248,13 +248,18 @@ export const TopicModal: React.FC<TopicModalProps> = ({
         </div>
 
         <div className="modal-footer">
-          {!editing && (
+          {editing ? (
+            <>
+              <button className="btn" onClick={handleSave}>Save & Close</button>
+              <button className="btn ghost" onClick={handleCancel}>Cancel</button>
+            </>
+          ) : (
             <>
               <button className="btn" onClick={() => setEditing(true)}>Edit Topic</button>
               <button className="btn ghost danger" onClick={handleDelete}>Delete Topic</button>
+              <button className="btn ghost" onClick={onClose}>Close</button>
             </>
           )}
-          <button className="btn ghost" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>

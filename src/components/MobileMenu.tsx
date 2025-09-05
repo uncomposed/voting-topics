@@ -89,7 +89,7 @@ export const MobileMenu: React.FC = () => {
               <button className="btn" onClick={() => { try { exportJSON(); } catch (e) { alert(String(e)); } setOpen(false); }}>Export JSON</button>
               <button className="btn" onClick={() => { exportPDF().catch(e => alert(String(e))); setOpen(false); }}>Export PDF</button>
               <button className="btn" onClick={() => { exportJPEG().catch(e => alert(String(e))); setOpen(false); }}>Export JPEG</button>
-              <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-diff')); setOpen(false); }}>Compare Preference Sets</button>
+              <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-diff')); setOpen(false); }}>Compare Preferences</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-llm')); setOpen(false); }}>LLM Integration</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-getting-started')); setOpen(false); }}>Getting Started</button>
               <button className="btn" onClick={() => {

@@ -139,7 +139,7 @@ describe('App Component', () => {
       });
       
       // Button text should change
-      expect(toggleBtn!.textContent).toBe('Show List View');
+      expect(toggleBtn!.textContent).toBe('List View');
     });
 
     it('should hide list view when in card view', async () => {
