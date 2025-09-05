@@ -131,6 +131,14 @@ header {
   transition: transform .02s ease-in-out, background .2s, border .2s, box-shadow .2s;
 }
 
+.btn:focus-visible,
+.toolbar-menu .btn:focus-visible,
+.mobile-export-menu .btn:focus-visible,
+.mobile-menu-panel .btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .btn:hover { 
   background: #1d2550; 
   border-color: #314081; 

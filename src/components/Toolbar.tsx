@@ -64,6 +64,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMoreOpen(false);
+      if (e.key === 'Tab') {
+        // Focus trap inside menu
+        const container = moreRef.current?.querySelector('.toolbar-menu') as HTMLElement | null;
+        if (!container) return;
+        const focusables = Array.from(container.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => !el.hasAttribute('disabled'));
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const activeEl = document.activeElement as HTMLElement | null;
+        const shift = (e as KeyboardEvent).shiftKey;
+        if (!shift && activeEl === last) { e.preventDefault(); first.focus(); }
+        else if (shift && activeEl === first) { e.preventDefault(); last.focus(); }
+      }
     };
     document.addEventListener('click', onClick);
     document.addEventListener('keydown', onKey);
@@ -83,6 +96,18 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setExportOpen(false);
+      if (e.key === 'Tab') {
+        const container = exportRef.current?.querySelector('.toolbar-menu') as HTMLElement | null;
+        if (!container) return;
+        const focusables = Array.from(container.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => !el.hasAttribute('disabled'));
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const activeEl = document.activeElement as HTMLElement | null;
+        const shift = (e as KeyboardEvent).shiftKey;
+        if (!shift && activeEl === last) { e.preventDefault(); first.focus(); }
+        else if (shift && activeEl === first) { e.preventDefault(); last.focus(); }
+      }
     };
     document.addEventListener('click', onClick);
     document.addEventListener('keydown', onKey);
