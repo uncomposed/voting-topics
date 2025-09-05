@@ -8,6 +8,7 @@ export const MobileMenu: React.FC = () => {
   const addTopic = useStore(s => s.addTopic);
   const clearAll = useStore(s => s.clearAll);
   const ballotMode = useStore(s => s.ballotMode);
+  const currentBallot = useStore(s => s.currentBallot);
   const [open, setOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -92,11 +93,12 @@ export const MobileMenu: React.FC = () => {
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-diff')); setOpen(false); }}>Compare Preferences</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-llm')); setOpen(false); }}>LLM Integration</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-getting-started')); setOpen(false); }}>Getting Started</button>
+              <button className="btn" onClick={() => { useStore.setState(s => ({ hintsEnabled: !s.hintsEnabled })); setOpen(false); }}>{useStore.getState().hintsEnabled ? 'Disable Hint Mode' : 'Enable Hint Mode'}</button>
               <button className="btn" onClick={() => {
                 if (ballotMode === 'ballot') { window.dispatchEvent(new Event('vt-back-preferences')); }
                 else { window.dispatchEvent(new Event('vt-create-ballot')); }
                 setOpen(false);
-              }}>{ballotMode === 'ballot' ? 'Preferences Set' : 'Create Ballot'}</button>
+              }}>{ballotMode === 'ballot' ? 'Back to Preferences' : 'Create Ballot'}</button>
               <button
                 className="btn danger"
                 onClick={() => {
@@ -124,6 +126,26 @@ export const MobileMenu: React.FC = () => {
               >
                 Clear All
               </button>
+              {ballotMode !== 'ballot' && (
+                <button className="btn danger" onClick={() => {
+                  const state = useStore.getState();
+                  const snapshot = { title: state.title, notes: state.notes, topics: state.topics, __createdAt: state.__createdAt } as const;
+                  useStore.setState({ title: '', notes: '', topics: [], __createdAt: undefined });
+                  toast.show({ variant: 'danger', title: 'Preferences cleared', message: 'Your preference set was cleared', actionLabel: 'Undo', onAction: () => { useStore.setState({ ...snapshot }); }, duration: 7000 });
+                  setOpen(false);
+                }}>Clear Preferences</button>
+              )}
+              {ballotMode === 'ballot' && currentBallot && (
+                <button className="btn danger" onClick={() => {
+                  const prev = useStore.getState().currentBallot;
+                  useStore.getState().clearBallot();
+                  toast.show({ variant: 'danger', title: 'Ballot cleared', message: 'Your ballot was cleared', actionLabel: 'Undo', onAction: () => { useStore.setState({ currentBallot: prev }); }, duration: 7000 });
+                  setOpen(false);
+                }}>Clear Ballot</button>
+              )}
+              {ballotMode !== 'ballot' && (
+                <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-clear-comparison')); setOpen(false); }}>Clear Comparison</button>
+              )}
               <hr />
               <button className="btn" onClick={() => fileRef.current?.click()}>Import JSON…</button>
               <input ref={fileRef} type="file" className="sr-only" accept="application/json" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onImportFile(f); }} />

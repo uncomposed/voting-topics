@@ -6,6 +6,7 @@ import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness'
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { toast } from '../utils/toast';
 import { scrollIntoViewSmart } from '../utils/scroll';
+import { emitHint } from '../utils/hints';
 
 interface ToolbarProps {
   showCards: boolean;
@@ -330,13 +331,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   return createPortal(
     <>
       {nextAction && (
-        <button className="btn primary" onClick={nextAction.onClick} id="btn-next-action">{nextAction.label}</button>
+        <button className="btn primary" onClick={nextAction.onClick} id="btn-next-action"
+          onMouseEnter={() => emitHint('next-action', 'btn-next-action', 'Smart next step based on your progress.')}
+        >{nextAction.label}</button>
       )}
 
       {/* Desktop: surface Export when preferences are export-ready (parity with mobile) */}
       {ballotMode !== 'ballot' && exportReady && (
         <div className="toolbar-more" ref={exportRef}>
-          <button ref={exportBtnRef} className="btn" aria-haspopup="true" aria-expanded={exportOpen} onClick={() => setExportOpen(v => !v)}>
+          <button id="btn-export-inline" ref={exportBtnRef} className="btn" aria-haspopup="true" aria-expanded={exportOpen} onClick={() => setExportOpen(v => !v)}
+            onMouseEnter={() => emitHint('export', 'btn-export-inline', 'Export or share your work once you’ve rated items.')}
+          >
             Share / Export
           </button>
           {exportOpen && (
@@ -370,7 +375,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Ballot view: if not ready to share, surface Import Ballot */}
       {ballotMode === 'ballot' && !ballotReadyToShare && (
         <div className="toolbar-more">
-          <button className="btn" onClick={() => fileRef.current?.click()}>Import</button>
+          <button id="btn-import-ballot-inline" className="btn" onClick={() => fileRef.current?.click()}
+            onMouseEnter={() => emitHint('import-ballot', 'btn-import-ballot-inline', 'Load a ballot JSON to continue work.')}
+          >Import</button>
         </div>
       )}
       {starterSelectedCount > 0 && hasTopics && !isInSpecialView ? (
@@ -437,11 +444,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         } else {
           setShowCards(!showCards);
         }
-      }}>{toggleViewLabel}</button>
+      }}
+        onMouseEnter={() => emitHint('toggle-view', 'btn-toggle-view', 'Switch between List and Card views.')}
+      >{toggleViewLabel}</button>
       )}
 
       {!collapseCompare && (
-        <button id="btn-diff-comparison" className="btn" onClick={() => setShowDiffComparison(!showDiffComparison)}>
+        <button id="btn-diff-comparison" className="btn" onClick={() => setShowDiffComparison(!showDiffComparison)}
+          onMouseEnter={() => emitHint('compare', 'btn-diff-comparison', 'Compare two preference sets side by side.')}
+        >
           {showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}
         </button>
       )}
@@ -455,14 +466,18 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           setShowDiffComparison(false);
           setBallotMode('ballot');
         }
-      }}>
+      }}
+        onMouseEnter={() => emitHint('ballot', 'btn-ballot-mode', 'Build and preview your sample ballot.')}
+      >
         {ballotLabel}
       </button>
       )}
 
       {/* Move the menu/hamburger to the end so it stays at the right */}
       <div className="toolbar-more pin-right" ref={moreRef}>
-        <button ref={moreBtnRef} className="btn" aria-haspopup="true" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}>
+        <button id="btn-menu" ref={moreBtnRef} className="btn" aria-haspopup="true" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}
+          onMouseEnter={() => emitHint('menu', 'btn-menu', 'More actions live here. We move extras here on small screens.')}
+        >
           ☰
         </button>
         {moreOpen && (
@@ -470,6 +485,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <div className="muted" style={{ padding: '4px 6px' }}>Menu</div>
             {ballotMode === 'ballot' && (
               <button id="btn-import-ballot" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import Ballot</button>
+            )}
+            <button id="btn-toggle-hints" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); useStore.setState(s => ({ hintsEnabled: !s.hintsEnabled })); }}>
+              {useStore.getState().hintsEnabled ? 'Disable Hint Mode' : 'Enable Hint Mode'}
+            </button>
+            {showDiffComparison && (
+              <button
+                id="btn-clear-comparison"
+                className="btn"
+                role="menuitem"
+                onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event('vt-clear-comparison')); }}
+              >
+                Clear Comparison
+              </button>
             )}
             {/* Collapsed items will be injected here via conditions below */}
             {/* Collapsed Toggle / Compare shortcuts */}
@@ -480,6 +508,56 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               <button id="btn-diff-menu" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowDiffComparison(!showDiffComparison); }}>{showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}</button>
             )}
             <button id="btn-import" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import JSON</button>
+            {ballotMode !== 'ballot' && (
+              <button
+                id="btn-clear-preferences"
+                className="btn danger"
+                role="menuitem"
+                onClick={() => {
+                  setMoreOpen(false);
+                  const state = useStore.getState();
+                  const snapshot = {
+                    title: state.title,
+                    notes: state.notes,
+                    topics: state.topics,
+                    __createdAt: state.__createdAt,
+                  } as const;
+                  useStore.setState({ title: '', notes: '', topics: [], __createdAt: undefined });
+                  toast.show({
+                    variant: 'danger',
+                    title: 'Preferences cleared',
+                    message: 'Your preference set was cleared',
+                    actionLabel: 'Undo',
+                    onAction: () => { useStore.setState({ ...snapshot }); },
+                    duration: 7000,
+                  });
+                }}
+              >
+                Clear Preferences
+              </button>
+            )}
+            {ballotMode === 'ballot' && useStore.getState().currentBallot && (
+              <button
+                id="btn-clear-ballot"
+                className="btn danger"
+                role="menuitem"
+                onClick={() => {
+                  setMoreOpen(false);
+                  const prev = useStore.getState().currentBallot;
+                  useStore.getState().clearBallot();
+                  toast.show({
+                    variant: 'danger',
+                    title: 'Ballot cleared',
+                    message: 'Your ballot was cleared',
+                    actionLabel: 'Undo',
+                    onAction: () => { useStore.setState({ currentBallot: prev }); },
+                    duration: 7000,
+                  });
+                }}
+              >
+                Clear Ballot
+              </button>
+            )}
             {(() => {
               const hasAnyDirection = topics.some(t => t.directions.length > 0);
               const hasAnyRatedDirection = topics.some(t => t.directions.some(d => d.stars > 0));

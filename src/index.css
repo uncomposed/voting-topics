@@ -12,6 +12,8 @@
   --warn: #ffd166;
   --focus: #9b82ff;
   --border: #263055;
+  /* Expose safe-area inset for JS positioning */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 * { 
@@ -2278,3 +2280,8 @@ textarea {
     gap: 16px;
   }
 }
+/* Hints */
+.hint-callout {
+  color: var(--text);
+}
+.hint-callout .btn.small { font-size: 0.85rem; padding: 6px 8px; }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { App } from './App';
 import { ToastContainer } from './components/ToastContainer';
+import { HintManager } from './components/Hints';
 
 export const Layout: React.FC = () => {
   return (
@@ -36,6 +37,8 @@ export const Layout: React.FC = () => {
 
       {/* Global toasts */}
       <ToastContainer />
+      {/* Hints */}
+      <HintManager />
     </div>
   );
 };

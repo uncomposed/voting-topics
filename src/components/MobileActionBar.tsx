@@ -3,11 +3,14 @@ import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
 import { scrollIntoViewSmart } from '../utils/scroll';
 import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness';
+import { emitHint } from '../utils/hints';
 import { parseIncomingBallot, parseIncomingPreferenceSet } from '../schema';
 
 interface Props {
   showCards: boolean;
   onToggleView: () => void;
+  showDiffComparison?: boolean;
+  showLLMIntegration?: boolean;
 }
 
 export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, showDiffComparison, showLLMIntegration }) => {
@@ -92,15 +95,33 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
   const exportReady = isPreferenceExportReady(topics);
   const ballotReadyToShare = isBallotShareReady(currentBallot);
 
+  // Dispatch hint availability for mobile (no hover). Trigger when state changes.
+  useEffect(() => {
+    const fire = (key: string, anchorId: string, content: string) => emitHint(key, anchorId, content);
+    // Next
+    if (document.getElementById('m-next')) fire('next-action', 'm-next', 'Smart next step based on your progress.');
+    // Toggle
+    if (document.getElementById('m-toggle')) fire('toggle-view', 'm-toggle', 'Switch between List and Card views.');
+    // Export
+    if (document.getElementById('m-export')) fire('export', 'm-export', 'Export or share your work once you’ve rated items.');
+    // Import ballot
+    if (document.getElementById('m-import-ballot')) fire('import-ballot', 'm-import-ballot', 'Load a ballot JSON to continue work.');
+    // Menu
+    if (document.getElementById('m-menu')) fire('menu', 'm-menu', 'More actions live here. We move extras here on small screens.');
+    // New
+    if (document.getElementById('m-new')) fire('new', 'm-new', 'Add a new topic at the top.');
+  }, [ballotMode, exportReady, ballotReadyToShare, showCards, topics.length, starterSelectedCount]);
+
   return (
     <div className="mobile-action-bar" aria-label="Mobile actions">
       {nextLabel && nextAction && (
-        <button className="btn primary" onClick={nextAction} aria-label="Next">
+        <button id="m-next" className="btn primary" onClick={nextAction} aria-label="Next">
           {nextLabel}
         </button>
       )}
       {ballotMode !== 'ballot' && !showDiffComparison && !showLLMIntegration && (
         <button
+          id="m-new"
           className="btn"
           onClick={() => {
             const before = useStore.getState().topics[0]?.id;
@@ -122,6 +143,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
       )}
       {hasTopics && (
         <button
+          id="m-toggle"
           className="btn"
           onClick={() => {
             if (ballotMode === 'ballot') {
@@ -140,6 +162,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
         {((ballotMode !== 'ballot' && exportReady) || (ballotMode === 'ballot' && ballotReadyToShare)) ? (
           <>
             <button
+              id="m-export"
               className="btn"
               onClick={() => setOpen(v => !v)}
               aria-haspopup="true"
@@ -158,7 +181,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
           </>
         ) : ballotMode === 'ballot' ? (
           <>
-            <button className="btn" onClick={() => fileRef.current?.click()} aria-label="Import ballot">Import</button>
+            <button id="m-import-ballot" className="btn" onClick={() => fileRef.current?.click()} aria-label="Import ballot">Import</button>
             <input
               ref={fileRef}
               type="file"
@@ -222,7 +245,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
       )}
 
       {/* Hamburger to open mobile menu */}
-      <button className="btn" aria-label="Menu" onClick={() => window.dispatchEvent(new Event('vt-open-mobile-menu'))}>☰</button>
+      <button id="m-menu" className="btn" aria-label="Menu" onClick={() => window.dispatchEvent(new Event('vt-open-mobile-menu'))}>☰</button>
     </div>
   );
 };

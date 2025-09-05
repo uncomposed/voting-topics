@@ -14,6 +14,18 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
   const [step, setStep] = useState<'upload' | 'compare'>('upload');
   const [error, setError] = useState<string>('');
 
+  // Support global clear event from Toolbar/Menu
+  React.useEffect(() => {
+    const onClear = () => {
+      setLeftPreferenceSet(null);
+      setRightPreferenceSet(null);
+      setStep('upload');
+      setError('');
+    };
+    window.addEventListener('vt-clear-comparison', onClear as EventListener);
+    return () => window.removeEventListener('vt-clear-comparison', onClear as EventListener);
+  }, []);
+
   const handleFileUpload = (file: File, side: 'left' | 'right') => {
     const reader = new FileReader();
     reader.onload = () => {

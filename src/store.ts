@@ -58,6 +58,12 @@ interface Store {
   addReasoningLink: (officeId: string, candidateId: string, reasoning: ReasoningLink) => void;
   removeReasoningLink: (officeId: string, candidateId: string, reasoningId: string) => void;
   clearBallot: () => void;
+
+  // Hint mode state
+  hintsEnabled: boolean;
+  seenHints: string[];
+  setHintsEnabled: (v: boolean) => void;
+  markHintSeen: (key: string) => void;
 }
 
 export const useStore = create<Store>()(
@@ -361,6 +367,14 @@ export const useStore = create<Store>()(
         } : null
       })),
       clearBallot: () => set({ currentBallot: null }),
+
+      // Hints
+      hintsEnabled: false,
+      seenHints: [],
+      setHintsEnabled: (v: boolean) => set({ hintsEnabled: v }),
+      markHintSeen: (key: string) => set((state) => (
+        state.seenHints.includes(key) ? state : { seenHints: [...state.seenHints, key] }
+      )),
     }),
     { name: 'vt.m1' }
   )
