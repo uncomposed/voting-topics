@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
+import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { toast } from '../utils/toast';
 import { scrollIntoViewSmart } from '../utils/scroll';
@@ -39,9 +40,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const clearAll = useStore(s => s.clearAll);
   const fileRef = useRef<HTMLInputElement>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [collapseCompare, setCollapseCompare] = useState(false);
+  const [collapseToggle, setCollapseToggle] = useState(false);
   const [starterSelectedCount, setStarterSelectedCount] = useState(0);
   const moreRef = useRef<HTMLDivElement>(null);
   const moreBtnRef = useRef<HTMLButtonElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const exportBtnRef = useRef<HTMLButtonElement>(null);
   const prevOpenRef = useRef(false);
   useEffect(() => {
     // focus return when closing
@@ -65,6 +71,31 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       document.removeEventListener('keydown', onKey);
     };
   }, [moreOpen]);
+
+  // Close Export dropdown on outside click / ESC
+  useEffect(() => {
+    if (!exportOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (!exportRef.current) return;
+      const target = e.target as Node;
+      if (!exportRef.current.contains(target)) setExportOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExportOpen(false);
+    };
+    document.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('click', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [exportOpen]);
+
+  // Close menus when major UI state changes to avoid stale popovers
+  useEffect(() => {
+    if (exportOpen) setExportOpen(false);
+    if (moreOpen) setMoreOpen(false);
+  }, [showCards, showDiffComparison, showLLMIntegration, ballotMode, exportOpen, moreOpen]);
 
   // Track starter pack selection count to surface Add Selected in nav
   useEffect(() => {
@@ -177,6 +208,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const hasSufficientPrefs = allTopicsRated; // lenient: directions may be intentionally left 0
   const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
 
+  // Export availability (mirror mobile logic)
+  const exportReady = isPreferenceExportReady(topics);
+  const ballotReadyToShare = isBallotShareReady(currentBallot);
+
   const scrollToStarter = () => {
     const el = document.getElementById('starter-pack');
     if (el && 'scrollIntoView' in el) {
@@ -250,7 +285,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     const allMeasuresPositioned = currentBallot.measures.every(m => !!m.position);
     const readyToShare = allOfficesSelected && allMeasuresPositioned;
     nextAction = readyToShare
-      ? { label: 'Share / Export', onClick: () => window.dispatchEvent(new Event('vt-open-ballot-preview')) }
+      ? { label: 'Preview', onClick: () => window.dispatchEvent(new Event('vt-open-ballot-preview')) }
       : { label: 'Preview Ballot', onClick: () => window.dispatchEvent(new Event('vt-open-ballot-preview')) };
   }
 
@@ -262,6 +297,30 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     };
   }
   
+  // Progressive collapse: keep toolbar to max two rows on desktop
+  useEffect(() => {
+    if (!toolbarEl) return;
+    const isMobileWidth = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+    if (isMobileWidth) { setCollapseCompare(false); setCollapseToggle(false); return; }
+
+    const measure = () => {
+      if (!toolbarEl) return;
+      const children = Array.from(toolbarEl.children) as HTMLElement[];
+      const rowCount = new Set(children.map(c => c.offsetTop)).size;
+      if (rowCount <= 2) { setCollapseCompare(false); setCollapseToggle(false); return; }
+      // Start by collapsing Compare
+      setCollapseCompare(true);
+      requestAnimationFrame(() => {
+        const rowCount2 = new Set(Array.from(toolbarEl.children).map(c => (c as HTMLElement).offsetTop)).size;
+        if (rowCount2 > 2) setCollapseToggle(true); else setCollapseToggle(false);
+      });
+    };
+    const r = requestAnimationFrame(measure);
+    const onResize = () => requestAnimationFrame(measure);
+    window.addEventListener('resize', onResize);
+    return () => { cancelAnimationFrame(r); window.removeEventListener('resize', onResize); };
+  }, [toolbarEl, showCards, showDiffComparison, showLLMIntegration, ballotMode, exportReady, ballotReadyToShare, starterSelectedCount]);
+
   // If portal target not yet mounted, render nothing (avoid null target crash)
   if (!toolbarEl) return null;
 
@@ -269,6 +328,30 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     <>
       {nextAction && (
         <button className="btn primary" onClick={nextAction.onClick} id="btn-next-action">{nextAction.label}</button>
+      )}
+
+      {/* Desktop: surface Export when preferences are export-ready (parity with mobile) */}
+      {ballotMode !== 'ballot' && exportReady && (
+        <div className="toolbar-more" ref={exportRef}>
+          <button ref={exportBtnRef} className="btn" aria-haspopup="true" aria-expanded={exportOpen} onClick={() => setExportOpen(v => !v)}>
+            Share / Export
+          </button>
+          {exportOpen && (
+            <div className="toolbar-menu" role="menu">
+              <div className="muted" style={{ padding: '4px 6px' }}>Export</div>
+              <button id="btn-export-json-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
+              <button id="btn-export-pdf-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
+              <button id="btn-export-jpeg-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Ballot view: if not ready to share, surface Import Ballot */}
+      {ballotMode === 'ballot' && !ballotReadyToShare && (
+        <div className="toolbar-more">
+          <button className="btn" onClick={() => fileRef.current?.click()}>Import</button>
+        </div>
       )}
       {starterSelectedCount > 0 && hasTopics && !isInSpecialView ? (
         <button
@@ -325,6 +408,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Export JSON moved into the Menu */}
 
 
+      {!collapseToggle && ballotMode !== 'ballot' && (!nextAction || nextAction.label !== toggleViewLabel) && (
       <button id="btn-toggle-view" className="btn" onClick={() => {
         if (isInSpecialView) {
           setShowDiffComparison(false);
@@ -334,11 +418,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           setShowCards(!showCards);
         }
       }}>{toggleViewLabel}</button>
+      )}
 
-      <button id="btn-diff-comparison" className="btn" onClick={() => setShowDiffComparison(!showDiffComparison)}>
-        {showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}
-      </button>
+      {!collapseCompare && (
+        <button id="btn-diff-comparison" className="btn" onClick={() => setShowDiffComparison(!showDiffComparison)}>
+          {showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}
+        </button>
+      )}
 
+      {(!nextAction || nextAction.label !== ballotLabel) && (
       <button id="btn-ballot-mode" className="btn" onClick={() => {
         if (ballotMode === 'ballot') {
           setBallotMode('preference');
@@ -350,6 +438,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       }}>
         {ballotLabel}
       </button>
+      )}
 
       {/* Move the menu/hamburger to the end so it stays at the right */}
       <div className="toolbar-more" ref={moreRef}>
@@ -359,6 +448,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {moreOpen && (
           <div className="toolbar-menu" role="menu">
             <div className="muted" style={{ padding: '4px 6px' }}>Menu</div>
+            {/* Collapsed items will be injected here via conditions below */}
+            {/* Collapsed Toggle / Compare shortcuts */}
+            {collapseToggle && (
+              <button id="btn-toggle-view-menu" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); if (isInSpecialView) { setShowDiffComparison(false); setShowLLMIntegration(false); setBallotMode('preference'); } else { setShowCards(!showCards); } }}>{toggleViewLabel}</button>
+            )}
+            {collapseCompare && (
+              <button id="btn-diff-menu" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowDiffComparison(!showDiffComparison); }}>{showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}</button>
+            )}
             <button id="btn-import" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import JSON</button>
             {(() => {
               const hasAnyDirection = topics.some(t => t.directions.length > 0);

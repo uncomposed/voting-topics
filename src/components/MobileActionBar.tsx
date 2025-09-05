@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
 import { scrollIntoViewSmart } from '../utils/scroll';
+import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness';
+import { parseIncomingBallot, parseIncomingPreferenceSet } from '../schema';
 
 interface Props {
   showCards: boolean;
@@ -87,9 +89,8 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
   }
 
   // Export gating: only show when there is at least one topic with at least one rated direction
-  const hasAnyDirection = topics.some(t => t.directions.length > 0);
-  const hasAnyRatedDirection = topics.some(t => t.directions.some(d => d.stars > 0));
-  const exportReady = hasTopics && hasAnyDirection && hasAnyRatedDirection;
+  const exportReady = isPreferenceExportReady(topics);
+  const ballotReadyToShare = isBallotShareReady(currentBallot);
 
   return (
     <div className="mobile-action-bar" aria-label="Mobile actions">
@@ -116,7 +117,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
           }}
           aria-label="New Topic"
         >
-          + New
+          {(exportReady || ballotReadyToShare) ? '+' : '+ New'}
         </button>
       )}
       {hasTopics && (
@@ -135,7 +136,8 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
         </button>
       )}
       <div className="mobile-export">
-        {exportReady && (
+        {/* Show Export only when preferences are export-ready (list/cards) or ballot is complete. */}
+        {((ballotMode !== 'ballot' && exportReady) || (ballotMode === 'ballot' && ballotReadyToShare)) ? (
           <>
             <button
               className="btn"
@@ -154,7 +156,39 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
               </div>
             )}
           </>
-        )}
+        ) : ballotMode === 'ballot' ? (
+          <>
+            <button className="btn" onClick={() => fileRef.current?.click()} aria-label="Import ballot">Import</button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json"
+              className="sr-only"
+              onChange={(e) => {
+                const f = e.currentTarget.files?.[0];
+                if (!f) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  try {
+                    const obj = JSON.parse(String(reader.result || '{}'));
+                    if (obj?.version === 'tsb.ballot.v1') {
+                      useStore.setState({ currentBallot: parseIncomingBallot(obj) });
+                    } else {
+                      const pref = parseIncomingPreferenceSet(obj);
+                      useStore.getState().importData({ title: pref.title, notes: pref.notes || '', topics: pref.topics });
+                      window.dispatchEvent(new Event('vt-back-preferences'));
+                    }
+                  } catch (e) {
+                    alert('Import failed: ' + (e instanceof Error ? e.message : String(e)));
+                  } finally {
+                    e.currentTarget.value = '';
+                  }
+                };
+                reader.readAsText(f);
+              }}
+            />
+          </>
+        ) : null}
       </div>
 
       {/* Import button for empty state */}

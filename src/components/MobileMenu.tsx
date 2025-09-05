@@ -96,7 +96,7 @@ export const MobileMenu: React.FC = () => {
                 if (ballotMode === 'ballot') { window.dispatchEvent(new Event('vt-back-preferences')); }
                 else { window.dispatchEvent(new Event('vt-create-ballot')); }
                 setOpen(false);
-              }}>{ballotMode === 'ballot' ? 'Back to Preferences' : 'Create Ballot'}</button>
+              }}>{ballotMode === 'ballot' ? 'Preferences Set' : 'Create Ballot'}</button>
               <button
                 className="btn danger"
                 onClick={() => {
