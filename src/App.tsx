@@ -149,7 +149,10 @@ export const App: React.FC = () => {
                 }, 0);
                 break; }
               case '?':
-                window.dispatchEvent(new Event('vt-toggle-shortcuts'));
+              case '/':
+                if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+                  window.dispatchEvent(new Event('vt-toggle-shortcuts'));
+                }
                 break;
             }
           };

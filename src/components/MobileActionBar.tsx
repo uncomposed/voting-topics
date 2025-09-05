@@ -187,6 +187,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
               type="file"
               accept="application/json"
               className="sr-only"
+              aria-label="Import JSON"
               onChange={(e) => {
                 const f = e.currentTarget.files?.[0];
                 if (!f) return;
@@ -218,7 +219,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
       {!hasTopics && (
         <>
           <button className="btn" onClick={() => fileRef.current?.click()} aria-label="Import">Import</button>
-          <input ref={fileRef} type="file" accept="application/json" className="sr-only" onChange={(e) => {
+          <input ref={fileRef} type="file" accept="application/json" className="sr-only" aria-label="Import JSON" onChange={(e) => {
             const f = e.currentTarget.files?.[0];
             if (!f) return;
             const reader = new FileReader();

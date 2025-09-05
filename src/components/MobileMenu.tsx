@@ -148,7 +148,7 @@ export const MobileMenu: React.FC = () => {
               )}
               <hr />
               <button className="btn" onClick={() => fileRef.current?.click()}>Import JSON…</button>
-              <input ref={fileRef} type="file" className="sr-only" accept="application/json" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onImportFile(f); }} />
+              <input ref={fileRef} type="file" className="sr-only" accept="application/json" aria-label="Import JSON" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onImportFile(f); }} />
             </div>
           </div>
         </div>

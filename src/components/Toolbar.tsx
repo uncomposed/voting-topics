@@ -630,7 +630,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             </button>
           </div>
         )}
-        <input ref={fileRef} id="file-input" type="file" className="sr-only" accept="application/json" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onImportFile(f); }} />
+        <input ref={fileRef} id="file-input" type="file" className="sr-only" accept="application/json" aria-label="Import JSON" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onImportFile(f); }} />
       </div>
 
       {/* LLM + Getting Started moved into More menu */}

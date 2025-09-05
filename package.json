@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx,ts,tsx",
     "test": "vitest",
-    "test:a11y:unit": "vitest run tests/a11y/**/*.test.ts",
+    "test:a11y:unit": "vitest run tests/a11y/app.a11y.test.tsx",
     "test:e2e": "playwright test",
     "test:a11y": "npm run test:a11y:unit && npm run test:e2e",
     "test:ui": "vitest --ui",
