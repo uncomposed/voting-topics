@@ -139,8 +139,15 @@ export const migrateV0toV1 = (legacy: LegacyPreferenceSet): PreferenceSet => {
 
 // Parse any incoming preference set JSON (v1 or legacy v0)
 export const parseIncomingPreferenceSet = (data: unknown): PreferenceSet => {
-  // Fast-path v1
-  const maybeVersion = (data as any)?.version;
+  // Fast-path v1/v0 by safely peeking at `version`
+  const getVersion = (d: unknown): string | undefined => {
+    if (typeof d === 'object' && d !== null) {
+      const v = (d as Record<string, unknown>).version;
+      return typeof v === 'string' ? v : undefined;
+    }
+    return undefined;
+  };
+  const maybeVersion = getVersion(data);
   if (maybeVersion === 'tsb.v1') {
     return PreferenceSetSchema.parse(data);
   }

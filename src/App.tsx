@@ -14,6 +14,8 @@ import { TemplateInfoPanel } from './components/TemplateInfoPanel';
 import { MobileActionBar } from './components/MobileActionBar';
 import { MobileMenu } from './components/MobileMenu';
 import { Toolbar } from './components/Toolbar';
+import { toast } from './utils/toast';
+import { decodeStarterPreferences, applyStarterPreferences } from './utils/share';
 import { scrollIntoViewSmart } from './utils/scroll';
 
 export const App: React.FC = () => {
@@ -112,6 +114,34 @@ export const App: React.FC = () => {
 
   return (
     <>
+      {(() => {
+        // On first mount, check for starter preferences payload in the URL hash
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        React.useEffect(() => {
+          try {
+            const hash = window.location.hash || '';
+            const m = hash.match(/[#&]sp=([^&]+)/);
+            if (!m) return;
+            const data = decodeStarterPreferences(m[1]);
+            if (!data) return;
+            const snapshot = useStore.getState().topics;
+            toast.show({
+              variant: 'info',
+              title: 'Apply shared preferences?',
+              message: 'A share link includes starter-pack preferences. Apply them now?',
+              actionLabel: 'Apply',
+              onAction: () => {
+                const { applied } = applyStarterPreferences(data);
+                toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000, });
+              },
+              duration: 8000,
+            });
+            // Clean hash to avoid re-applying on refresh
+            try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch {}
+          } catch {}
+        }, []);
+        return null;
+      })()}
       {/* Global keyboard shortcuts: t (toggle view), b (ballot), c (compare), n (new), ? (shortcuts) */}
       {(() => {
         // Install once on mount

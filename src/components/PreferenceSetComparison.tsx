@@ -47,6 +47,19 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
     reader.readAsText(file);
   };
 
+  const handleUrlLoad = async (url: string, side: 'left' | 'right') => {
+    try {
+      const res = await fetch(url);
+      const obj = await res.json();
+      const parsed = parseIncomingPreferenceSet(obj);
+      if (side === 'left') setLeftPreferenceSet(parsed); else setRightPreferenceSet(parsed);
+      setError('');
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : String(e);
+      setError(`Failed to load ${side} from URL: ${error}`);
+    }
+  };
+
   const handleCompare = () => {
     if (leftPreferenceSet && rightPreferenceSet) {
       setStep('compare');
@@ -112,6 +125,10 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
                 >
                   Use Current
                 </button>
+                <button className="btn small" onClick={() => {
+                  const url = prompt('Paste JSON URL');
+                  if (url) handleUrlLoad(url, 'left');
+                }}>Load from URL</button>
                 {leftPreferenceSet && (
                   <button className="btn small ghost" onClick={() => setLeftPreferenceSet(null)}>
                     Clear
@@ -156,6 +173,10 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
                 >
                   Use Current
                 </button>
+                <button className="btn small" onClick={() => {
+                  const url = prompt('Paste JSON URL');
+                  if (url) handleUrlLoad(url, 'right');
+                }}>Load from URL</button>
                 {rightPreferenceSet && (
                   <button className="btn small ghost" onClick={() => setRightPreferenceSet(null)}>
                     Clear

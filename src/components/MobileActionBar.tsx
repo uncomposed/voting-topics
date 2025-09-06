@@ -3,7 +3,9 @@ import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
 import { scrollIntoViewSmart } from '../utils/scroll';
 import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness';
+import { encodeStarterPreferences, buildShareUrl, topicIndex, topicTitleIndex } from '../utils/share';
 import { emitHint } from '../utils/hints';
+import { IconShare, IconBraces, IconFile, IconImage, IconLink } from './icons';
 import { parseIncomingBallot, parseIncomingPreferenceSet } from '../schema';
 
 interface Props {
@@ -94,6 +96,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
   // Export gating: only show when there is at least one topic with at least one rated direction
   const exportReady = isPreferenceExportReady(topics);
   const ballotReadyToShare = isBallotShareReady(currentBallot);
+  const hasStarterTopics = topics.some(t => topicIndex.includes(t.id) || topicTitleIndex.includes((t.title || '').toLowerCase()));
 
   // Dispatch hint availability for mobile (no hover). Trigger when state changes.
   useEffect(() => {
@@ -169,13 +172,23 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
               aria-expanded={open}
               aria-label="Export options"
             >
-              Export
+              <IconShare />
             </button>
             {open && (
               <div className="mobile-export-menu" role="menu">
-                <button className="btn" onClick={() => { setOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem">JSON</button>
-                <button className="btn" onClick={() => { setOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem">PDF</button>
-                <button className="btn" onClick={() => { setOpen(false); exportJPEG().catch(e => alert(String(e))); }} role="menuitem">JPEG</button>
+                <button className="btn" aria-label="Export JSON" title="Export JSON" onClick={() => { setOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
+                <button className="btn" aria-label="Export PDF" title="Export PDF" onClick={() => { setOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
+                <button className="btn" aria-label="Export JPEG" title="Export JPEG" onClick={() => { setOpen(false); exportJPEG().catch(e => alert(String(e))); }} role="menuitem"><IconImage /></button>
+                {hasStarterTopics && (
+                  <button className="btn" aria-label="Copy Share Link" title="Copy Share Link" onClick={async () => {
+                    try {
+                      const payload = encodeStarterPreferences(useStore.getState().topics);
+                      const url = buildShareUrl(payload);
+                      await navigator.clipboard.writeText(url);
+                      alert('Link copied to clipboard');
+                    } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } finally { setOpen(false); }
+                  }} role="menuitem"><IconLink /></button>
+                )}
               </div>
             )}
           </>

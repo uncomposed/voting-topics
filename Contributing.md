@@ -48,7 +48,7 @@ gh issue list \
   --limit 1000 \
   --json number,title,body,labels,comments,createdAt,closedAt,milestone \
   > issues.json
-  
+```
 ## 🔍 Preventing Code Duplication
 
 ### Search Strategies Before Creating New Code

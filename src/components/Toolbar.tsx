@@ -6,6 +6,7 @@ import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness'
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { toast } from '../utils/toast';
 import { scrollIntoViewSmart } from '../utils/scroll';
+import { encodeStarterPreferences, buildShareUrl, topicIndex, topicTitleIndex } from '../utils/share';
 import { emitHint } from '../utils/hints';
 
 interface ToolbarProps {
@@ -42,6 +43,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const fileRef = useRef<HTMLInputElement>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [menuExportOpen, setMenuExportOpen] = useState(false);
   const [collapseCompare, setCollapseCompare] = useState(false);
   const [collapseToggle, setCollapseToggle] = useState(false);
   const [starterSelectedCount, setStarterSelectedCount] = useState(0);
@@ -240,6 +242,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   // Export availability (mirror mobile logic)
   const exportReady = isPreferenceExportReady(topics);
   const ballotReadyToShare = isBallotShareReady(currentBallot);
+  const hasStarterTopics = topics.some(t => topicIndex.includes(t.id) || topicTitleIndex.includes((t.title || '').toLowerCase()));
 
   const scrollToStarter = () => {
     const el = document.getElementById('starter-pack');
@@ -375,6 +378,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               <button id="btn-export-json-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
               <button id="btn-export-pdf-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
               <button id="btn-export-jpeg-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
+              {hasStarterTopics && (
+                <button id="btn-export-copy-share-inline" className="btn" role="menuitem" onClick={async () => {
+                  try {
+                    const payload = encodeStarterPreferences(useStore.getState().topics);
+                    const url = buildShareUrl(payload);
+                    await navigator.clipboard.writeText(url);
+                    toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
+                  } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                  finally { setExportOpen(false); }
+                }}>Copy Share Link</button>
+              )}
             </div>
           )}
         </div>
@@ -392,6 +406,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               <button id="btn-export-json-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
               <button id="btn-export-pdf-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
               <button id="btn-export-jpeg-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
+              {hasStarterTopics && (
+                <button id="btn-export-copy-share-inline-ballot" className="btn" role="menuitem" onClick={async () => {
+                  try {
+                    const payload = encodeStarterPreferences(useStore.getState().topics);
+                    const url = buildShareUrl(payload);
+                    await navigator.clipboard.writeText(url);
+                    toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
+                  } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                  finally { setExportOpen(false); }
+                }}>Copy Share Link</button>
+              )}
             </div>
           )}
         </div>
@@ -533,6 +558,49 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               <button id="btn-diff-menu" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowDiffComparison(!showDiffComparison); }}>{showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}</button>
             )}
             <button id="btn-import" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import JSON</button>
+            <button id="btn-import-from-link" className="btn" role="menuitem" onClick={() => {
+              setMoreOpen(false);
+              const url = prompt('Paste share link (or URL with #sp=...)');
+              if (!url) return;
+              try {
+                const m = url.match(/[#&]sp=([^&]+)/);
+                if (!m) { alert('No share payload found in URL'); return; }
+                const { decodeStarterPreferences, applyStarterPreferences } = require('../utils/share');
+                const data = decodeStarterPreferences(m[1]);
+                if (!data) { alert('Invalid share payload'); return; }
+                const { applied } = applyStarterPreferences(data);
+                toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
+              } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+            }}>Apply from Link…</button>
+            {(() => {
+              // Gate Copy Share Link: show only if user has at least one starter-pack topic
+              try {
+                const { topicIndex } = require('../utils/share');
+                const hasStarter = topics.some(t => (topicIndex as string[]).includes(t.id));
+                if (!hasStarter) return null;
+              } catch { return null; }
+              return (
+            <button
+              id="btn-copy-share"
+              className="btn"
+              role="menuitem"
+              onClick={async () => {
+                try {
+                  const payload = encodeStarterPreferences(useStore.getState().topics);
+                  const url = buildShareUrl(payload);
+                  await navigator.clipboard.writeText(url);
+                  toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
+                } catch (e) {
+                  alert('Copy failed: ' + (e instanceof Error ? e.message : String(e)));
+                } finally {
+                  setMoreOpen(false);
+                }
+              }}
+            >
+              Copy Share Link
+            </button>
+              );
+            })()}
             {ballotMode !== 'ballot' && (
               <button
                 id="btn-clear-preferences"
@@ -586,13 +654,18 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             {(() => {
               const hasAnyDirection = topics.some(t => t.directions.length > 0);
               const hasAnyRatedDirection = topics.some(t => t.directions.some(d => d.stars > 0));
-              const exportReady = hasTopics && hasAnyDirection && hasAnyRatedDirection;
-              return exportReady ? (
-                <>
-                  <button id="btn-export-json" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
-                  <button id="btn-export-pdf" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
-                  <button id="btn-export-jpeg" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
-                </>
+              const exportReadyMenu = hasTopics && hasAnyDirection && hasAnyRatedDirection;
+              return exportReadyMenu ? (
+                <div className="toolbar-submenu">
+                  <button className="btn" role="menuitem" onClick={() => setMenuExportOpen(v => !v)} aria-expanded={menuExportOpen}>Export…</button>
+                  {menuExportOpen && (
+                    <div className="toolbar-menu" role="menu" style={{ position: 'static', marginTop: 6 }}>
+                      <button id="btn-export-json" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setMenuExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
+                      <button id="btn-export-pdf" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setMenuExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
+                      <button id="btn-export-jpeg" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setMenuExportOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
+                    </div>
+                  )}
+                </div>
               ) : null;
             })()}
             <button id="btn-llm-integration" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowLLMIntegration(!showLLMIntegration); }}>LLM Integration</button>

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
+import { encodeStarterPreferences, buildShareUrl, decodeStarterPreferences, applyStarterPreferences, topicIndex, topicTitleIndex } from '../utils/share';
+import { IconShare, IconBraces, IconFile, IconImage, IconLink } from './icons';
 import { toast } from '../utils/toast';
 
 export const MobileMenu: React.FC = () => {
@@ -9,7 +11,9 @@ export const MobileMenu: React.FC = () => {
   const clearAll = useStore(s => s.clearAll);
   const ballotMode = useStore(s => s.ballotMode);
   const currentBallot = useStore(s => s.currentBallot);
+  const topics = useStore(s => s.topics);
   const [open, setOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -72,9 +76,19 @@ export const MobileMenu: React.FC = () => {
       } finally {
         if (fileRef.current) fileRef.current.value = '';
       }
-    };
-    reader.readAsText(file);
   };
+  reader.readAsText(file);
+};
+
+  // Export readiness + share gating
+  const hasTopics = topics.length > 0;
+  const hasAnyDirection = topics.some(t => t.directions.length > 0);
+  const hasAnyRatedDirection = topics.some(t => t.directions.some(d => d.stars > 0));
+  const exportReady = hasTopics && hasAnyDirection && hasAnyRatedDirection;
+  const hasStarterTopics = topics.some(t => topicIndex.includes(t.id) || topicTitleIndex.includes((t.title || '').toLowerCase()));
+
+  // Determine if comparison view is currently active (DOM check is fine for SPA)
+  const isComparing = typeof document !== 'undefined' && !!document.querySelector('.diff-container');
 
   return (
     <>
@@ -87,9 +101,43 @@ export const MobileMenu: React.FC = () => {
             </div>
             <div className="mobile-menu-items">
               <button className="btn" onClick={() => { addTopic(0); setOpen(false); }}>New Topic</button>
-              <button className="btn" onClick={() => { try { exportJSON(); } catch (e) { alert(String(e)); } setOpen(false); }}>Export JSON</button>
-              <button className="btn" onClick={() => { exportPDF().catch(e => alert(String(e))); setOpen(false); }}>Export PDF</button>
-              <button className="btn" onClick={() => { exportJPEG().catch(e => alert(String(e))); setOpen(false); }}>Export JPEG</button>
+              {exportReady && (
+                <div style={{ position: 'relative' }}>
+                  <button className="btn" onClick={() => setExportOpen(v => !v)} aria-expanded={exportOpen} aria-label="Export options" title="Export"><IconShare /></button>
+                  {exportOpen && (
+                    <div className="mobile-export-menu" role="menu" style={{ right: 0, position: 'absolute' }}>
+                      <button className="btn" aria-label="Export JSON" title="Export JSON" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
+                      <button className="btn" aria-label="Export PDF" title="Export PDF" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
+                      <button className="btn" aria-label="Export JPEG" title="Export JPEG" onClick={() => { setExportOpen(false); exportJPEG().catch(e => alert(String(e))); }} role="menuitem"><IconImage /></button>
+                      {hasStarterTopics && (
+                        <button className="btn" aria-label="Copy Share Link" title="Copy Share Link" onClick={async () => {
+                          try {
+                            const payload = encodeStarterPreferences(useStore.getState().topics);
+                            const url = buildShareUrl(payload);
+                            await navigator.clipboard.writeText(url);
+                            toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied', duration: 4000 });
+                          } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                          finally { setExportOpen(false); setOpen(false); }
+                        }} role="menuitem"><IconLink /></button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Copy Share Link now lives inside Export… submenu to save space */}
+              <button className="btn" onClick={() => {
+                const url = prompt('Paste share link (or URL with #sp=...)');
+                if (!url) return;
+                try {
+                  const m = url.match(/[#&]sp=([^&]+)/);
+                  if (!m) { alert('No share payload found'); return; }
+                  const data = decodeStarterPreferences(m[1]);
+                  if (!data) { alert('Invalid share payload'); return; }
+                  const { applied } = applyStarterPreferences(data);
+                  toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
+                } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                finally { setOpen(false); }
+              }}>Apply from Link…</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-diff')); setOpen(false); }}>Compare Preferences</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-llm')); setOpen(false); }}>LLM Integration</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-getting-started')); setOpen(false); }}>Getting Started</button>
@@ -143,7 +191,7 @@ export const MobileMenu: React.FC = () => {
                   setOpen(false);
                 }}>Clear Ballot</button>
               )}
-              {ballotMode !== 'ballot' && (
+              {isComparing && (
                 <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-clear-comparison')); setOpen(false); }}>Clear Comparison</button>
               )}
               <hr />

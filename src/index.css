@@ -667,6 +667,15 @@ textarea {
   border-radius: 10px;
   padding: 8px;
 }
+/* Compact icon buttons inside export popovers */
+.mobile-export-menu .btn {
+  width: 40px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
 @media (max-width: 768px) {
   .mobile-action-bar { display: flex; }
@@ -717,6 +726,8 @@ textarea {
 
 .mobile-menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .mobile-menu-items { display: grid; gap: 8px; }
+.mobile-menu-items .btn { width: 100%; }
+.mobile-menu-items hr { border: 0; height: 1px; background: var(--border); margin: 8px 0; }
 
 @media (max-width: 768px) {
   .mobile-hamburger { display: inline-flex; }
