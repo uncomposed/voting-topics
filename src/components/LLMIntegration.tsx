@@ -115,11 +115,7 @@ export const LLMIntegration: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    import("../prompt-packs/core.en.json")
-      .then(m => setPromptPack(m.default as PromptPack))
-      .catch(() => setPromptPack(null));
-  }, []);
+  // (Duplicate lazy load removed; prompt pack is already loaded above)
 
   const getSchemaDocumentation = () => {
     return `# Voting Topics Builder - Schema Documentation

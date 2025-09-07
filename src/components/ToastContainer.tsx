@@ -5,7 +5,8 @@ export const ToastContainer: React.FC = () => {
   const [toasts, setToasts] = useState<ToastOptions[]>([]);
 
   useEffect(() => {
-    return toast.subscribe(setToasts);
+    const unsub = toast.subscribe(setToasts);
+    return () => { unsub(); };
   }, []);
 
   return (
@@ -42,4 +43,3 @@ export const ToastContainer: React.FC = () => {
     </div>
   );
 };
-

@@ -19,11 +19,11 @@ export const directionTextIndex: string[][] = sp.topics.map(t => (t.directions |
 
 const base64urlEncode = (s: string): string => {
   // Standard btoa expects latin1; payload is ASCII-only JSON of numbers/ids
-  return btoa(s).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 };
 const base64urlDecode = (s: string): string => {
   const pad = s.length % 4 === 0 ? '' : '='.repeat(4 - (s.length % 4));
-  const b64 = s.replaceAll('-', '+').replaceAll('_', '/') + pad;
+  const b64 = s.replace(/-/g, '+').replace(/_/g, '/') + pad;
   return atob(b64);
 };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 
 type HintEventDetail = { key: string; anchorId: string; content: string; source?: 'auto' | 'manual' };
@@ -125,7 +125,7 @@ export const HintManager: React.FC = () => {
 
   // Dismiss hints when major app views change (navigation within SPA)
   useEffect(() => {
-    const off = (e: Event) => dismiss(false);
+    const off = () => dismiss(false);
     const events = [
       'vt-open-diff', 'vt-open-llm', 'vt-open-getting-started',
       'vt-create-ballot', 'vt-back-preferences', 'vt-exit-special'
