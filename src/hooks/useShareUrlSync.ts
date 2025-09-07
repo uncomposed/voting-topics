@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { encodeStarterPreferencesV2, buildShareUrlV2 } from '../utils/share';
 
-// Keeps the URL's #sp=... in sync with the current topics.
+// Keeps the URL's #sp2=... in sync with the current topics.
 // - Debounced to avoid excessive history.replaceState calls
 // - Clears the hash when there are no topics
 export const useShareUrlSync = (enabled: boolean = true, debounceMs: number = 400) => {

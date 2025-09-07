@@ -607,35 +607,27 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
               } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
             }}>Apply from Link…</button>
-            {(() => {
-              // Gate Copy Share Link: show only if user has at least one starter-pack topic
-              try {
-                const { topicIndex } = require('../utils/share');
-                const hasStarter = topics.some(t => (topicIndex as string[]).includes(t.id));
-                if (!hasStarter) return null;
-              } catch { return null; }
-              return (
-            <button
-              id="btn-copy-share"
-              className="btn"
-              role="menuitem"
-              onClick={async () => {
-                try {
-                  const payload = encodeStarterPreferencesV2(useStore.getState().topics);
-                  const url = buildShareUrlV2(payload);
-                  await navigator.clipboard.writeText(url);
-                  toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
-                } catch (e) {
-                  alert('Copy failed: ' + (e instanceof Error ? e.message : String(e)));
-                } finally {
-                  setMoreOpen(false);
-                }
-              }}
-            >
-              Copy Share Link
-            </button>
-              );
-            })()}
+            {hasStarterTopics && (
+              <button
+                id="btn-copy-share"
+                className="btn"
+                role="menuitem"
+                onClick={async () => {
+                  try {
+                    const payload = encodeStarterPreferencesV2(useStore.getState().topics);
+                    const url = buildShareUrlV2(payload);
+                    await navigator.clipboard.writeText(url);
+                    toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
+                  } catch (e) {
+                    alert('Copy failed: ' + (e instanceof Error ? e.message : String(e)));
+                  } finally {
+                    setMoreOpen(false);
+                  }
+                }}
+              >
+                Copy Share Link
+              </button>
+            )}
             {ballotMode !== 'ballot' && (
               <button
                 id="btn-clear-preferences"

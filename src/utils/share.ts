@@ -110,7 +110,7 @@ export const encodeStarterPreferencesV2 = (topics: Topic[]): string => {
   return bytesToB64url(bytes);
 };
 
-export const decodeStarterPreferencesV2 = (payload: string): StarterPayload | null => {
+export const decodeStarterPreferencesV2 = (payload: string): StarterPayloadSparse | null => {
   try {
     const bytes = b64urlToBytes(payload);
     if (bytes.length < 2 || bytes[0] !== 0x02) return null;

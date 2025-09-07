@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - JSON import via Vite/TS
+import starterPack from '../../starter-pack.v1.json';
 
 
 interface StarterTopic { 
@@ -13,28 +16,15 @@ export const StarterPackPicker: React.FC = () => {
   const addTopicFromStarter = useStore(state => state.addTopicFromStarter);
   const currentFlowStep = useStore(state => state.currentFlowStep);
   const setCurrentFlowStep = useStore(state => state.setCurrentFlowStep);
-  const [pool, setPool] = useState<StarterTopic[]>([]);
+  const [pool] = useState<StarterTopic[]>(() => {
+    const raw = (starterPack as any)?.topics || [];
+    return raw.map((t: any) => ({ id: t.id, title: t.title, directions: (t.directions || []).map((d: any) => ({ text: d.text })) }));
+  });
   const [selected, setSelected] = useState<string[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const autoCollapsed = useRef(false);
 
-  useEffect(() => {
-    // Load lazily from bundled JSON (tsconfig resolves JSON imports)
-    import('../../starter-pack.v1.json')
-      .then((m: any) => {
-        const topics = (m.default?.topics || m.topics || []) as Array<{ 
-          id: string; 
-          title: string; 
-          directions: Array<{ text: string }>;
-        }>;
-        setPool(topics.map(t => ({ 
-          id: t.id, 
-          title: t.title, 
-          directions: t.directions || []
-        })));
-      })
-      .catch(() => setPool([]));
-  }, []);
+  // Static import above removes dynamic import warning and is fine for this payload size
 
   // Auto-collapse once when topics first appear
   useEffect(() => {
