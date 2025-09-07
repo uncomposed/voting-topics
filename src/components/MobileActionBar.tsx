@@ -3,10 +3,11 @@ import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
 import { scrollIntoViewSmart } from '../utils/scroll';
 import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness';
-import { encodeStarterPreferences, buildShareUrl, topicIndex, topicTitleIndex } from '../utils/share';
+import { encodeStarterPreferences, buildShareUrl, topicIndex, topicTitleIndex, decodeStarterPreferences, applyStarterPreferences } from '../utils/share';
 import { emitHint } from '../utils/hints';
 import { IconShare, IconBraces, IconFile, IconImage, IconLink } from './icons';
 import { parseIncomingBallot, parseIncomingPreferenceSet } from '../schema';
+import { toast } from '../utils/toast';
 
 interface Props {
   showCards: boolean;
@@ -23,6 +24,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
   const [open, setOpen] = useState(false);
   const [starterSelectedCount, setStarterSelectedCount] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => {
     const onSel = (e: Event) => {
@@ -231,7 +233,27 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
       {/* Import button for empty state */}
       {!hasTopics && (
         <>
-          <button className="btn" onClick={() => fileRef.current?.click()} aria-label="Import">Import</button>
+          <div style={{ position: 'relative' }}>
+            <button className="btn" onClick={() => setImportOpen(v => !v)} aria-haspopup="true" aria-expanded={importOpen} aria-label="Import">Import</button>
+            {importOpen && (
+              <div className="mobile-export-menu" role="menu" style={{ position: 'absolute', bottom: '40px' }}>
+                <button className="btn" role="menuitem" onClick={() => { setImportOpen(false); fileRef.current?.click(); }}>Import JSON…</button>
+                <button className="btn" role="menuitem" onClick={() => {
+                  const url = prompt('Paste share link (or URL with #sp=...)');
+                  if (!url) return;
+                  try {
+                    const m = url.match(/[#&]sp=([^&]+)/);
+                    if (!m) { alert('No share payload found'); return; }
+                    const data = decodeStarterPreferences(m[1]);
+                    if (!data) { alert('Invalid share payload'); return; }
+                    const { applied } = applyStarterPreferences(data);
+                    toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
+                  } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                  finally { setImportOpen(false); }
+                }}>Apply from Link…</button>
+              </div>
+            )}
+          </div>
           <input ref={fileRef} type="file" accept="application/json" className="sr-only" aria-label="Import JSON" onChange={(e) => {
             const f = e.currentTarget.files?.[0];
             if (!f) return;
@@ -239,7 +261,6 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
             reader.onload = () => {
               try {
                 const obj = JSON.parse(String(reader.result || '{}'));
-                const { parseIncomingPreferenceSet, parseIncomingBallot } = require('../schema');
                 if (obj?.version === 'tsb.ballot.v1') {
                   useStore.setState({ currentBallot: parseIncomingBallot(obj) });
                   window.dispatchEvent(new Event('vt-create-ballot'));

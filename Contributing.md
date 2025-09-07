@@ -44,7 +44,7 @@ src/
 ```
 gh issue list \
   --repo uncomposed/AddressExpo \
-  --state all \
+  --state open \
   --limit 1000 \
   --json number,title,body,labels,comments,createdAt,closedAt,milestone \
   > issues.json

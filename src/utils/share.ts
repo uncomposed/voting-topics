@@ -97,24 +97,60 @@ export const applyStarterPreferences = (data: StarterPayload) => {
     sp.tip.forEach(([i, v]) => { if (i >= 0 && i < tiArr.length) tiArr[i] = v; });
     sp.dsp.forEach(([ti, di, v]) => { if (dsArr[ti] && di >= 0 && di < dsArr[ti].length) dsArr[ti][di] = v; });
   }
+  // First pass: apply updates to existing topics that match starter-pack IDs or titles
+  const seenStarterIndices = new Set<number>();
   const nextTopics = prevTopics.map(t => {
     const idx = topicIndex.indexOf(t.id);
-    if (idx === -1) return t; // not in starter pack
+    // Also attempt loose match by title when IDs differ
+    const titleIdx = idx === -1 ? topicTitleIndex.indexOf((t.title || '').toLowerCase()) : idx;
+    if (titleIdx === -1) return t; // not in starter pack
+    seenStarterIndices.add(titleIdx);
     let changed = false;
-    const imp = tiArr[idx] ?? 0;
+    const imp = tiArr[titleIdx] ?? 0;
     if ((t.importance || 0) !== imp) { changed = true; }
-    const dirRow = directionIndex[idx] || [];
+    const dirRow = directionIndex[titleIdx] || [];
     const nextDirs = t.directions.map(d => {
       const didx = dirRow.indexOf(d.id);
       if (didx === -1) return d;
-      const stars = dsArr[idx]?.[didx] ?? 0;
+      const stars = dsArr[titleIdx]?.[didx] ?? 0;
       if ((d.stars || 0) !== stars) { changed = true; }
       return { ...d, stars };
     });
     if (changed) applied++;
     return { ...t, importance: imp, directions: nextDirs };
   });
-  useStore.setState({ topics: nextTopics });
+  // Second pass: append any referenced starter topics that are missing but have non-zero data
+  const additions: Topic[] = [];
+  for (let i = 0; i < topicIndex.length; i++) {
+    if (seenStarterIndices.has(i)) continue;
+    const imp = tiArr[i] ?? 0;
+    const dirStars = (dsArr[i] || []);
+    const anyDirStar = dirStars.some(v => (v || 0) > 0);
+    // Only add topics that the share payload indicates were set (importance or any direction star)
+    if (imp === 0 && !anyDirStar) continue;
+    const packTopic: any = (sp.topics[i] || {});
+    if (!packTopic || !packTopic.id || !packTopic.title) continue;
+    const directions = (packTopic.directions || []).map((d: any, di: number) => ({
+      id: d.id,
+      text: d.text,
+      stars: dirStars[di] ?? 0,
+      sources: [],
+      tags: [] as string[],
+    }));
+    const toAdd: Topic = {
+      id: packTopic.id,
+      title: packTopic.title,
+      importance: imp,
+      stance: 'neutral',
+      directions,
+      notes: '',
+      sources: [],
+      relations: { broader: [], narrower: [], related: [] },
+    } as Topic;
+    additions.push(toAdd);
+  }
+  if (additions.length > 0) applied += additions.length;
+  useStore.setState({ topics: [...nextTopics, ...additions] });
   return { applied };
 };
 
