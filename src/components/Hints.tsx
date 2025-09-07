@@ -123,6 +123,8 @@ export const HintManager: React.FC = () => {
     return () => document.removeEventListener('keydown', onKey);
   }, [hintsEnabled, setHintsEnabled]);
 
+  // Note: auto-disabling Hint Mode is disabled to avoid confusing toggles.
+
   // Dismiss hints when major app views change (navigation within SPA)
   useEffect(() => {
     const off = () => dismiss(false);

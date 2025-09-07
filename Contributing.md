@@ -43,7 +43,7 @@ src/
 ##### Pull GitHub issues into JSON document
 ```
 gh issue list \
-  --repo uncomposed/AddressExpo \
+  --repo uncomposed/voting-topics \
   --state open \
   --limit 1000 \
   --json number,title,body,labels,comments,createdAt,closedAt,milestone \

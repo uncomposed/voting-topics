@@ -1,1 +1,626 @@
-[{"body":"If a capture has a high analysis label and the user finishes the capture and then leaves the app before the loading is complete. A error occurs in which the AI capture has failed. Ideally this would not happen. Might require a server to do a back up catch The client is not available.","closedAt":null,"comments":[],"createdAt":"2025-06-07T16:23:09Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBaQ","name":"bug","description":"Something isn't working","color":"d73a4a"}],"milestone":null,"number":178,"title":"Analysis fail on user exits app"},{"body":"The question and procedure sections of the issue should eventually be collaborative so that if paired with a technician they can get improtant information before showing up. it could also be used as a live quote with estimated duration for steps and cost brakedown.","closedAt":null,"comments":[],"createdAt":"2025-06-07T04:26:29Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":15,"title":"excitement","description":"","dueOn":null},"number":177,"title":"Chat with technicians on issues"},{"body":"If there are blocking questions, then they should block the generation of the procedure so that the ai doesn't go barking up the wrong tree. This relates to the GitHub Issue about modifying questions to have the answers be pre defined so the user just has to select the relevant answers. Questions should be critical for determining the type of procedure. Asking if they have the color of paint to fix the chipped wall is not a good question because it should instead be a procedure item that occurs after the identification of the color of paint. If the user already has it then they can immediately check off the step in the procedure. ","closedAt":null,"comments":[],"createdAt":"2025-06-07T04:23:01Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":15,"title":"excitement","description":"","dueOn":null},"number":176,"title":"Questions before procedure"},{"body":"if a capture is typed as an issue then it will create an issue instance, the data is sent to the ai with a tailored promt, any required questions will be generated, and eventually a procedure with required items is generated. If it is typed as inventory, then the ai will identify the items in the image and those items will be added to the inventory or have the quantity updated. A cleaning type might be a sub type of an issue and not change the structure but just be appended to the data sent to the ai helping it understand the context.","closedAt":null,"comments":[],"createdAt":"2025-06-07T04:13:45Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":15,"title":"excitement","description":"","dueOn":null},"number":175,"title":"Typed capture dictates flow"},{"body":"send AI the users inventory for reuse of tags.","closedAt":null,"comments":[],"createdAt":"2025-06-07T02:13:21Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":14,"title":"06Jun Sprint","description":"","dueOn":null},"number":174,"title":"Send inventory tags to llm as context"},{"body":"The tag suggestions show it exists somewhere. After a bad crash my existing issues and tags are no longer","closedAt":null,"comments":[],"createdAt":"2025-06-06T03:15:54Z","labels":[],"milestone":{"number":14,"title":"06Jun Sprint","description":"","dueOn":null},"number":173,"title":"Lost all old data"},{"body":"behavioural + layout consistency:\n\t•\tEvent handling – Every list cell currently re-implements onPress, onSwipe, “long-press to multi-select”, etc. A single <ListItem> HOC lets you wire those once and pass the variant (Issue / To-Do / To-Get) as props.\n\t•\tSpacing & typography – Even with a shared colour/radius token, padding and font sizes vary (check commit a2f6…) and that breaks visual rhythm.\n\t•\tFuture refactors – When you introduce animated reorder or drag-and-drop, doing it in one wrapper is dramatically simpler.","closedAt":null,"comments":[],"createdAt":"2025-06-04T01:41:54Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":171,"title":"List component"},{"body":"shrinker broke\nsrc/utils/index.ts","closedAt":null,"comments":[],"createdAt":"2025-06-01T20:53:44Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBaQ","name":"bug","description":"Something isn't working","color":"d73a4a"}],"milestone":null,"number":170,"title":"Image resizing"},{"body":"When the user starts with a perspective shot and then moves closer for detail on the second photo the ai is not paying attention to the detail of the second photo. If the opposite occurs then the ai pays attention to the ","closedAt":null,"comments":[],"createdAt":"2025-06-01T15:59:17Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":14,"title":"06Jun Sprint","description":"","dueOn":null},"number":168,"title":"Second image is not being analyzed"},{"body":"Right now the questions are really technical. It would be great if the ai provided.","closedAt":null,"comments":[],"createdAt":"2025-06-01T15:52:40Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":166,"title":"Questions should include how to get an answer"},{"body":"Give the users a loading bar","closedAt":null,"comments":[],"createdAt":"2025-06-01T15:37:20Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":14,"title":"06Jun Sprint","description":"","dueOn":null},"number":165,"title":"Time remaining on ai ananysis"},{"body":"It would be nice to collect tasks and questions that would be up the alley of openAI deep research\n\n- Define what it is good and bad at to define entrance criteria for tasks\n- Define the availability at the plus payment tier.\n- Evoke questions and tasks from the existing issues, tasks, or whole cloth.\n- Prioritize ","closedAt":null,"comments":[],"createdAt":"2025-06-01T13:42:49Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBbA","name":"documentation","description":"Improvements or additions to documentation","color":"0075ca"}],"milestone":null,"number":164,"title":"Collect tasks that would be good for OpenAI DeepResearch"},{"body":"in a city or if a phone is on low power mode. the gps could be bad. if an issue is captured near the user's selected address it should snap to it.","closedAt":null,"comments":[],"createdAt":"2025-05-31T20:22:59Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":14,"title":"06Jun Sprint","description":"","dueOn":null},"number":163,"title":"address/location resilient to uncertainty"},{"body":"It would be cool if we heavily favored y/n questions and then gave the users a pop-up to just answer with a button. Could even be a enum with 4 or fewer values.","closedAt":null,"comments":[],"createdAt":"2025-05-31T20:01:34Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":14,"title":"06Jun Sprint","description":"","dueOn":null},"number":162,"title":"Yes or no questions"},{"body":"","closedAt":null,"comments":[],"createdAt":"2025-05-31T19:49:37Z","labels":[],"milestone":null,"number":161,"title":"Get 3 sale through affiliate link"},{"body":"add an export option that includes the images","closedAt":null,"comments":[],"createdAt":"2025-05-31T19:47:04Z","labels":[],"milestone":{"number":10,"title":"MVF Honey Do","description":"The minimum features to support the home capture and management of issues. Once this is complete the App is ready for testing by family and friends.","dueOn":null},"number":160,"title":"Export issues with images"},{"body":"in list screen, it is not intuitive what the buttons are for and that they are redundant to the list arrow on the title.","closedAt":null,"comments":[],"createdAt":"2025-05-31T19:22:00Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":157,"title":"Add arrow toggle to list title buttons"},{"body":"When dark mode is active even if the device is in dark mode too the battery indicator and time are dark and cannot be resolved on the dark app.\nThis was tested on an real iPhone and Android sim.","closedAt":null,"comments":[{"id":"IC_kwDOOth00s6v1YHT","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"Can't verify that this is sold until we build for device. expo GO doesn't have.","createdAt":"2025-06-06T17:50:30Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/156#issuecomment-2950005203","viewerDidAuthor":true}],"createdAt":"2025-05-31T18:16:42Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBaQ","name":"bug","description":"Something isn't working","color":"d73a4a"}],"milestone":null,"number":156,"title":"dark mode can't read time and phone battery"},{"body":"Split into CaptureStack.tsx, IssuesStack.tsx, etc.  This directly mitigates Risk #140 (“Oboe failures lead to inability to operate in codebase”) by keeping diffs small and file length < 500 lines\n","closedAt":null,"comments":[],"createdAt":"2025-05-29T15:55:55Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"},{"id":"LA_kwDOOth00s8AAAACA6_ZEQ","name":"Risk","description":"Tag for something that has a likelihood and criticality","color":"e99695"}],"milestone":null,"number":154,"title":"RootNavigator LOC Oboe risk"},{"body":"Add an ErrorBoundary here so a crash in any child screen shows a friendly fallback instead of killing the session (related to Issue #104 hardening)\n","closedAt":null,"comments":[],"createdAt":"2025-05-29T15:55:13Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":153,"title":"Error handling in Providers"},{"body":"It would be cool if the style-guide was auto generated from the theme.","closedAt":null,"comments":[],"createdAt":"2025-05-29T15:29:17Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBbA","name":"documentation","description":"Improvements or additions to documentation","color":"0075ca"},{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":152,"title":"generate style-guide.md from theme/index.tsx"},{"body":"Before shipping, ensure that windowSoftInputMode is set to adjustPan in the native AndroidManifest.xml to guarantee smooth keyboard and scroll behavior on Android, especially with keyboard-aware views.\nDouble-check that \"softwareKeyboardLayoutMode\": \"pan\" is set in app.json (for Expo builds).\nTest the built APK/AAB on a real device to confirm no scroll-to-top bugs remain when using input fields with the keyboard.","closedAt":null,"comments":[{"id":"IC_kwDOOth00s6v1-X2","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"Modified the app.json, need to test in the packed android app","createdAt":"2025-06-06T18:42:17Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/151#issuecomment-2950161910","viewerDidAuthor":true}],"createdAt":"2025-05-29T15:14:30Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBaQ","name":"bug","description":"Something isn't working","color":"d73a4a"}],"milestone":{"number":9,"title":"App Store","description":"Issues that need to be addressed before app store release","dueOn":null},"number":151,"title":"Android keyboard pan"},{"body":"In all screens identify how to integrate messages to the user that could become ad spots in the future. When not ads they could inform users about app features, how privacy is handled, and more.","closedAt":null,"comments":[],"createdAt":"2025-05-29T13:20:47Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":150,"title":"Integrate spot for ads and messages to users"},{"body":"Amazon may review the Public Address Facebook page in my bid for API access. I would like it to be more than just a husk. \n## Address Facebook site\n- Add a **cover image and pinned intro post**:\n    > “AddressCapture helps you figure out what tools and materials you need for common home repairs—watch it in action below.”\n - Video of Use Case of app in development\n - Virtual feed of tagged issues\n\t - ~ 5-10 clips or shots from the app of issues","closedAt":null,"comments":[],"createdAt":"2025-05-29T13:17:25Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":149,"title":"Prep Facebook page"},{"body":"","closedAt":null,"comments":[],"createdAt":"2025-05-28T15:46:00Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":146,"title":"Allow re-ordering of procedure steps"},{"body":"in the settings screen, let users select which location tag(s) they are responsible for. this will scope the to get, to do, and inventory list to only populate from locations they are responsible for.","closedAt":null,"comments":[],"createdAt":"2025-05-28T12:55:45Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":144,"title":"Configure owned issues by address"},{"body":"Abstract out and reuse components such as checklists and tag pickers.","closedAt":null,"comments":[],"createdAt":"2025-05-28T12:28:40Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":143,"title":"Component Reuse"},{"body":"After applying tags or exporting, show a brief toast/snackbar (“Tags applied!”, “Exported to file”), so the user knows something happened.","closedAt":null,"comments":[],"createdAt":"2025-05-28T02:03:02Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":142,"title":"User Feedback on Tag/Export/Filter Actions"},{"body":"Clicking a button to be sent to an Amazon cart with the filtered To Get list items in it.","closedAt":null,"comments":[{"id":"IC_kwDOOth00s6uYhvB","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"Blocked, Amazon won't give access until 3 sales and approval","createdAt":"2025-05-31T19:49:11Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/138#issuecomment-2925665217","viewerDidAuthor":true}],"createdAt":"2025-05-27T17:52:41Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":138,"title":"To Get list Builds Amazon cart"},{"body":"It would be great if people could share issues under common tags, along with the details, inventory, and to get list.","closedAt":null,"comments":[{"id":"IC_kwDOOth00s6tle1Z","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"iCloud seems like it might work for Apple devices. Don't know what the cord be for android and cross platform seems like a headache. As a novice, immediately I think of servers, but I'm wondering if there is a route to testing this without committing to a full infrastructure. ","createdAt":"2025-05-27T12:13:36Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/136#issuecomment-2912283993","viewerDidAuthor":true},{"id":"IC_kwDOOth00s6uYhpP","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"Moving off MVF for now","createdAt":"2025-05-31T19:48:19Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/136#issuecomment-2925664847","viewerDidAuthor":true}],"createdAt":"2025-05-27T12:11:29Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":136,"title":"Collaboration"},{"body":"Migrate database for persistent collections","closedAt":null,"comments":[],"createdAt":"2025-05-26T18:30:43Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":133,"title":"SQLite migration"},{"body":"Use the to do get list to serve technicians with a job in the neighborhood a list of task that other neighbors have and let the technician quote to fix them in a batch. Increasing the technician's utilization, profit, and time efficiency. ","closedAt":null,"comments":[],"createdAt":"2025-05-26T17:52:57Z","labels":[],"milestone":null,"number":132,"title":"Monetize with two sided matching of technicians and facility managers"},{"body":"Use the to get list, inventory, and to do list to give users ads for goods and services that they need.\n- Bootstrap with referral links then get people to pay for placement.","closedAt":null,"comments":[],"createdAt":"2025-05-26T17:45:22Z","labels":[],"milestone":null,"number":131,"title":"Monetize with evidence based ads"},{"body":"Create carts with referral links to get percent of sale..","closedAt":null,"comments":[],"createdAt":"2025-05-26T16:48:51Z","labels":[],"milestone":null,"number":130,"title":"Monetize with referral links"},{"body":"Let Amazon, Walmart, or similar bid on default button by region.","closedAt":null,"comments":[],"createdAt":"2025-05-26T16:48:10Z","labels":[],"milestone":null,"number":129,"title":"Monetize with bid for default add to cart"},{"body":"Add a note about the risk of the OpenAI account being temporarily blocked if accessed concurrently from multiple devices or users.","closedAt":null,"comments":[],"createdAt":"2025-05-26T16:12:06Z","labels":[{"id":"LA_kwDOOth00s8AAAACA6_ZEQ","name":"Risk","description":"Tag for something that has a likelihood and criticality","color":"e99695"}],"milestone":null,"number":128,"title":"Account suspension risk"},{"body":"Allow users to tag or auto‑detect the responsible party for non‑public assets (e.g. campuses, private properties) and route issues accordingly.","closedAt":null,"comments":[],"createdAt":"2025-05-26T16:12:04Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":126,"title":"Add infrastructure‑owner routing"},{"body":"Route captures directly into municipal 311 platforms (SeeClickFix, CivicPlus, CitySourced) via the Open 311 API.","closedAt":null,"comments":[],"createdAt":"2025-05-26T16:12:04Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":125,"title":"Integrate with Open 311 systems"},{"body":"Present issue editing as flashcards (one field at a time), with dictation support and “Next Field”/“Next Issue” controls.","closedAt":null,"comments":[],"createdAt":"2025-05-26T16:12:02Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":124,"title":"Flashcard‑style issue detailing"},{"body":"Provide a home‑screen widget or shortcut that launches directly into a capture session.","closedAt":null,"comments":[],"createdAt":"2025-05-26T16:12:01Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":123,"title":"Quick‑draw capture shortcut"},{"body":"Allow toggling the flashlight on/off both during an active capture session and when tapping an existing issue—independent of long‑press behavior.","closedAt":null,"comments":[],"createdAt":"2025-05-26T16:11:51Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":111,"title":"Toggle flashlight on demand"},{"body":"Determine how complicated it is to build a cart with referral credit to Amazon \n\n- Need to build a high fidelity track for the item (what to optimize for: price, quality, quality, reviews)\n- Find amazon ASIN \n- Build cart with ASIN and quantity ","closedAt":null,"comments":[{"id":"IC_kwDOOth00s6uAIaJ","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"Amazon doesn't give you access to the API unless you successfully sell three people through your link and get it reviewed. I sent a request through the contact desk portal for access just to practice with their API in the sandbox environment. Crossing my fingers they allow it.","createdAt":"2025-05-29T12:38:19Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/110#issuecomment-2919270025","viewerDidAuthor":true}],"createdAt":"2025-05-26T15:28:47Z","labels":[{"id":"LA_kwDOOth00s8AAAACA6_ZEQ","name":"Risk","description":"Tag for something that has a likelihood and criticality","color":"e99695"}],"milestone":{"number":9,"title":"App Store","description":"Issues that need to be addressed before app store release","dueOn":null},"number":110,"title":"Test cart builder for Amazon"},{"body":"- [ ] Cursor\n- [ ] Codex\n- [x] ChatGPT projects\n- [ ] Google Jules/firebase studio","closedAt":null,"comments":[],"createdAt":"2025-05-26T12:44:09Z","labels":[],"milestone":null,"number":109,"title":"Try editors"},{"body":"If an issue was captured without ai analysis or if the user wants a reanalysis they should be able to use the selection tool to send the pictures,filled out or modified titles and descriptions to the ai.","closedAt":null,"comments":[],"createdAt":"2025-05-26T12:04:47Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":107,"title":"Send though ai analysis from select"},{"body":"","closedAt":null,"comments":[],"createdAt":"2025-05-25T18:06:23Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":14,"title":"06Jun Sprint","description":"","dueOn":null},"number":106,"title":"Progress of issue on issue list screen"},{"body":"Import tasks from other people. First step in creating collaborative lists across devices.","closedAt":null,"comments":[],"createdAt":"2025-05-25T18:05:44Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":105,"title":"Import other's Issues"},{"body":"When checking off a item it could offer the option to check off with  a capture or just a check off.","closedAt":null,"comments":[],"createdAt":"2025-05-25T12:08:22Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":101,"title":"Check off procedure item with capture"},{"body":"allow users to trigger the app from shortcuts on their lock screen or action button","closedAt":null,"comments":[],"createdAt":"2025-05-25T03:43:34Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":100,"title":"Shortcut from home screen"},{"body":"- Identify core requirements \n- develop verification checklist to test in the app \n- run through the checklist","closedAt":null,"comments":[],"createdAt":"2025-05-25T03:40:41Z","labels":[],"milestone":null,"number":99,"title":"Write provisional release requirements"},{"body":"- Faster to initial capture\n- automatic prompting\n- sensor fusion with phone (accelerometer, gps)\n- Interface tailored for use case","closedAt":null,"comments":[],"createdAt":"2025-05-25T03:25:32Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":98,"title":"How is Address better than the ChatGPT app"},{"body":"What if instead of generating the procedure at capture what if it generated options for different types of procedures. The options would be to cover the ambiguity in the images with a spread of choices that the user would select and a procedure would generate.","closedAt":null,"comments":[],"createdAt":"2025-05-24T01:16:49Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":97,"title":"Second round procedure"},{"body":"Interface with the Amazon or Walmart api to build a shopping cart for the user consisting of the items on the ToGet list.","closedAt":null,"comments":[],"createdAt":"2025-05-24T00:51:17Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":96,"title":"Worth it to send to get list to Amazon cart?"},{"body":"Instead of a dot where the the user taps let the user tap and trace around to highlight more of the image. This would be blind because we don't show the image that was just taken.","closedAt":null,"comments":[],"createdAt":"2025-05-24T00:43:40Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":95,"title":"Draw indicator"},{"body":"- Keyboard‑aware scrolling: You can replace react-native-keyboard-aware-scroll-view with React Native’s built‑in [KeyboardAvoidingView](https://reactnative.dev/docs/keyboardavoidingview) (which is fully supported and maintained).\n- Checkbox: You can switch to [React Native Paper’s Checkbox](https://callstack.github.io/react-native-paper/checkbox.html) or another actively maintained community component.","closedAt":null,"comments":[],"createdAt":"2025-05-23T19:41:37Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":94,"title":"Migrate to maintained alternatives"},{"body":"\n## Trade:\n<head></head>\nPros | Cons\n-- | --\nFar fewer “camera killed” events on Android | Requires eject’ing if you’re on Expo’s managed workflow\nUltra‑low latency previews & flexible frame processing | Larger native footprint, more dependencies\nFirst‑class support for advanced vision/ML use cases | Slightly steeper install & upgrade path\n\n## Process\n- Setup & Install: (eject, pods, \n- API Rewrite (replace preview, capture flow, adapt taps)\n- Frame Processor Worklets (optional)","closedAt":null,"comments":[],"createdAt":"2025-05-23T14:31:19Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":91,"title":"eject for React native camera"},{"body":"Using React tools until moving to a tool like Zustand makes sense. \n- Leverages built‑in React Context\n-  Lightweight; no 3rd‑party\n- Scales by domain","closedAt":null,"comments":[],"createdAt":"2025-05-23T14:12:31Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":90,"title":"State management Context-slicing"},{"body":"GitHub auto add issues [doc](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/adding-items-automatically)","closedAt":null,"comments":[],"createdAt":"2025-05-23T11:00:16Z","labels":[],"milestone":null,"number":88,"title":"Auto assign issues to projects"},{"body":"## no \n- Confusion: users might not understand what they are filtering if they see material/equipment tags\n- Clutter: The tag suggestions are great if typing ~2-3 characters results in the tag the user's desired tag, if the tags are mixed then bunch of cleaning products might get suggested when the user wants to see locations\n\n## yes\n- There is no other place to find them\n- It answers the question of: why do we need this item on the To get list?\n\n## decision\nWe should make it possible to filter issues by the tags on their procedure item tags\n- Make an enhancement issue to implement: IssueList filter to accept equipment/material tags; equipment/material tags should be displayed in their unique color to differentiate\n- Make an enhancement issue to implement: ListScreen link to IssueList filter; Link from ListScreen To Get item to a filter for that material/equipment tag in the issueList screen.","closedAt":null,"comments":[],"createdAt":"2025-05-23T10:39:12Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":87,"title":"Should the IssueList filter accept equipment/material tags?"},{"body":"- Level: Issue or Procedure item\n-  Tag type: New tag type or implicitly differentiated tag due to placement in a unique field on the issue detail screen or on a procedure item","closedAt":null,"comments":[],"createdAt":"2025-05-23T10:11:35Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":86,"title":"How should skill/action type be assigned?"},{"body":"Make sure all the packages are solid and being maintained.","closedAt":null,"comments":[],"createdAt":"2025-05-22T21:23:15Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBaQ","name":"bug","description":"Something isn't working","color":"d73a4a"}],"milestone":null,"number":81,"title":"Walk through packages and dependencies"},{"body":"GitHub Actions workflow to run linting, type‑checking, and tests on each PR would catch regressions early.","closedAt":null,"comments":[],"createdAt":"2025-05-22T15:59:54Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":74,"title":"CI/CD & Quality Gates"},{"body":"","closedAt":null,"comments":[],"createdAt":"2025-05-21T15:16:37Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBbA","name":"documentation","description":"Improvements or additions to documentation","color":"0075ca"}],"milestone":null,"number":68,"title":"Create a README"},{"body":"","closedAt":null,"comments":[],"createdAt":"2025-05-21T15:09:06Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBbA","name":"documentation","description":"Improvements or additions to documentation","color":"0075ca"}],"milestone":null,"number":66,"title":"Create an MVP project grouping"},{"body":"What should the project guidence be for when to make or use a GitHub label, milestone, or project? \n## Label\n- Unique to repository\n- Multiple can be assigned to an issue\n### Use Cases of labels\n- Categorize: Action required\n\n## Milestone\n- One per issue\n- Time bound\n- Can be linked to pull requests\n- Issues can be prioritized with-in the milestone\n### Use Cases of Milestones\n- Sprints\n- Work packages\n\n## Project\n- Issue can be assigned to multiple projects (I think)\n- Issue have [fields](https://docs.github.com/en/issues/planning-and-tracking-with-projects/understanding-fields) unique to project\n- Can group issues and pull requests\n- Use views to save preset filters\n- Can have [iterations](https://docs.github.com/en/issues/planning-and-tracking-with-projects/understanding-fields/about-iteration-fields)?\n- Can have [road maps](https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/customizing-the-roadmap-layout)\n### Use Cases of projects\n- Allow independent working groups \n- Should include field that indicates how a Project is a stakeholder in the issue (RACI)","closedAt":null,"comments":[],"createdAt":"2025-05-21T14:01:15Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBbA","name":"documentation","description":"Improvements or additions to documentation","color":"0075ca"},{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":57,"title":"When to use a milestone vs. a label vs. a project"},{"body":"Don't ship the api key in the app at runtime.","closedAt":null,"comments":[{"id":"IC_kwDOOth00s6s7BxB","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"Not worrying about this until MVP is defined and closer to reality.","createdAt":"2025-05-22T13:02:36Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/56#issuecomment-2901154881","viewerDidAuthor":true},{"id":"IC_kwDOOth00s6uCUw4","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"It is actually nice to have it in the code base while prototyping and collaborating.","createdAt":"2025-05-29T15:53:44Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/56#issuecomment-2919844920","viewerDidAuthor":true}],"createdAt":"2025-05-21T03:18:30Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBaQ","name":"bug","description":"Something isn't working","color":"d73a4a"},{"id":"LA_kwDOOth00s8AAAACA6_ZEQ","name":"Risk","description":"Tag for something that has a likelihood and criticality","color":"e99695"}],"milestone":{"number":9,"title":"App Store","description":"Issues that need to be addressed before app store release","dueOn":null},"number":56,"title":"Abstract the API key"},{"body":"Use ChatGPT to add dependencies to issues","closedAt":null,"comments":[],"createdAt":"2025-05-21T03:17:23Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBbA","name":"documentation","description":"Improvements or additions to documentation","color":"0075ca"}],"milestone":null,"number":55,"title":"Add issue dependencies"},{"body":"Get trademark and website for Address","closedAt":null,"comments":[],"createdAt":"2025-05-21T03:15:56Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBbA","name":"documentation","description":"Improvements or additions to documentation","color":"0075ca"}],"milestone":null,"number":54,"title":"Get trademark"},{"body":"Colors, logo, vibe","closedAt":null,"comments":[],"createdAt":"2025-05-21T03:02:03Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":52,"title":"what should be the app's style"},{"body":"Angie's list, task rabbit, every to do list ever, any ERP or FMS, yelp, fiver, Amazon, SeeClickFix. Address is at an intersection of all of these trying to connect the user, manager, and technician in a manner that creates value for everyone.","closedAt":null,"comments":[],"createdAt":"2025-05-21T02:38:13Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":50,"title":"Why hasn't this been done before?"},{"body":"","closedAt":null,"comments":[],"createdAt":"2025-05-21T02:21:52Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":49,"title":"Path: excellent, rapid capture"},{"body":"Could go to advertising, sponsored integration with Walmart, Kroger, etc. ","closedAt":null,"comments":[],"createdAt":"2025-05-21T02:19:53Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":48,"title":"Path: Excellent issue management"},{"body":"","closedAt":null,"comments":[],"createdAt":"2025-05-21T02:18:26Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":47,"title":"Path: Good capture and evaluate"},{"body":"Could focusing just on issue capture and facilitating high quality inspection from novices be a market? Touring potential purchases and rentals such as apartments, hotels, homes, cars, equipment. \nThis would be a lead in to Procedural and robust feed of review data.","closedAt":null,"comments":[],"createdAt":"2025-05-21T02:15:29Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":46,"title":"Are inspections a market?"},{"body":"Who are the stakeholders, what are the use cases, requirements, and competitors.","closedAt":null,"comments":[],"createdAt":"2025-05-21T02:09:16Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":45,"title":"Is \"Honey Do\" a market?"},{"body":"Build an API that is able to post issues and updates to them and get  updates from posted issues.","closedAt":null,"comments":[],"createdAt":"2025-05-21T02:05:30Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":44,"title":"API for issue Get and Post"},{"body":"Use the same method for capturing an issue to capture images of their inventory and index them using an AI. This should enable bulk import to the inventory","closedAt":null,"comments":[],"createdAt":"2025-05-21T01:59:17Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":43,"title":"Add to inventory from capture session"},{"body":"GitHub, Jira, Trello, etc. could be the web interface for facilities to manage, delegate, and resolve issues. This would reduce the development burden significantly. \nGitHub is my preference because of CLI, possibly to store procedures as documents, scripts, or \"Actions\".\n\n## Potential trade criteria \n- Object management \n- API\n- web interface \n- Mobile app\n- Pricing\n- Longevity/maintaince ","closedAt":null,"comments":[],"createdAt":"2025-05-21T01:47:20Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":41,"title":"How could an existing service be the web interface for facilities?"},{"body":"Issues from customers, passersby, and other transient stakeholders face the issue of routing them to the responsible party. Renters may be able to hand over an export of the issues but it could be rejected because it wasn't submitted through the established portal. \nCapturing the location of the issue means it is possible to find the owner of the land and potentially the responsible party of the facility by sending mail, internet sleuthing, and the like. \nFor a service like this to be dominant it would need an api and web app for facility managers to tap into to view and triage issues.","closedAt":null,"comments":[],"createdAt":"2025-05-21T01:39:38Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":39,"title":"Is it worth it to capture non-resident issues"},{"body":"Is it possible to have enough people on the app and capturing issues so that a technician that is going to be in the area is provided with a menu of jobs that they could pair to maximize time being paid versus travel, sales, etc. With Al of the prerequisite questions, material, and equipment identified and maybe already acquired. ","closedAt":null,"comments":[],"createdAt":"2025-05-21T01:28:32Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":38,"title":"How to maximize technicians time"},{"body":"Issues of items like software and things that can move or be moved. This requires knowing the responsible party (implicitly or explicitly) and vendor/manufacturer.","closedAt":null,"comments":[],"createdAt":"2025-05-21T01:24:58Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBkg","name":"question","description":"Further information is requested","color":"d876e3"}],"milestone":null,"number":37,"title":"Non-facility issues worth it?"},{"body":"Create a dictionary of terms that have refined meanings for the project","closedAt":null,"comments":[],"createdAt":"2025-05-21T00:07:00Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBbA","name":"documentation","description":"Improvements or additions to documentation","color":"0075ca"}],"milestone":null,"number":35,"title":"Define terms"},{"body":"Document trade studies for reflection and knowledge.","closedAt":null,"comments":[],"createdAt":"2025-05-20T21:14:43Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBbA","name":"documentation","description":"Improvements or additions to documentation","color":"0075ca"}],"milestone":null,"number":26,"title":"Trades captured"},{"body":"Map stakeholders, use cases, and requirements.\n## Stakeholders: \n- Reporter,\n- Manager (party accountable for resolution),\n- Technician (party responsible for resolution),\n- Initiator (party responsible for issue occurring: designer, owner, manager, etc.)","closedAt":null,"comments":[],"createdAt":"2025-05-20T21:13:48Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBbA","name":"documentation","description":"Improvements or additions to documentation","color":"0075ca"}],"milestone":null,"number":25,"title":"Use Cases and Requirements"},{"body":"with Detox or Cypress‑Mobile to verify the “tap → two‑shot → detail screen” flow works end‑to‑end.","closedAt":null,"comments":[{"id":"IC_kwDOOth00s6t3SQI","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"- [ ] keyboard aware test fields\n- [ ] add tags\n- [ ] tag suggestions\n- [ ] exports","createdAt":"2025-05-28T16:32:23Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/24#issuecomment-2916951048","viewerDidAuthor":true}],"createdAt":"2025-05-20T21:12:47Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":24,"title":"E2E smoke test"},{"body":"with React Native Testing Library, assert that your  and  render correctly given props/state","closedAt":null,"comments":[],"createdAt":"2025-05-20T21:12:16Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":23,"title":"Component tests"},{"body":"with Jest for all pure functions (e.g. your coordinate‐normalizer, JSON‐stripper). Also add the expected practice of how to implement the unit tests in the README.","closedAt":null,"comments":[],"createdAt":"2025-05-20T21:11:51Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":22,"title":"Unit tests"},{"body":"The issue type should align with Angie's List professional types","closedAt":null,"comments":[],"createdAt":"2025-05-20T21:06:03Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":21,"title":"Angi alignment"},{"body":"add criticality enum to issues to hold the importance that the issue is resolved quickly to prevent harm, further, damage, or disfunction","closedAt":null,"comments":[],"createdAt":"2025-05-20T21:05:33Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":20,"title":"Issue criticality"},{"body":"Use something like react‑native‑onboarding‑swiper or build a simple modal that checks a “firstRun” flag in AsyncStorage.","closedAt":null,"comments":[],"createdAt":"2025-05-20T21:00:48Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":9,"title":"App Store","description":"Issues that need to be addressed before app store release","dueOn":null},"number":17,"title":"On-boarding swiper"},{"body":"allow users to import issues from their photo library, photos must have metadata with location and the user must be prompted to tap on the location of the issue in the photo.","closedAt":null,"comments":[],"createdAt":"2025-05-20T20:40:33Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":6,"title":"Import issues from photos"},{"body":"in the capture screen, show the most recent issue and allow the user to click it and jump right to the issuedetail screen of the issue","closedAt":null,"comments":[],"createdAt":"2025-05-20T20:38:48Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":4,"title":"Short cut to latest issue"},{"body":"start a speech to text session at the moment of the first tap to allow the user to dictate a short description of the issue, the dictation session should continue after the 30 degree trigger but not longer than the 5 second timer unless the user is holding down the check mark button, there should be some indication that the dictation is being used like the microphone symbol. \nEmmett made a good point that the sound of the issue would be important diagnostic information.","closedAt":null,"comments":[{"id":"IC_kwDOOth00s6tTjox","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"Need to trade using native speech recognition vs. API.","createdAt":"2025-05-25T03:31:41Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/3#issuecomment-2907585073","viewerDidAuthor":true},{"id":"IC_kwDOOth00s6tdCBH","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"Could offer text box and keyboard in settings","createdAt":"2025-05-26T15:13:05Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/3#issuecomment-2910068807","viewerDidAuthor":true},{"id":"IC_kwDOOth00s6uDEJI","author":{"login":"uncomposed"},"authorAssociation":"OWNER","body":"the user will need a button to start and end dictation regardless of whether the second photo has occurred. ","createdAt":"2025-05-29T17:10:00Z","includesCreatedEdit":false,"isMinimized":false,"minimizedReason":"","reactionGroups":[],"url":"https://github.com/uncomposed/AddressExpo/issues/3#issuecomment-2920038984","viewerDidAuthor":true}],"createdAt":"2025-05-20T20:37:43Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":{"number":14,"title":"06Jun Sprint","description":"","dueOn":null},"number":3,"title":"Capture Issue Dictation"},{"body":"In the Capture Screen the user should be able to select one or more tags for the issues captured in the session to be automatically tagged under.\ne.g.:\nchores\" and  \"cleaning\" could be selected as tags so that all issues captured in that session would be tagged as chores and cleaning.\nPotential be step: what if \"issue\" was a tag and the prompt and schema for the issue detail screen was linked to it. That way maybe inventory could be a tag that was captured by the camera","closedAt":null,"comments":[],"createdAt":"2025-05-20T20:35:45Z","labels":[{"id":"LA_kwDOOth00s8AAAACA2pBdQ","name":"enhancement","description":"New feature or request","color":"a2eeef"}],"milestone":null,"number":1,"title":"Select Tags for Capture Session"}]
+[
+    {
+        "body": "The box for it should expand in contract on click, not just when clicking the arrow. The box should show the user which topics have already been selected and are in their preference set.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-07T17:24:09Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvonA",
+                "name": "ui",
+                "description": "Frontend UI/UX",
+                "color": "0e8a16"
+            }
+        ],
+        "milestone": {
+            "number": 10,
+            "title": "UI 07sep25 ms10",
+            "description": "",
+            "dueOn": null
+        },
+        "number": 52,
+        "title": "Starter pack/ Add more topics"
+    },
+    {
+        "body": "- [ ] Whenever a link is shared to someone, we need to assume they've never seen the site before and give them a pop-up explains the site. More than getting started it should explain the goal of the site and how people can use it. this pop-up should also be something that people see for the first time. We need to assume people will dismiss it immediately so methods to mitigate that risk should be emplaced, the way it is formatted and a button to open it up again once it has been closed.\n- [ ] in the view in the card view. We have a section that explains what a direction is but from a user perspective, it is not clear that we are using our own definition for the word direction and instead they read it as a synonym for instructions, which is confusing.\n- [ ] in the starter pack selection box, it should be more concise on what they should do e.g. select topics that are important to you to add to Your Preference Set.\n- [ ] We shouldn't say \"Your Topics\" at the front. if they receive a link from someone it should be clear that this is not theirs but if they want they can save a copy or clear/start from scratch.\n- [ ] \"Next\" Button is important. we need to be perscriptive about what the user should do with the site. how it can help them and what they should do next. We already have a pretty good idea and logical, but a subtly highlighted button isn't clear enough. I think we should maybe have the word \"next\" around it or pointing to it\n- [ ] in both card view and List view there are good descriptors for the different levels of star, one through five however zero stars does not have a description which is arguably one of the more important and confusing ratings in card view. It just says unrated.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-07T17:22:52Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvonA",
+                "name": "ui",
+                "description": "Frontend UI/UX",
+                "color": "0e8a16"
+            }
+        ],
+        "milestone": {
+            "number": 10,
+            "title": "UI 07sep25 ms10",
+            "description": "",
+            "dueOn": null
+        },
+        "number": 51,
+        "title": "Better get started experience"
+    },
+    {
+        "body": "Starter pack typing\n\n- [ ] Add StarterPackJson/StarterTopicJson types and use them in StarterPackPicker and utils/share.ts instead of any.\n- [ ] Eliminate as any for .default imports by typing the JSON as StarterPackJson.\n- [ ] Prompt pack typing\n- [ ] The PromptPack/PromptItem/PromptVariableSpec types are solid; replace remaining any in \n\nLLMIntegration.tsx:\n\n- [ ] Object.entries(p.variables || {}) → type the entry as [string, PromptVariableSpec].\n- [ ] Remove residual (spec as any) casts by discriminating on spec.type.\n- [ ] Event typing\n- [ ] Create small helpers for custom events: type HHint = { key:string; anchorId:string; content:string; source?:'auto'|'manual' } and use CustomEvent<HHint> signatures to avoid as any on dispatch/listen.\nShare utilities\n- [ ] Type the imported starter pack once; remove (packTopic as any) and (d as any) in direction mapping.\n- [ ] Narrow StarterPayload decode return early; avoid nullables downstream.\n- [ ] Dynamic requires\n- [ ] In Toolbar/MobileActionBar, use normal imports (you already did for most) to remove a few require(...) fallbacks.\n\nTests\n\n- [ ] Keep any in test scaffolding (fine for test doubles), but prefer unknown + explicit casts where easy to improve readability.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-07T16:15:25Z",
+        "labels": [],
+        "milestone": null,
+        "number": 50,
+        "title": "Type System health"
+    },
+    {
+        "body": "In the Comparison screen there should be a way to select a politician's preference set to compare to another.\n\n- [ ] Create preference sets for the top two primary and general candidates for 2024 - 1976 and extraordinarily successful third party candidates like Ross Perot\n- [ ] Update the Starter pack to include Topics and Directions that are broad enough to capture the preference sets of the presidential candidates from the elections from 2024 - 1976. The Starter Pack needs to be condensed enough that a person's preferences can still be shared via condensed url.\n- [ ] Fill in the estimated preference sets for the candidates based on only the updated starter pack\n- [ ] Publish the preference sets to GitHub for crowd sourced iteration and improvements\n- [ ] Implement the library feature.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-06T13:30:36Z",
+        "labels": [],
+        "milestone": {
+            "number": 10,
+            "title": "UI 07sep25 ms10",
+            "description": "",
+            "dueOn": null
+        },
+        "number": 49,
+        "title": "Library of Politician's Preference Sets"
+    },
+    {
+        "body": "There are some tests that are no longer applicable due to UI changes it would be great to review the testing methodology and test tests of the code base and remove un needed tests and create useful tests that will facilitate confident modification of the code base",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-05T16:03:25Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsaXFA",
+                "name": "enhancement",
+                "description": "New feature or request",
+                "color": "a2eeef"
+            }
+        ],
+        "milestone": null,
+        "number": 45,
+        "title": "Testing review"
+    },
+    {
+        "body": "- [ ] Pre-fill ballot with an address\n- [ ] Cache Ballot per location to reduce the likelihood of hitting daily limit\n- [ ] Rate limit users to prevent abuse of API\n- [ ] mitigate Risk of leaking API to users ",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-05T15:27:18Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvp9w",
+                "name": "abuse",
+                "description": "Abuse prevention",
+                "color": "b31d28"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvrCg",
+                "name": "integrations",
+                "description": "External links/tools",
+                "color": "bfdadc"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACJj_toA",
+                "name": "risk",
+                "description": "",
+                "color": "a0ef4c"
+            }
+        ],
+        "milestone": {
+            "number": 6,
+            "title": "Milestone 5 — “Plan Your Vote” Integrations (Outbound)",
+            "description": "Deep-link to VOTE411/BallotReady; disclaimer footer; org-mode “Paid for by …”.",
+            "dueOn": null
+        },
+        "number": 43,
+        "title": "Explore integration with Google Civic API"
+    },
+    {
+        "body": "",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-05T14:12:42Z",
+        "labels": [],
+        "milestone": null,
+        "number": 41,
+        "title": "Full‑Screen Sheets: Use full-screen modal sheets for Topic editing on mobile; ensure body scroll is locked and focus is trapped."
+    },
+    {
+        "body": "",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-05T02:37:05Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsaXDw",
+                "name": "bug",
+                "description": "Something isn't working",
+                "color": "d73a4a"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvonA",
+                "name": "ui",
+                "description": "Frontend UI/UX",
+                "color": "0e8a16"
+            }
+        ],
+        "milestone": {
+            "number": 10,
+            "title": "UI 07sep25 ms10",
+            "description": "",
+            "dueOn": null
+        },
+        "number": 40,
+        "title": "The privacy and disclaimers button doesn't do anything"
+    },
+    {
+        "body": "there are warnings about memory leaks on npm install.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-04T23:12:44Z",
+        "labels": [],
+        "milestone": null,
+        "number": 35,
+        "title": "npm install warnings"
+    },
+    {
+        "body": "",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-04T18:58:14Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsaXFA",
+                "name": "enhancement",
+                "description": "New feature or request",
+                "color": "a2eeef"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvonA",
+                "name": "ui",
+                "description": "Frontend UI/UX",
+                "color": "0e8a16"
+            }
+        ],
+        "milestone": {
+            "number": 10,
+            "title": "UI 07sep25 ms10",
+            "description": "",
+            "dueOn": null
+        },
+        "number": 29,
+        "title": "have the Ballot use STAR Voting"
+    },
+    {
+        "body": "The ReadMe should be an introduction to the GitHub with an overview of the app. It should go over things like how to suggest changes to the starter kit and publication of ballot templates (sans candidate selections) for races.\nIt should define how different aspects of the GitHub are to be used, such as the issues, wiki, and codebase.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-09-03T03:40:43Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsaXEQ",
+                "name": "documentation",
+                "description": "Improvements or additions to documentation",
+                "color": "0075ca"
+            }
+        ],
+        "milestone": {
+            "number": 10,
+            "title": "UI 07sep25 ms10",
+            "description": "",
+            "dueOn": null
+        },
+        "number": 23,
+        "title": "Improve README.md"
+    },
+    {
+        "body": "Write concise privacy and legal pages: no accounts, no IP storage, anonymous use, external links for official ballot info.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:29Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsaXEQ",
+                "name": "documentation",
+                "description": "Improvements or additions to documentation",
+                "color": "0075ca"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvqxQ",
+                "name": "compliance",
+                "description": "Legal / disclaimers",
+                "color": "d4c5f9"
+            }
+        ],
+        "milestone": {
+            "number": 7,
+            "title": "Milestone 6 — Hosting, Perf, and Legal Readiness",
+            "description": "Static hosting, indexes, CSP/SRI, load tests, privacy page; legal checklist.",
+            "dueOn": null
+        },
+        "number": 20,
+        "title": "Docs: Privacy policy and disclaimers page"
+    },
+    {
+        "body": "Deploy on \n\n- [ ] Vercel/Cloudflare Pages; add strict CSP and SRI; basic load tests; ensure templates 10–30KB render fast.\n\nSecurity Headers (once hosted):\n\n- [ ] Add very strict CSP: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'\n\nHSTS with preload, X-Content-Type-Options: nosniff, Referrer-Policy: no-referrer, Permissions-Policy minimally scoped.",
+        "closedAt": null,
+        "comments": [
+            {
+                "id": "IC_kwDOPdfjk87B6Z9J",
+                "author": {
+                    "login": "uncomposed"
+                },
+                "authorAssociation": "OWNER",
+                "body": "Currently hosting on my VPS. Working fine I might migrate later.",
+                "createdAt": "2025-09-04T11:51:22Z",
+                "includesCreatedEdit": false,
+                "isMinimized": false,
+                "minimizedReason": "",
+                "reactionGroups": [],
+                "url": "https://github.com/uncomposed/voting-topics/issues/19#issuecomment-3253313353",
+                "viewerDidAuthor": true
+            }
+        ],
+        "createdAt": "2025-08-13T20:43:27Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpiA",
+                "name": "backend",
+                "description": "Convex / server",
+                "color": "d93f0b"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpuA",
+                "name": "security",
+                "description": "Security / privacy",
+                "color": "b60205"
+            }
+        ],
+        "milestone": {
+            "number": 7,
+            "title": "Milestone 6 — Hosting, Perf, and Legal Readiness",
+            "description": "Static hosting, indexes, CSP/SRI, load tests, privacy page; legal checklist.",
+            "dueOn": null
+        },
+        "number": 19,
+        "title": "Hosting: Static deploy + CSP/SRI + load test"
+    },
+    {
+        "body": "Global disclaimer for neutrality; when orgs publish public templates, require a \"Paid for by …\" field on the template page.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:26Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvonA",
+                "name": "ui",
+                "description": "Frontend UI/UX",
+                "color": "0e8a16"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvqxQ",
+                "name": "compliance",
+                "description": "Legal / disclaimers",
+                "color": "d4c5f9"
+            }
+        ],
+        "milestone": {
+            "number": 6,
+            "title": "Milestone 5 — “Plan Your Vote” Integrations (Outbound)",
+            "description": "Deep-link to VOTE411/BallotReady; disclaimer footer; org-mode “Paid for by …”.",
+            "dueOn": null
+        },
+        "number": 18,
+        "title": "Compliance: Disclaimer footer + org-mode \"Paid for by …\""
+    },
+    {
+        "body": "Add buttons on the final screen to open external ballot tools; we do not collect addresses/PII.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:24Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvrCg",
+                "name": "integrations",
+                "description": "External links/tools",
+                "color": "bfdadc"
+            }
+        ],
+        "milestone": {
+            "number": 6,
+            "title": "Milestone 5 — “Plan Your Vote” Integrations (Outbound)",
+            "description": "Deep-link to VOTE411/BallotReady; disclaimer footer; org-mode “Paid for by …”.",
+            "dueOn": null
+        },
+        "number": 17,
+        "title": "Integrations: VOTE411/BallotReady deep links"
+    },
+    {
+        "body": "Display coarse creation times (hour/day); redact server logs; avoid correlatable high-precision timestamps in public metadata.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:22Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpuA",
+                "name": "security",
+                "description": "Security / privacy",
+                "color": "b60205"
+            }
+        ],
+        "milestone": {
+            "number": 5,
+            "title": "Milestone 4 — Abuse Resistance & Privacy Hardening",
+            "description": "Anonymous-friendly throttle (PoW/Privacy Pass), token buckets, minimal logs, timestamp bucketing.",
+            "dueOn": null
+        },
+        "number": 16,
+        "title": "Privacy: Timestamp bucketing + log redaction"
+    },
+    {
+        "body": "Implement edge token bucket keyed by Privacy-Pass/Turnstile-like anonymous token. Short-lived counters only; no IP persistence.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:21Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpuA",
+                "name": "security",
+                "description": "Security / privacy",
+                "color": "b60205"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvp9w",
+                "name": "abuse",
+                "description": "Abuse prevention",
+                "color": "b31d28"
+            }
+        ],
+        "milestone": {
+            "number": 5,
+            "title": "Milestone 4 — Abuse Resistance & Privacy Hardening",
+            "description": "Anonymous-friendly throttle (PoW/Privacy Pass), token buckets, minimal logs, timestamp bucketing.",
+            "dueOn": null
+        },
+        "number": 15,
+        "title": "Abuse: Token-bucket limiter using opaque tokens (no IP storage)"
+    },
+    {
+        "body": "Add small hashcash-style proof-of-work to mutation requests; tune difficulty (~100ms). Verify on server; reject if missing/invalid.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:19Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpuA",
+                "name": "security",
+                "description": "Security / privacy",
+                "color": "b60205"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvp9w",
+                "name": "abuse",
+                "description": "Abuse prevention",
+                "color": "b31d28"
+            }
+        ],
+        "milestone": {
+            "number": 5,
+            "title": "Milestone 4 — Abuse Resistance & Privacy Hardening",
+            "description": "Anonymous-friendly throttle (PoW/Privacy Pass), token buckets, minimal logs, timestamp bucketing.",
+            "dueOn": null
+        },
+        "number": 14,
+        "title": "Security: Client PoW for publish/fork; server verification"
+    },
+    {
+        "body": "Anonymous user proposals are queued; moderator can approve/reject and write a short commit message. No PII stored.",
+        "closedAt": null,
+        "comments": [
+            {
+                "id": "IC_kwDOPdfjk87BkbZt",
+                "author": {
+                    "login": "uncomposed"
+                },
+                "authorAssociation": "OWNER",
+                "body": "Will use the GitHub JSON Starter Kit as first try at a community sourced document.",
+                "createdAt": "2025-09-03T03:23:43Z",
+                "includesCreatedEdit": false,
+                "isMinimized": false,
+                "minimizedReason": "",
+                "reactionGroups": [],
+                "url": "https://github.com/uncomposed/voting-topics/issues/13#issuecomment-3247552109",
+                "viewerDidAuthor": true
+            }
+        ],
+        "createdAt": "2025-08-13T20:43:17Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpiA",
+                "name": "backend",
+                "description": "Convex / server",
+                "color": "d93f0b"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvqgw",
+                "name": "moderation",
+                "description": "Moderation queue",
+                "color": "c5def5"
+            }
+        ],
+        "milestone": {
+            "number": 4,
+            "title": "Milestone 3 — Topic Library (Wiki-like, curated)",
+            "description": "Canonical topics/positions via GitHub JSON + CI; import into builder; moderation queue.",
+            "dueOn": null
+        },
+        "number": 13,
+        "title": "Moderation: Proposals queue with approve/reject + commit note"
+    },
+    {
+        "body": "Implement /topics page with search/filter and an \"Add to my template\" action that copies a topic into the builder.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:15Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvonA",
+                "name": "ui",
+                "description": "Frontend UI/UX",
+                "color": "0e8a16"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvqLQ",
+                "name": "topics",
+                "description": "Topic library",
+                "color": "fbca04"
+            }
+        ],
+        "milestone": {
+            "number": 4,
+            "title": "Milestone 3 — Topic Library (Wiki-like, curated)",
+            "description": "Canonical topics/positions via GitHub JSON + CI; import into builder; moderation queue.",
+            "dueOn": null
+        },
+        "number": 12,
+        "title": "Topic browser UI + Import into builder"
+    },
+    {
+        "body": "Service to pull latest main branch topics into Convex `topics` collection; include version field and lastReviewedAt.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:14Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpiA",
+                "name": "backend",
+                "description": "Convex / server",
+                "color": "d93f0b"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvqYA",
+                "name": "sync",
+                "description": "Sync / importer",
+                "color": "0052cc"
+            }
+        ],
+        "milestone": {
+            "number": 4,
+            "title": "Milestone 3 — Topic Library (Wiki-like, curated)",
+            "description": "Canonical topics/positions via GitHub JSON + CI; import into builder; moderation queue.",
+            "dueOn": null
+        },
+        "number": 11,
+        "title": "Sync: GitHub → Convex topic importer (cron/webhook)"
+    },
+    {
+        "body": "Create /topics/*.json format, add JSON Schema, and set up CI to validate PRs. Seed with 10–20 example topics/positions.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:12Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvoVw",
+                "name": "spec",
+                "description": "Specification / schema",
+                "color": "0366d6"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvqLQ",
+                "name": "topics",
+                "description": "Topic library",
+                "color": "fbca04"
+            }
+        ],
+        "milestone": {
+            "number": 4,
+            "title": "Milestone 3 — Topic Library (Wiki-like, curated)",
+            "description": "Canonical topics/positions via GitHub JSON + CI; import into builder; moderation queue.",
+            "dueOn": null
+        },
+        "number": 10,
+        "title": "Topics: Public GitHub repo scaffolding + JSON Schema + CI"
+    },
+    {
+        "body": "Add prominent Save a Copy/ Fork action that clones current JSON, writes new commit (hash), and returns a fresh share URL.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:10Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvonA",
+                "name": "ui",
+                "description": "Frontend UI/UX",
+                "color": "0e8a16"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpiA",
+                "name": "backend",
+                "description": "Convex / server",
+                "color": "d93f0b"
+            }
+        ],
+        "milestone": {
+            "number": 3,
+            "title": "Milestone 2 — Convex Publish & Immutable Links",
+            "description": "Immutable commits with hashed URLs, share/fork flows, and client-side verification.",
+            "dueOn": null
+        },
+        "number": 9,
+        "title": "Fork: \"Save a copy\" flow creates new commit and link"
+    },
+    {
+        "body": "Public read endpoint returns JSON; client verifies sha256(json)===hash before render. Show warning on mismatch.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:09Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpiA",
+                "name": "backend",
+                "description": "Convex / server",
+                "color": "d93f0b"
+            },
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpuA",
+                "name": "security",
+                "description": "Security / privacy",
+                "color": "b60205"
+            }
+        ],
+        "milestone": {
+            "number": 3,
+            "title": "Milestone 2 — Convex Publish & Immutable Links",
+            "description": "Immutable commits with hashed URLs, share/fork flows, and client-side verification.",
+            "dueOn": null
+        },
+        "number": 8,
+        "title": "Backend: Fetch-by-shortId + client-side hash verification"
+    },
+    {
+        "body": "Add Convex mutation to store Starter Kit JSON, compute sha256 hash, and return {shortId, hash}. Store fork lineage.",
+        "closedAt": null,
+        "comments": [],
+        "createdAt": "2025-08-13T20:43:07Z",
+        "labels": [
+            {
+                "id": "LA_kwDOPdfjk88AAAACHsvpiA",
+                "name": "backend",
+                "description": "Convex / server",
+                "color": "d93f0b"
+            }
+        ],
+        "milestone": {
+            "number": 3,
+            "title": "Milestone 2 — Convex Publish & Immutable Links",
+            "description": "Immutable commits with hashed URLs, share/fork flows, and client-side verification.",
+            "dueOn": null
+        },
+        "number": 7,
+        "title": "Backend: Convex createTemplate with SHA-256 content hash"
+    }
+]

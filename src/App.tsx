@@ -136,10 +136,25 @@ export const App: React.FC = () => {
               onAction: () => useStore.setState({ topics: snapshot }),
               duration: 6000,
             });
+            // Switch to Card View to encourage sorting after applying a share link
+            setShowLLMIntegration(false);
+            setShowDiffComparison(false);
+            setBallotMode('preference');
+            setShowCards(true);
           } catch {}
           finally {
             try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch {}
           }
+        }, []);
+        return null;
+      })()}
+      {(() => {
+        // Global event: open Card View from anywhere (e.g., after Apply from Link)
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        React.useEffect(() => {
+          const openCards = () => { setShowLLMIntegration(false); setShowDiffComparison(false); setBallotMode('preference'); setShowCards(true); };
+          window.addEventListener('vt-open-card-view', openCards as EventListener);
+          return () => window.removeEventListener('vt-open-card-view', openCards as EventListener);
         }, []);
         return null;
       })()}

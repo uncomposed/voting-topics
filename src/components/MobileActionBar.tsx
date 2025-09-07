@@ -236,6 +236,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
                       const pref = parseIncomingPreferenceSet(obj);
                       useStore.getState().importData({ title: pref.title, notes: pref.notes || '', topics: pref.topics });
                       window.dispatchEvent(new Event('vt-back-preferences'));
+                      window.dispatchEvent(new Event('vt-open-card-view'));
                     }
                   } catch (e) {
                     alert('Import failed: ' + (e instanceof Error ? e.message : String(e)));
@@ -268,6 +269,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
                     if (!data) { alert('Invalid share payload'); return; }
                     const { applied } = applyStarterPreferences(data);
                     toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
+                    window.dispatchEvent(new Event('vt-open-card-view'));
                   } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
                   finally { setImportOpen(false); }
                 }}>
@@ -289,6 +291,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
                 } else {
                   const preferenceSet = parseIncomingPreferenceSet(obj);
                   useStore.getState().importData({ title: preferenceSet.title, notes: preferenceSet.notes || '', topics: preferenceSet.topics });
+                  window.dispatchEvent(new Event('vt-open-card-view'));
                 }
               } catch (e) {
                 alert('Import failed: ' + (e instanceof Error ? e.message : String(e)));

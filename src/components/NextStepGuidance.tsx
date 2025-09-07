@@ -5,20 +5,11 @@ export const NextStepGuidance: React.FC = () => {
   const topics = useStore(state => state.topics);
   const ballotMode = useStore(state => state.ballotMode);
   const currentFlowStep = useStore(state => state.currentFlowStep);
+  const hintsEnabled = useStore(state => state.hintsEnabled);
+  const setHintsEnabled = useStore(state => state.setHintsEnabled);
   const [seen, setSeen] = useState<boolean>(() => {
     try { return localStorage.getItem('vt.seenGuide') === '1'; } catch { return false; }
   });
-
-  useEffect(() => {
-    try {
-      if (localStorage.getItem('vt.seenGuide') !== '1') {
-        localStorage.setItem('vt.seenGuide','1');
-      }
-    } catch (_e) {
-      // Ignore storage errors (e.g., privacy mode)
-      void 0;
-    }
-  }, []);
   
   // Determine current step and next step based on flow state
   const getCurrentStep = () => {
@@ -162,11 +153,9 @@ export const NextStepGuidance: React.FC = () => {
     border: '1px solid rgba(139, 211, 255, 0.3)',
     borderRadius: 8,
     // Match topic card horizontal rail (14px) to avoid left-edge drift on iOS
-    padding: seen ? '10px 14px' : '14px 14px',
+    padding: '14px 14px',
     marginBottom: 16,
-    display: seen ? 'flex' : 'block',
-    alignItems: seen ? 'center' : undefined,
-    minHeight: seen ? 56 : undefined,
+    display: 'block',
     width: '100%',
     marginLeft: 0,
     marginRight: 0,
@@ -174,7 +163,7 @@ export const NextStepGuidance: React.FC = () => {
 
   return (
     <div className="next-step-guidance" style={containerStyle}>
-      {!seen && (
+      {hintsEnabled && (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span style={{ fontSize: '1.1rem' }}>🎯</span>
@@ -186,20 +175,29 @@ export const NextStepGuidance: React.FC = () => {
             <strong>Next:</strong> {step.next}
           </div>
           {getActionButton()}
-          <div className="muted" style={{ marginTop: 6 }}>
-            <button className="btn ghost" style={{ padding: '2px 6px' }} onClick={() => setSeen(true)}>Hide guide</button>
+          <div className="muted" style={{ marginTop: 6, display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              className="btn ghost"
+              style={{ padding: '2px 6px' }}
+              onClick={() => setHintsEnabled(false)}
+            >
+              Disable Hint Mode
+            </button>
           </div>
         </>
       )}
       
       {/* LLM Integration Hint */}
       <div style={{ 
-        marginTop: seen ? 0 : 12, 
+        marginTop: 12, 
         padding: '8px 12px', 
         background: 'rgba(155, 130, 255, 0.1)', 
         border: '1px solid rgba(155, 130, 255, 0.3)', 
         borderRadius: '6px',
-        fontSize: '0.85rem'
+        fontSize: '0.85rem',
+        maxWidth: 840,
+        marginLeft: 'auto',
+        marginRight: 'auto'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 4 }}>
           <span style={{ fontSize: '1rem' }}>🤖</span>

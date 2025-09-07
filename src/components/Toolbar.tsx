@@ -54,6 +54,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const exportBtnRef = useRef<HTMLButtonElement>(null);
   const importRef = useRef<HTMLDivElement>(null);
   const prevOpenRef = useRef(false);
+  const hintsEnabled = useStore(s => s.hintsEnabled);
   useEffect(() => {
     // focus return when closing
     if (prevOpenRef.current && !moreOpen) {
@@ -234,6 +235,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             onAction: () => setBallotMode('preference'),
             duration: 6000,
           });
+          // Move user to Card View to sort priorities after import
+          window.dispatchEvent(new Event('vt-open-card-view'));
         }
       } catch (e: unknown) {
         alert('Import failed: ' + (e instanceof Error ? e.message : String(e)));
@@ -575,7 +578,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               <button id="btn-import-ballot" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import Ballot</button>
             )}
             <button id="btn-toggle-hints" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); useStore.setState(s => ({ hintsEnabled: !s.hintsEnabled })); }}>
-              {useStore.getState().hintsEnabled ? 'Disable Hint Mode' : 'Enable Hint Mode'}
+              {hintsEnabled ? 'Disable Hint Mode' : 'Enable Hint Mode'}
             </button>
             {showDiffComparison && (
               <button
@@ -605,6 +608,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 if (!data) { alert('Invalid share payload'); return; }
                 const { applied } = applyStarterPreferences(data);
                 toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
+                window.dispatchEvent(new Event('vt-open-card-view'));
               } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
             }}>Apply from Link…</button>
             {hasStarterTopics && (

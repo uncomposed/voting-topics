@@ -12,6 +12,7 @@ export const MobileMenu: React.FC = () => {
   const ballotMode = useStore(s => s.ballotMode);
   const currentBallot = useStore(s => s.currentBallot);
   const topics = useStore(s => s.topics);
+  const hintsEnabled = useStore(s => s.hintsEnabled);
   const [open, setOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -69,6 +70,7 @@ export const MobileMenu: React.FC = () => {
             onAction: () => { window.dispatchEvent(new Event('vt-back-preferences')); },
             duration: 6000,
           });
+          window.dispatchEvent(new Event('vt-open-card-view'));
         }
         setOpen(false);
       } catch (e: unknown) {
@@ -128,18 +130,19 @@ export const MobileMenu: React.FC = () => {
               <button className="btn" onClick={() => {
                 const url = prompt('Paste share link (supports #sp2= or #sp=)');
                 if (!url) return;
-                try {
-                  const data = extractAndDecodeFromUrl(url);
-                  if (!data) { alert('Invalid share payload'); return; }
-                  const { applied } = applyStarterPreferences(data);
-                  toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
-                } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
-                finally { setOpen(false); }
-              }}>Apply from Link…</button>
+              try {
+                const data = extractAndDecodeFromUrl(url);
+                if (!data) { alert('Invalid share payload'); return; }
+                const { applied } = applyStarterPreferences(data);
+                toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
+                window.dispatchEvent(new Event('vt-open-card-view'));
+              } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+              finally { setOpen(false); }
+            }}>Apply from Link…</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-diff')); setOpen(false); }}>Compare Preferences</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-llm')); setOpen(false); }}>LLM Integration</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-getting-started')); setOpen(false); }}>Getting Started</button>
-              <button className="btn" onClick={() => { useStore.setState(s => ({ hintsEnabled: !s.hintsEnabled })); setOpen(false); }}>{useStore.getState().hintsEnabled ? 'Disable Hint Mode' : 'Enable Hint Mode'}</button>
+              <button className="btn" onClick={() => { useStore.setState(s => ({ hintsEnabled: !s.hintsEnabled })); setOpen(false); }}>{hintsEnabled ? 'Disable Hint Mode' : 'Enable Hint Mode'}</button>
               <button className="btn" onClick={() => {
                 if (ballotMode === 'ballot') { window.dispatchEvent(new Event('vt-back-preferences')); }
                 else { window.dispatchEvent(new Event('vt-create-ballot')); }
