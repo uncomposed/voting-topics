@@ -3,7 +3,7 @@ import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
 import { scrollIntoViewSmart } from '../utils/scroll';
 import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness';
-import { encodeStarterPreferences, buildShareUrl, topicIndex, topicTitleIndex, decodeStarterPreferences, applyStarterPreferences } from '../utils/share';
+import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, extractAndDecodeFromUrl, applyStarterPreferences } from '../utils/share';
 import { emitHint } from '../utils/hints';
 import { IconShare, IconBraces, IconFile, IconImage, IconLink } from './icons';
 import { parseIncomingBallot, parseIncomingPreferenceSet } from '../schema';
@@ -204,8 +204,8 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
                 {hasStarterTopics && (
                   <button className="btn" style={{ width: 44, height: 44 }} aria-label="Copy Share Link" title="Copy Share Link" onClick={async () => {
                     try {
-                      const payload = encodeStarterPreferences(useStore.getState().topics);
-                      const url = buildShareUrl(payload);
+                      const payload = encodeStarterPreferencesV2(useStore.getState().topics);
+                      const url = buildShareUrlV2(payload);
                       await navigator.clipboard.writeText(url);
                       alert('Link copied to clipboard');
                     } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } finally { setOpen(false); }
@@ -261,12 +261,10 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
                   <IconBraces />
                 </button>
                 <button className="btn" style={{ width: 44, height: 44 }} aria-label="Apply from Link" title="Apply from Link" role="menuitem" onClick={() => {
-                  const url = prompt('Paste share link (or URL with #sp=...)');
+                  const url = prompt('Paste share link (supports #sp2= or #sp=)');
                   if (!url) return;
                   try {
-                    const m = url.match(/[#&]sp=([^&]+)/);
-                    if (!m) { alert('No share payload found'); return; }
-                    const data = decodeStarterPreferences(m[1]);
+                    const data = extractAndDecodeFromUrl(url);
                     if (!data) { alert('Invalid share payload'); return; }
                     const { applied } = applyStarterPreferences(data);
                     toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });

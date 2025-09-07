@@ -6,7 +6,7 @@ import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness'
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { toast } from '../utils/toast';
 import { scrollIntoViewSmart } from '../utils/scroll';
-import { encodeStarterPreferences, buildShareUrl, topicIndex, topicTitleIndex, decodeStarterPreferences, applyStarterPreferences } from '../utils/share';
+import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, extractAndDecodeFromUrl, applyStarterPreferences } from '../utils/share';
 import { emitHint } from '../utils/hints';
 
 interface ToolbarProps {
@@ -401,8 +401,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               {hasStarterTopics && (
                 <button id="btn-export-copy-share-inline" className="btn" role="menuitem" onClick={async () => {
                   try {
-                    const payload = encodeStarterPreferences(useStore.getState().topics);
-                    const url = buildShareUrl(payload);
+                    const payload = encodeStarterPreferencesV2(useStore.getState().topics);
+                    const url = buildShareUrlV2(payload);
                     await navigator.clipboard.writeText(url);
                     toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
                   } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
@@ -427,10 +427,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               <button id="btn-export-pdf-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
               <button id="btn-export-jpeg-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
               {hasStarterTopics && (
-                <button id="btn-export-copy-share-inline-ballot" className="btn" role="menuitem" onClick={async () => {
+              <button id="btn-export-copy-share-inline-ballot" className="btn" role="menuitem" onClick={async () => {
                   try {
-                    const payload = encodeStarterPreferences(useStore.getState().topics);
-                    const url = buildShareUrl(payload);
+                    const payload = encodeStarterPreferencesV2(useStore.getState().topics);
+                    const url = buildShareUrlV2(payload);
                     await navigator.clipboard.writeText(url);
                     toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
                   } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
@@ -487,12 +487,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <div className="toolbar-menu" role="menu">
               <button className="btn" role="menuitem" onClick={() => { setImportInlineOpen(false); fileRef.current?.click(); }}>Import JSON…</button>
               <button className="btn" role="menuitem" onClick={() => {
-                const url = prompt('Paste share link (or URL with #sp=...)');
+                const url = prompt('Paste share link (supports #sp2= or #sp=)');
                 if (!url) return;
                 try {
-                  const m = url.match(/[#&]sp=([^&]+)/);
-                  if (!m) { alert('No share payload found'); return; }
-                  const data = decodeStarterPreferences(m[1]);
+                  const data = extractAndDecodeFromUrl(url);
                   if (!data) { alert('Invalid share payload'); return; }
                   const { applied } = applyStarterPreferences(data);
                   toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
@@ -600,12 +598,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <button id="btn-import" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import JSON</button>
             <button id="btn-import-from-link" className="btn" role="menuitem" onClick={() => {
               setMoreOpen(false);
-              const url = prompt('Paste share link (or URL with #sp=...)');
+              const url = prompt('Paste share link (supports #sp2= or #sp=)');
               if (!url) return;
               try {
-                const m = url.match(/[#&]sp=([^&]+)/);
-                if (!m) { alert('No share payload found in URL'); return; }
-                const data = decodeStarterPreferences(m[1]);
+                const data = extractAndDecodeFromUrl(url);
                 if (!data) { alert('Invalid share payload'); return; }
                 const { applied } = applyStarterPreferences(data);
                 toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
@@ -625,8 +621,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               role="menuitem"
               onClick={async () => {
                 try {
-                  const payload = encodeStarterPreferences(useStore.getState().topics);
-                  const url = buildShareUrl(payload);
+                  const payload = encodeStarterPreferencesV2(useStore.getState().topics);
+                  const url = buildShareUrlV2(payload);
                   await navigator.clipboard.writeText(url);
                   toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
                 } catch (e) {

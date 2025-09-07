@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { exportJSON, exportPDF, exportJPEG } from '../exporters';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
-import { encodeStarterPreferences, buildShareUrl, decodeStarterPreferences, applyStarterPreferences, topicIndex, topicTitleIndex } from '../utils/share';
+import { encodeStarterPreferencesV2, buildShareUrlV2, extractAndDecodeFromUrl, applyStarterPreferences, topicIndex, topicTitleIndex } from '../utils/share';
 import { IconShare, IconBraces, IconFile, IconImage, IconLink } from './icons';
 import { toast } from '../utils/toast';
 
@@ -112,8 +112,8 @@ export const MobileMenu: React.FC = () => {
                       {hasStarterTopics && (
                         <button className="btn" aria-label="Copy Share Link" title="Copy Share Link" onClick={async () => {
                           try {
-                            const payload = encodeStarterPreferences(useStore.getState().topics);
-                            const url = buildShareUrl(payload);
+                            const payload = encodeStarterPreferencesV2(useStore.getState().topics);
+                            const url = buildShareUrlV2(payload);
                             await navigator.clipboard.writeText(url);
                             toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied', duration: 4000 });
                           } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
@@ -126,12 +126,10 @@ export const MobileMenu: React.FC = () => {
               )}
               {/* Copy Share Link now lives inside Export… submenu to save space */}
               <button className="btn" onClick={() => {
-                const url = prompt('Paste share link (or URL with #sp=...)');
+                const url = prompt('Paste share link (supports #sp2= or #sp=)');
                 if (!url) return;
                 try {
-                  const m = url.match(/[#&]sp=([^&]+)/);
-                  if (!m) { alert('No share payload found'); return; }
-                  const data = decodeStarterPreferences(m[1]);
+                  const data = extractAndDecodeFromUrl(url);
                   if (!data) { alert('Invalid share payload'); return; }
                   const { applied } = applyStarterPreferences(data);
                   toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });

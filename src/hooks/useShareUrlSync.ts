@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useStore } from '../store';
-import { encodeStarterPreferences, buildShareUrl } from '../utils/share';
+import { encodeStarterPreferencesV2, buildShareUrlV2 } from '../utils/share';
 
 // Keeps the URL's #sp=... in sync with the current topics.
 // - Debounced to avoid excessive history.replaceState calls
@@ -19,9 +19,9 @@ export const useShareUrlSync = (enabled: boolean = true, debounceMs: number = 40
           lastPayloadRef.current = null;
           return;
         }
-        const payload = encodeStarterPreferences(topics);
+        const payload = encodeStarterPreferencesV2(topics);
         if (payload && payload !== lastPayloadRef.current) {
-          const url = buildShareUrl(payload);
+          const url = buildShareUrlV2(payload);
           history.replaceState(null, '', url);
           lastPayloadRef.current = payload;
         }
@@ -32,4 +32,3 @@ export const useShareUrlSync = (enabled: boolean = true, debounceMs: number = 40
     return () => clearTimeout(timer);
   }, [enabled, debounceMs, topics]);
 };
-

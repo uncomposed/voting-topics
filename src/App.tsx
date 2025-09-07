@@ -15,7 +15,7 @@ import { MobileActionBar } from './components/MobileActionBar';
 import { MobileMenu } from './components/MobileMenu';
 import { Toolbar } from './components/Toolbar';
 import { toast } from './utils/toast';
-import { decodeStarterPreferences, applyStarterPreferences } from './utils/share';
+import { extractAndDecodeFromUrl, applyStarterPreferences } from './utils/share';
 import { scrollIntoViewSmart } from './utils/scroll';
 import { useShareUrlSync } from './hooks';
 
@@ -124,10 +124,7 @@ export const App: React.FC = () => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         React.useEffect(() => {
           try {
-            const hash = window.location.hash || '';
-            const m = hash.match(/[#&]sp=([^&]+)/);
-            if (!m) return;
-            const data = decodeStarterPreferences(m[1]);
+            const data = extractAndDecodeFromUrl(window.location.href);
             if (!data) return;
             const snapshot = useStore.getState().topics;
             const { applied } = applyStarterPreferences(data);

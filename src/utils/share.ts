@@ -27,6 +27,36 @@ const base64urlDecode = (s: string): string => {
   return atob(b64);
 };
 
+// --- sp2 binary encoding helpers ---
+const varintEncode = (n: number, out: number[] = []): number[] => {
+  let v = Math.max(0, Math.floor(n));
+  while (v >= 0x80) { out.push((v & 0x7f) | 0x80); v >>>= 7; }
+  out.push(v & 0x7f);
+  return out;
+};
+const varintDecode = (bytes: Uint8Array, offset: number): { value: number; next: number } => {
+  let shift = 0, res = 0, i = offset;
+  while (i < bytes.length) {
+    const b = bytes[i++];
+    res |= (b & 0x7f) << shift;
+    if ((b & 0x80) === 0) break;
+    shift += 7;
+  }
+  return { value: res >>> 0, next: i };
+};
+const bytesToB64url = (arr: number[] | Uint8Array): string => {
+  const u8 = arr instanceof Uint8Array ? arr : new Uint8Array(arr);
+  let s = '';
+  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+  return base64urlEncode(s);
+};
+const b64urlToBytes = (s: string): Uint8Array => {
+  const bin = base64urlDecode(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i) & 0xff;
+  return out;
+};
+
 export interface StarterPayloadDense {
   v: string;      // pack version, e.g. sp-v1
   ti: number[];   // topic importance per topicIndex
@@ -38,6 +68,74 @@ export interface StarterPayloadSparse {
   dsp: Array<[number, number, number]>; // triples: [topicIdx, dirIdx, stars]
 }
 export type StarterPayload = StarterPayloadDense | StarterPayloadSparse;
+
+// --- v2: binary compact encoding ---
+// Format: [0x02, packCode]
+//         varint Nti, then Nti * (varint topicIdx, u8 importance)
+//         varint Ndsp, then Ndsp * (varint topicIdx, varint dirIdx, u8 stars)
+const packCode = (id: string): number => (id === 'sp-v1' ? 1 : 0);
+const packFromCode = (code: number): string => (code === 1 ? 'sp-v1' : 'sp-v1');
+
+export const encodeStarterPreferencesV2 = (topics: Topic[]): string => {
+  // Build sparse like v1, then pack
+  const tiDense: number[] = topicIndex.map((tid, i) => {
+    const byId = topics.find(x => x.id === tid);
+    const lc = topicTitleIndex[i];
+    const byTitle = topics.find(x => (x.title || '').toLowerCase() === lc);
+    const t = byId || byTitle;
+    return t ? Math.max(0, Math.min(5, Number(t.importance || 0))) : 0;
+  });
+  const dsDense: number[][] = directionIndex.map((row, i) => {
+    const tid = topicIndex[i];
+    const lc = topicTitleIndex[i];
+    const t = topics.find(x => x.id === tid) || topics.find(x => (x.title || '').toLowerCase() === lc);
+    return row.map((did, j) => {
+      const textLc = directionTextIndex[i][j] || '';
+      const d = t?.directions?.find(dd => dd.id === did) || t?.directions?.find(dd => (dd.text || '').toLowerCase() === textLc);
+      const v = d ? Number(d.stars || 0) : 0;
+      return Math.max(0, Math.min(5, v));
+    });
+  });
+  const tip: Array<[number, number]> = [];
+  tiDense.forEach((v, i) => { if (v > 0) tip.push([i, v]); });
+  const dsp: Array<[number, number, number]> = [];
+  dsDense.forEach((row, ti) => row.forEach((v, di) => { if (v > 0) dsp.push([ti, di, v]); }));
+
+  const bytes: number[] = [];
+  bytes.push(0x02, packCode(packId));
+  varintEncode(tip.length, bytes);
+  for (const [ti, imp] of tip) { varintEncode(ti, bytes); bytes.push(imp & 0xff); }
+  varintEncode(dsp.length, bytes);
+  for (const [ti, di, stars] of dsp) { varintEncode(ti, bytes); varintEncode(di, bytes); bytes.push(stars & 0xff); }
+  return bytesToB64url(bytes);
+};
+
+export const decodeStarterPreferencesV2 = (payload: string): StarterPayload | null => {
+  try {
+    const bytes = b64urlToBytes(payload);
+    if (bytes.length < 2 || bytes[0] !== 0x02) return null;
+    const pack = packFromCode(bytes[1]);
+    let off = 2;
+    const nti = varintDecode(bytes, off); off = nti.next;
+    const tip: Array<[number, number]> = [];
+    for (let i = 0; i < nti.value; i++) {
+      const ti = varintDecode(bytes, off); off = ti.next;
+      const imp = bytes[off++] | 0;
+      tip.push([ti.value, imp]);
+    }
+    const ndsp = varintDecode(bytes, off); off = ndsp.next;
+    const dsp: Array<[number, number, number]> = [];
+    for (let i = 0; i < ndsp.value; i++) {
+      const ti = varintDecode(bytes, off); off = ti.next;
+      const di = varintDecode(bytes, off); off = di.next;
+      const stars = bytes[off++] | 0;
+      dsp.push([ti.value, di.value, stars]);
+    }
+    return { v: pack, tip, dsp } as StarterPayloadSparse;
+  } catch {
+    return null;
+  }
+};
 
 export const encodeStarterPreferences = (topics: Topic[]): string => {
   const tiDense: number[] = topicIndex.map((tid, i) => {
@@ -71,9 +169,13 @@ export const encodeStarterPreferences = (topics: Topic[]): string => {
 
 export const decodeStarterPreferences = (payload: string): StarterPayload | null => {
   try {
+    // Try v2 first (binary)
+    const v2 = decodeStarterPreferencesV2(payload);
+    if (v2) return v2;
+    // Fallback to v1 JSON sparse/dense
     const json = base64urlDecode(payload);
     const obj = JSON.parse(json) as StarterPayload;
-    if (!obj || obj.v !== packId) return null;
+    if (!obj || (obj as any).v !== packId) return null;
     return obj;
   } catch {
     return null;
@@ -157,4 +259,23 @@ export const applyStarterPreferences = (data: StarterPayload) => {
 export const buildShareUrl = (payload: string): string => {
   const { origin, pathname, search } = window.location;
   return `${origin}${pathname}${search}#sp=${payload}`;
+};
+
+export const buildShareUrlV2 = (payload: string): string => {
+  const { origin, pathname, search } = window.location;
+  return `${origin}${pathname}${search}#sp2=${payload}`;
+};
+
+// Extract and decode share payload from a URL string (supports sp2, then sp)
+export const extractAndDecodeFromUrl = (url: string): StarterPayload | null => {
+  try {
+    const m2 = url.match(/[#&]sp2=([^&]+)/);
+    if (m2) {
+      const v = decodeStarterPreferencesV2(m2[1]);
+      if (v) return v;
+    }
+    const m1 = url.match(/[#&]sp=([^&]+)/);
+    if (m1) return decodeStarterPreferences(m1[1]);
+    return null;
+  } catch { return null; }
 };
