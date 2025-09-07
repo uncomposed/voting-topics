@@ -17,6 +17,7 @@ import { Toolbar } from './components/Toolbar';
 import { toast } from './utils/toast';
 import { decodeStarterPreferences, applyStarterPreferences } from './utils/share';
 import { scrollIntoViewSmart } from './utils/scroll';
+import { useShareUrlSync } from './hooks';
 
 export const App: React.FC = () => {
   // Title/notes managed inside TemplateInfoPanel via store
@@ -69,6 +70,9 @@ export const App: React.FC = () => {
   // Template title/notes are now managed via React in TemplateInfoPanel
 
   // Toolbar is now managed by React component via portal
+
+  // Keep URL share payload in sync with current topics
+  useShareUrlSync(true, 500);
 
   // Card view handlers
   const handleTopicReorder = (topicId: string, newImportance: number) => {
