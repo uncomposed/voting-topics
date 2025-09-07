@@ -25,6 +25,9 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
   const [starterSelectedCount, setStarterSelectedCount] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const importMenuRef = useRef<HTMLDivElement>(null);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+  const ignoreNextDocClick = useRef(false);
 
   useEffect(() => {
     const onSel = (e: Event) => {
@@ -34,6 +37,23 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
     window.addEventListener('vt-starter-selection-changed', onSel as EventListener);
     return () => window.removeEventListener('vt-starter-selection-changed', onSel as EventListener);
   }, []);
+
+  // Tap anywhere to dismiss small menus (import/export) and ESC support
+  useEffect(() => {
+    if (!importOpen && !open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ignoreNextDocClick.current) { ignoreNextDocClick.current = false; return; }
+      const t = e.target as Node;
+      const importInside = importMenuRef.current && importMenuRef.current.contains(t);
+      const exportInside = exportMenuRef.current && exportMenuRef.current.contains(t);
+      if (!importInside && importOpen) setImportOpen(false);
+      if (!exportInside && open) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { if (importOpen) setImportOpen(false); if (open) setOpen(false); } };
+    document.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('click', onClick); document.removeEventListener('keydown', onKey); };
+  }, [importOpen, open]);
 
   const hasTopics = topics.length > 0;
   const anyUnratedTopic = topics.some(t => t.importance === 0);
@@ -169,7 +189,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
             <button
               id="m-export"
               className="btn"
-              onClick={() => setOpen(v => !v)}
+              onClick={() => setOpen(v => { const next = !v; if (next) ignoreNextDocClick.current = true; return next; })}
               aria-haspopup="true"
               aria-expanded={open}
               aria-label="Export options"
@@ -177,12 +197,12 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
               <IconShare />
             </button>
             {open && (
-              <div className="mobile-export-menu" role="menu">
-                <button className="btn" aria-label="Export JSON" title="Export JSON" onClick={() => { setOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
-                <button className="btn" aria-label="Export PDF" title="Export PDF" onClick={() => { setOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
-                <button className="btn" aria-label="Export JPEG" title="Export JPEG" onClick={() => { setOpen(false); exportJPEG().catch(e => alert(String(e))); }} role="menuitem"><IconImage /></button>
+              <div ref={exportMenuRef} className="mobile-export-menu" role="menu">
+                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Export JSON" title="Export JSON" onClick={() => { setOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
+                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Export PDF" title="Export PDF" onClick={() => { setOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
+                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Export JPEG" title="Export JPEG" onClick={() => { setOpen(false); exportJPEG().catch(e => alert(String(e))); }} role="menuitem"><IconImage /></button>
                 {hasStarterTopics && (
-                  <button className="btn" aria-label="Copy Share Link" title="Copy Share Link" onClick={async () => {
+                  <button className="btn" style={{ width: 44, height: 44 }} aria-label="Copy Share Link" title="Copy Share Link" onClick={async () => {
                     try {
                       const payload = encodeStarterPreferences(useStore.getState().topics);
                       const url = buildShareUrl(payload);
@@ -234,11 +254,13 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
       {!hasTopics && (
         <>
           <div style={{ position: 'relative' }}>
-            <button className="btn" onClick={() => setImportOpen(v => !v)} aria-haspopup="true" aria-expanded={importOpen} aria-label="Import">Import</button>
+            <button className="btn" onClick={() => setImportOpen(v => { const next = !v; if (next) ignoreNextDocClick.current = true; return next; })} aria-haspopup="true" aria-expanded={importOpen} aria-label="Import">Import</button>
             {importOpen && (
-              <div className="mobile-export-menu" role="menu" style={{ position: 'absolute', bottom: '40px' }}>
-                <button className="btn" role="menuitem" onClick={() => { setImportOpen(false); fileRef.current?.click(); }}>Import JSON…</button>
-                <button className="btn" role="menuitem" onClick={() => {
+              <div ref={importMenuRef} className="mobile-export-menu" role="menu" style={{ position: 'absolute', bottom: '40px', right: 0 }}>
+                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Import JSON" title="Import JSON" role="menuitem" onClick={() => { setImportOpen(false); fileRef.current?.click(); }}>
+                  <IconBraces />
+                </button>
+                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Apply from Link" title="Apply from Link" role="menuitem" onClick={() => {
                   const url = prompt('Paste share link (or URL with #sp=...)');
                   if (!url) return;
                   try {
@@ -250,7 +272,9 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
                     toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
                   } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
                   finally { setImportOpen(false); }
-                }}>Apply from Link…</button>
+                }}>
+                  <IconLink />
+                </button>
               </div>
             )}
           </div>

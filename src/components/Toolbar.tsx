@@ -6,7 +6,7 @@ import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness'
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { toast } from '../utils/toast';
 import { scrollIntoViewSmart } from '../utils/scroll';
-import { encodeStarterPreferences, buildShareUrl, topicIndex, topicTitleIndex } from '../utils/share';
+import { encodeStarterPreferences, buildShareUrl, topicIndex, topicTitleIndex, decodeStarterPreferences, applyStarterPreferences } from '../utils/share';
 import { emitHint } from '../utils/hints';
 
 interface ToolbarProps {
@@ -43,6 +43,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const fileRef = useRef<HTMLInputElement>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [importInlineOpen, setImportInlineOpen] = useState(false);
   const [menuExportOpen, setMenuExportOpen] = useState(false);
   const [collapseCompare, setCollapseCompare] = useState(false);
   const [collapseToggle, setCollapseToggle] = useState(false);
@@ -51,6 +52,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const moreBtnRef = useRef<HTMLButtonElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const exportBtnRef = useRef<HTMLButtonElement>(null);
+  const importRef = useRef<HTMLDivElement>(null);
   const prevOpenRef = useRef(false);
   useEffect(() => {
     // focus return when closing
@@ -119,12 +121,30 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     };
   }, [exportOpen]);
 
+  // Close Import dropdown on outside click / ESC (inline import button in empty state)
+  useEffect(() => {
+    if (!importInlineOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (!importRef.current) return;
+      const target = e.target as Node;
+      if (!importRef.current.contains(target)) setImportInlineOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setImportInlineOpen(false); };
+    document.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('click', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [importInlineOpen]);
+
   // Close menus when major UI state changes to avoid stale popovers
   // Note: intentionally do not include `moreOpen`/`exportOpen` as deps to avoid
   // immediately re-closing after toggling open.
   useEffect(() => {
     if (exportOpen) setExportOpen(false);
     if (moreOpen) setMoreOpen(false);
+    if (importInlineOpen) setImportInlineOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showCards, showDiffComparison, showLLMIntegration, ballotMode]);
 
@@ -367,13 +387,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Desktop: surface Export when preferences are export-ready (parity with mobile) */}
       {ballotMode !== 'ballot' && exportReady && (
         <div className="toolbar-more" ref={exportRef}>
-          <button id="btn-export-inline" ref={exportBtnRef} className="btn" aria-haspopup="true" aria-expanded={exportOpen} aria-label="Share or Export" onClick={() => setExportOpen(v => !v)}
+          <button id="btn-export-inline" ref={exportBtnRef} className="btn" aria-haspopup="true" aria-expanded={exportOpen} aria-label="Share or Export" onClick={(e) => { e.stopPropagation(); setExportOpen(v => !v); }}
             onMouseEnter={() => emitHint('export', 'btn-export-inline', 'Export or share your work once you’ve rated items.')}
           >
             Share / Export
           </button>
           {exportOpen && (
-            <div className="toolbar-menu" role="menu">
+            <div className="toolbar-menu" role="menu" onClick={(e) => e.stopPropagation()}>
               <div className="muted" style={{ padding: '4px 6px' }}>Export</div>
               <button id="btn-export-json-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
               <button id="btn-export-pdf-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
@@ -397,11 +417,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Desktop: show Export in ballot view when ballot is complete */}
       {ballotMode === 'ballot' && ballotReadyToShare && (
         <div className="toolbar-more" ref={exportRef}>
-          <button ref={exportBtnRef} className="btn" aria-label="Share or Export" aria-haspopup="true" aria-expanded={exportOpen} onClick={() => setExportOpen(v => !v)}>
+          <button ref={exportBtnRef} className="btn" aria-label="Share or Export" aria-haspopup="true" aria-expanded={exportOpen} onClick={(e) => { e.stopPropagation(); setExportOpen(v => !v); }}>
             Share / Export
           </button>
           {exportOpen && (
-            <div className="toolbar-menu" role="menu">
+            <div className="toolbar-menu" role="menu" onClick={(e) => e.stopPropagation()}>
               <div className="muted" style={{ padding: '4px 6px' }}>Export</div>
               <button id="btn-export-json-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
               <button id="btn-export-pdf-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
@@ -461,7 +481,27 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </button>
       ))}
       {!hasTopics && ballotMode === 'preference' && (
-        <button id="btn-import-inline" className="btn" onClick={() => fileRef.current?.click()}>Import</button>
+        <div className="toolbar-more" ref={importRef}>
+          <button id="btn-import-inline" className="btn" aria-haspopup="true" aria-expanded={importInlineOpen} onClick={() => setImportInlineOpen(v => !v)}>Import</button>
+          {importInlineOpen && (
+            <div className="toolbar-menu" role="menu">
+              <button className="btn" role="menuitem" onClick={() => { setImportInlineOpen(false); fileRef.current?.click(); }}>Import JSON…</button>
+              <button className="btn" role="menuitem" onClick={() => {
+                const url = prompt('Paste share link (or URL with #sp=...)');
+                if (!url) return;
+                try {
+                  const m = url.match(/[#&]sp=([^&]+)/);
+                  if (!m) { alert('No share payload found'); return; }
+                  const data = decodeStarterPreferences(m[1]);
+                  if (!data) { alert('Invalid share payload'); return; }
+                  const { applied } = applyStarterPreferences(data);
+                  toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
+                } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                finally { setImportInlineOpen(false); }
+              }}>Apply from Link…</button>
+            </div>
+          )}
+        </div>
       )}
       {hasTopics && (anyUnratedTopic || hasEmptyDirections || anyUnratedDirections) && (
         <button
@@ -565,7 +605,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               try {
                 const m = url.match(/[#&]sp=([^&]+)/);
                 if (!m) { alert('No share payload found in URL'); return; }
-                const { decodeStarterPreferences, applyStarterPreferences } = require('../utils/share');
                 const data = decodeStarterPreferences(m[1]);
                 if (!data) { alert('Invalid share payload'); return; }
                 const { applied } = applyStarterPreferences(data);
@@ -655,7 +694,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               const hasAnyDirection = topics.some(t => t.directions.length > 0);
               const hasAnyRatedDirection = topics.some(t => t.directions.some(d => d.stars > 0));
               const exportReadyMenu = hasTopics && hasAnyDirection && hasAnyRatedDirection;
-              return exportReadyMenu ? (
+              const inlineExportVisible = ballotMode !== 'ballot' && exportReady;
+              // Avoid redundancy: only show Export submenu in More when inline Share/Export is not visible
+              return exportReadyMenu && !inlineExportVisible ? (
                 <div className="toolbar-submenu">
                   <button className="btn" role="menuitem" onClick={() => setMenuExportOpen(v => !v)} aria-expanded={menuExportOpen}>Export…</button>
                   {menuExportOpen && (

@@ -116,6 +116,7 @@ export const App: React.FC = () => {
     <>
       {(() => {
         // On first mount, check for starter preferences payload in the URL hash
+        // Auto-apply and show success with undo, then clear the hash
         // eslint-disable-next-line react-hooks/rules-of-hooks
         React.useEffect(() => {
           try {
@@ -125,20 +126,19 @@ export const App: React.FC = () => {
             const data = decodeStarterPreferences(m[1]);
             if (!data) return;
             const snapshot = useStore.getState().topics;
+            const { applied } = applyStarterPreferences(data);
             toast.show({
-              variant: 'info',
-              title: 'Apply shared preferences?',
-              message: 'A share link includes starter-pack preferences. Apply them now?',
-              actionLabel: 'Apply',
-              onAction: () => {
-                const { applied } = applyStarterPreferences(data);
-                toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000, });
-              },
-              duration: 8000,
+              variant: 'success',
+              title: 'Preferences applied',
+              message: `${applied} topics updated`,
+              actionLabel: 'Undo',
+              onAction: () => useStore.setState({ topics: snapshot }),
+              duration: 6000,
             });
-            // Clean hash to avoid re-applying on refresh
-            try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch {}
           } catch {}
+          finally {
+            try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch {}
+          }
         }, []);
         return null;
       })()}
