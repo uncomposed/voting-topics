@@ -74,7 +74,10 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
 
   let nextLabel: string | null = null;
   let nextAction: (() => void) | null = null;
-  if (!hasTopics && starterSelectedCount > 0) {
+  if (!hasTopics && starterSelectedCount >= 3) {
+    nextLabel = 'Add Selected';
+    nextAction = () => window.dispatchEvent(new Event('vt-starter-add-selected'));
+  } else if (!hasTopics && starterSelectedCount > 0) {
     nextLabel = `Add (${starterSelectedCount})`;
     nextAction = () => window.dispatchEvent(new Event('vt-starter-add-selected'));
   } else if (!hasTopics) {
@@ -140,8 +143,22 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
   return (
     <div className="mobile-action-bar" aria-label="Mobile actions">
       {nextLabel && nextAction && (
-        <button id="m-next" className="btn primary" onClick={nextAction} aria-label="Next">
+        <button id="m-next" className="btn primary" onClick={nextAction} aria-label="Next" style={{ position: 'relative' }}>
           {nextLabel}
+          <span style={{ 
+            position: 'absolute', 
+            top: '2px', 
+            left: '2px', 
+            fontSize: '10px', 
+            background: 'var(--accent)', 
+            color: 'white', 
+            padding: '1px 2px', 
+            borderRadius: '6px',
+            fontWeight: '600',
+            lineHeight: '1'
+          }}>
+            Next
+          </span>
         </button>
       )}
       {ballotMode !== 'ballot' && !showDiffComparison && !showLLMIntegration && (

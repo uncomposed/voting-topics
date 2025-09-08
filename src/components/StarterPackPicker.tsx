@@ -23,6 +23,7 @@ export const StarterPackPicker: React.FC = () => {
       directions: (t.directions || []).map((d) => ({ text: d.text }))
     }));
   });
+  const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set());
   const [isCollapsed, setIsCollapsed] = useState(false);
   const autoCollapsed = useRef(false);
 
@@ -36,21 +37,42 @@ export const StarterPackPicker: React.FC = () => {
     }
   }, [topics.length, isCollapsed]);
 
-  const handleAdd = (topic: StarterTopic) => {
-    addTopicFromStarter(topic);
-    // Remove from pool so it's not offered again
-    setPool(prev => prev.filter(p => p.id !== topic.id));
-    // Notify user and move them along the flow
-    toast.show({ variant: 'success', title: 'Topic added', message: topic.title, duration: 3000 });
-    if (currentFlowStep === 'starter') advanceFlowStep();
-    // Scroll to the newly added topic
-    const newId = useStore.getState().topics[0]?.id;
-    setTimeout(() => {
-      if (newId) {
-        const target = document.querySelector(`[data-topic-id="${newId}"]`) as HTMLElement | null;
-        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const handleTopicSelect = (topicId: string) => {
+    setSelectedTopics(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(topicId)) {
+        newSet.delete(topicId);
+      } else {
+        newSet.add(topicId);
       }
-    }, 100);
+      return newSet;
+    });
+  };
+
+  const handleAddSelected = () => {
+    const topicsToAdd = pool.filter(topic => selectedTopics.has(topic.id));
+    if (topicsToAdd.length === 0) return;
+
+    // Add all selected topics
+    topicsToAdd.forEach(topic => {
+      addTopicFromStarter(topic);
+    });
+
+    // Remove added topics from pool
+    setPool(prev => prev.filter(p => !selectedTopics.has(p.id)));
+    
+    // Clear selection
+    setSelectedTopics(new Set());
+    
+    // Notify user and move them along the flow
+    toast.show({ 
+      variant: 'success', 
+      title: 'Topics added', 
+      message: `${topicsToAdd.length} topic${topicsToAdd.length > 1 ? 's' : ''} added to your list`, 
+      duration: 3000 
+    });
+    
+    if (currentFlowStep === 'starter') advanceFlowStep();
   };
 
   // Always show starter pack, but in minimized state when topics exist
@@ -73,7 +95,7 @@ export const StarterPackPicker: React.FC = () => {
             <>
               <h2 className="panel-title">➕ Add More Topics</h2>
               <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>
-                Click a topic below to add it to your list
+                Select topics below and click "Add Selected" to add them to your list
               </p>
               <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.8rem' }}>
                 When you're ready, try the LLM assistant under More actions to draft a ballot for your election.
@@ -83,10 +105,10 @@ export const StarterPackPicker: React.FC = () => {
             <>
               <h2 className="panel-title">🚀 Get Started with Starter Pack</h2>
               <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>
-                Click a topic below to jumpstart your preferences
+                Select at least 3 topics to get started, but feel free to choose more if you'd like
               </p>
               <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.8rem' }}>
-                Aim for about 3–7 topics. You can later ask the AI helper to build a ballot using the web and our schema.
+                You can later ask the AI helper to build a ballot using the web and our schema.
               </p>
             </>
           )}
@@ -107,7 +129,8 @@ export const StarterPackPicker: React.FC = () => {
               <label key={item.id} className="starter-pack-item">
                 <input
                   type="checkbox"
-                  onChange={() => handleAdd(item)}
+                  checked={selectedTopics.has(item.id)}
+                  onChange={() => handleTopicSelect(item.id)}
                 />
                 <span className="starter-pack-title">{item.title}</span>
               </label>
@@ -118,6 +141,17 @@ export const StarterPackPicker: React.FC = () => {
               </p>
             )}
           </div>
+          {selectedTopics.size > 0 && (
+            <div style={{ marginTop: '12px', padding: '8px 0', borderTop: '1px solid var(--border)' }}>
+              <button
+                className="btn primary"
+                onClick={handleAddSelected}
+                style={{ width: '100%' }}
+              >
+                Add Selected ({selectedTopics.size})
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

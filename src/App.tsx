@@ -124,6 +124,11 @@ export const App: React.FC = () => {
     else setTimeout(() => topicListRef.current?.updateButtonText(), 0);
   }, [showCards, topics.length, showDiffComparison, showLLMIntegration, ballotMode]);
 
+  // Scroll to top when switching between different screens
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [showDiffComparison, showLLMIntegration, ballotMode]);
+
   return (
     <>
       {(() => {
@@ -190,6 +195,16 @@ export const App: React.FC = () => {
         }, []);
         return null;
       })()}
+      {(() => {
+        // Global event: open Comparison from anywhere
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        React.useEffect(() => {
+          const openComparison = () => { setShowLLMIntegration(false); setBallotMode('preference'); setShowDiffComparison(true); };
+          window.addEventListener('vt-open-comparison', openComparison as EventListener);
+          return () => window.removeEventListener('vt-open-comparison', openComparison as EventListener);
+        }, []);
+        return null;
+      })()}
       {/* Global keyboard shortcuts: t (toggle view), b (ballot), c (compare), n (new), ? (shortcuts) */}
       {(() => {
         // Install once on mount
@@ -236,7 +251,7 @@ export const App: React.FC = () => {
           };
           document.addEventListener('keydown', onKey);
           return () => document.removeEventListener('keydown', onKey);
-        }, [showDiffComparison, showLLMIntegration, ballotMode]);
+        }, []);
         return null;
       })()}
       {/* Toolbar (portaled into header .toolbar) */}

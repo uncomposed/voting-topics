@@ -336,7 +336,7 @@ This tool validates all imported JSON against the schema. Invalid data will be r
             {/* Prompt Packs */}
             {promptPack && (
               <div style={{ marginBottom: 24 }}>
-                <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+                <div className="row" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
                   {promptPack.prompts.map((p) => (
                     <button
                       key={p.id}

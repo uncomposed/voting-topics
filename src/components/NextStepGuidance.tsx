@@ -114,41 +114,81 @@ export const NextStepGuidance: React.FC = () => {
       )}
 
       {currentFlowStep === 'complete' && (
-        <div style={{
-          marginTop: 12,
-          padding: '8px 12px',
-          background: 'rgba(155, 130, 255, 0.1)',
-          border: '1px solid rgba(155, 130, 255, 0.3)',
-          borderRadius: '6px',
-          fontSize: '0.85rem',
-          maxWidth: 840,
-          marginLeft: 'auto',
-          marginRight: 'auto'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 4 }}>
-            <span style={{ fontSize: '1rem' }}>🤖</span>
-            <span style={{ fontWeight: '600', color: 'var(--focus)' }}>
-              Pro Tip: Use with AI
-            </span>
+        <>
+          <div style={{
+            marginTop: 12,
+            padding: '12px 16px',
+            background: 'rgba(100, 255, 161, 0.1)',
+            border: '1px solid rgba(100, 255, 161, 0.3)',
+            borderRadius: '8px',
+            fontSize: '0.9rem',
+            maxWidth: 840,
+            marginLeft: 'auto',
+            marginRight: 'auto'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 8 }}>
+              <span style={{ fontSize: '1.2rem' }}>🎉</span>
+              <span style={{ fontWeight: '600', color: 'var(--accent)' }}>
+                Great job! Your preferences are ready
+              </span>
+            </div>
+            <div style={{ marginBottom: 12, color: 'var(--text-muted)' }}>
+              Now you can compare your preferences with others or create a sample ballot.
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                className="btn primary"
+                style={{ fontSize: '0.9rem' }}
+                onClick={() => window.dispatchEvent(new Event('vt-open-comparison'))}
+              >
+                Compare with Others
+              </button>
+              <button
+                className="btn"
+                style={{ fontSize: '0.9rem' }}
+                onClick={() => window.dispatchEvent(new Event('vt-create-ballot'))}
+              >
+                Create Sample Ballot
+              </button>
+            </div>
           </div>
-          <div className="muted" style={{ fontSize: '0.8rem' }}>
-            Export your data and ask your language model to help generate topics, refine directions, or create sample ballots.
-            <button
-              className="btn ghost"
-              style={{
-                fontSize: '0.8rem',
-                padding: '2px 6px',
-                marginLeft: '6px',
-                textDecoration: 'underline'
-              }}
-              onClick={() => {
-                window.dispatchEvent(new Event('vt-open-llm'));
-              }}
-            >
-              Try LLM Integration →
-            </button>
+          
+          <div style={{
+            marginTop: 12,
+            padding: '8px 12px',
+            background: 'rgba(155, 130, 255, 0.1)',
+            border: '1px solid rgba(155, 130, 255, 0.3)',
+            borderRadius: '6px',
+            fontSize: '0.85rem',
+            maxWidth: 840,
+            marginLeft: 'auto',
+            marginRight: 'auto'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 4 }}>
+              <span style={{ fontSize: '1rem' }}>🤖</span>
+              <span style={{ fontWeight: '600', color: 'var(--focus)' }}>
+                Pro Tip: Use with AI
+              </span>
+            </div>
+            <div className="muted" style={{ fontSize: '0.8rem' }}>
+              Export your data and ask your language model to help generate topics, refine directions, or create sample ballots.
+              <button
+                className="btn ghost"
+                style={{
+                  fontSize: '0.8rem',
+                  padding: '2px 6px',
+                  marginLeft: '6px',
+                  textDecoration: 'underline'
+                }}
+                onClick={() => {
+                  window.dispatchEvent(new Event('vt-open-llm'));
+                }}
+              >
+                Try LLM Integration →
+              </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

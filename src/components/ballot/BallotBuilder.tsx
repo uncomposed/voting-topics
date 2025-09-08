@@ -15,6 +15,7 @@ export const BallotBuilder: React.FC = () => {
   } = useStore();
   
   const [activeTab, setActiveTab] = useState<'election' | 'offices' | 'measures' | 'preview'>('election');
+  const [isMobile, setIsMobile] = useState(false);
   const tabsContainerRef = useRef<HTMLDivElement>(null);
   const tabRefs = {
     election: useRef<HTMLButtonElement>(null),
@@ -47,6 +48,17 @@ export const BallotBuilder: React.FC = () => {
     return () => window.removeEventListener('vt-open-ballot-preview', openPreview as EventListener);
   }, []);
 
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
+    };
+    checkMobile();
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    mediaQuery.addEventListener('change', checkMobile);
+    return () => mediaQuery.removeEventListener('change', checkMobile);
+  }, []);
+
   const handleCreateBallot = (electionInfo: ElectionInfo) => {
     createBallot(electionInfo);
     setActiveTab('offices');
@@ -62,6 +74,36 @@ export const BallotBuilder: React.FC = () => {
         <div className="ballot-header">
           <h1>Create Sample Ballot</h1>
           <p>Build a sample ballot based on your preferences</p>
+        </div>
+        
+        {/* AI Callout */}
+        <div style={{
+          margin: '16px 0',
+          padding: '12px 16px',
+          background: 'rgba(155, 130, 255, 0.1)',
+          border: '1px solid rgba(155, 130, 255, 0.3)',
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          flexDirection: isMobile ? 'column' : 'row'
+        }}>
+          <span style={{ fontSize: '1.2rem' }}>🤖</span>
+          <div style={{ flex: 1, textAlign: isMobile ? 'center' : 'left' }}>
+            <div style={{ fontWeight: '600', marginBottom: '4px', color: 'var(--focus)' }}>
+              Bring Your Own AI
+            </div>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+              You can get AI to do some of the work for you! Export your data and ask your language model to help generate topics, refine directions, or create sample ballots.
+            </div>
+          </div>
+          <button
+            className="btn ghost"
+            style={{ whiteSpace: 'nowrap', width: isMobile ? '100%' : 'auto' }}
+            onClick={() => window.dispatchEvent(new Event('vt-open-llm'))}
+          >
+            Try AI Integration →
+          </button>
         </div>
         
         <div className="ballot-setup">

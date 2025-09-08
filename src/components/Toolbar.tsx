@@ -281,7 +281,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   type NextAction = { label: string; onClick: () => void } | null;
   let nextAction: NextAction = null;
   if (!hasTopics) {
-    if (starterSelectedCount > 0) {
+    if (starterSelectedCount >= 3) {
+      nextAction = {
+        label: 'Add Selected',
+        onClick: () => window.dispatchEvent(new Event('vt-starter-add-selected')),
+      };
+    } else if (starterSelectedCount > 0) {
       nextAction = {
         label: `Add (${starterSelectedCount})`,
         onClick: () => window.dispatchEvent(new Event('vt-starter-add-selected')),
@@ -331,7 +336,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   }
 
   // If in empty state and there are selected starter topics, replace the Next CTA with Add (#)
-  if (!hasTopics && starterSelectedCount > 0) {
+  if (!hasTopics && starterSelectedCount >= 3) {
+    nextAction = {
+      label: 'Add Selected',
+      onClick: () => window.dispatchEvent(new Event('vt-starter-add-selected')),
+    };
+  } else if (!hasTopics && starterSelectedCount > 0) {
     nextAction = {
       label: `Add (${starterSelectedCount})`,
       onClick: () => window.dispatchEvent(new Event('vt-starter-add-selected')),
@@ -370,7 +380,24 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {nextAction && (
         <button className="btn primary" onClick={nextAction.onClick} id="btn-next-action"
           onMouseEnter={() => emitHint('next-action', 'btn-next-action', 'Smart next step based on your progress.')}
-        >{nextAction.label}</button>
+          style={{ position: 'relative' }}
+        >
+          {nextAction.label}
+          <span style={{ 
+            position: 'absolute', 
+            top: '1px', 
+            left: '1px', 
+            fontSize: '10px', 
+            background: 'var(--accent)', 
+            color: 'white', 
+            padding: '1px 3px', 
+            borderRadius: '6px',
+            fontWeight: '600',
+            lineHeight: '1'
+          }}>
+            Next
+          </span>
+        </button>
       )}
 
       {/* Desktop: surface Export when preferences are export-ready (parity with mobile) */}
