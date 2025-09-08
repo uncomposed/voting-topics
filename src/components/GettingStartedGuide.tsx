@@ -104,6 +104,7 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
           <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
             <li>Create a sample ballot for upcoming elections</li>
             <li>Export your preferences as JSON or PDF</li>
+            <li>Ask the AI assistant to build a ballot using the internet and our schema</li>
             <li>Compare different preference sets</li>
           </ul>
           <div style={{ background: 'rgba(100, 255, 161, 0.1)', padding: '8px', borderRadius: '6px', marginTop: '8px' }}>

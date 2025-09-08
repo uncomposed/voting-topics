@@ -138,7 +138,7 @@ export const mergePreferenceSetsSelective = (
 
   // Keep all current topics; if accepted and we have an incoming match, merge
   for (const t of current.topics) {
-    let match = incoming.topics.find(x => x.id === t.id) || incoming.topics.find(x => normalize(x.title) === normalize(t.title));
+    const match = incoming.topics.find(x => x.id === t.id) || incoming.topics.find(x => normalize(x.title) === normalize(t.title));
     if (match && acc.has(normalize(match.title))) {
       mergedTopics.push(mergeTopic(t, match));
     } else {

@@ -325,6 +325,8 @@ textarea {
 .starter-pack-item input[type="checkbox"] {
   margin: 0;
   flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 
 .starter-pack-title {
