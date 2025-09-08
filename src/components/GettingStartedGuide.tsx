@@ -24,7 +24,7 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
               rel="noopener noreferrer"
               style={{ marginLeft: 6, textDecoration: 'underline' }}
             >
-              Open an issue
+              Open an issue 
             </a>
             or
             <a
