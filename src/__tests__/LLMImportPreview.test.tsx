@@ -4,7 +4,9 @@ import { LLMIntegration } from '../components/LLMIntegration';
 import { useStore } from '../store';
 
 vi.mock('../store', () => ({
-  useStore: vi.fn(),
+  useStore: Object.assign(vi.fn(), {
+    getState: vi.fn()
+  })
 }));
 
 describe('LLMIntegration import preview', () => {
@@ -27,6 +29,7 @@ describe('LLMIntegration import preview', () => {
     vi.clearAllMocks();
     (useStore as any).mockImplementation((selector: any) => selector(mockStore));
     (useStore as any).setState = vi.fn();
+    (useStore as any).getState.mockReturnValue(mockStore);
   });
 
   it('shows diff preview and merges on request', async () => {

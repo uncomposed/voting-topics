@@ -80,7 +80,7 @@ describe('MobileActionBar', () => {
 
   it('adds a new topic with importance 0', async () => {
     render(<App />);
-    const newBtn = screen.getByRole('button', { name: /new topic/i });
+    const newBtn = document.getElementById('btn-new-topic')!;
     fireEvent.click(newBtn);
     expect(mockStore.addTopic).toHaveBeenCalledWith(0);
   });

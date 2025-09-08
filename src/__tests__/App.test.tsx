@@ -5,7 +5,9 @@ import { useStore } from '../store';
 
 // Mock the store
 vi.mock('../store', () => ({
-  useStore: vi.fn()
+  useStore: Object.assign(vi.fn(), {
+    getState: vi.fn()
+  })
 }));
 
 // Mock the exporters
@@ -95,6 +97,7 @@ describe('App Component', () => {
     vi.clearAllMocks();
     resetMockStore(); // Reset mock store state before each test
     (useStore as any).mockReturnValue(mockStore);
+    (useStore as any).getState.mockReturnValue(mockStore);
     mockDOMElements();
   });
 
