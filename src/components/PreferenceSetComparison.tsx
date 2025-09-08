@@ -4,7 +4,7 @@ import { parseIncomingPreferenceSet } from '../schema';
 import type { PreferenceSet } from '../schema';
 import { buildTemplate } from '../exporters';
 import { buildPreferenceSetFromPrefs, type PrefMap } from '../utils/library';
-import libraryIndexJson from '/politician-pref-sets/library.index.json';
+import libraryIndexJson from '../../politician-pref-sets/library.index.json';
 
 interface PreferenceSetComparisonProps {
   onClose: () => void;
