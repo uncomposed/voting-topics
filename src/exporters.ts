@@ -29,9 +29,10 @@ export const exportJSON = () => {
   const tpl = buildTemplate();
   const name = `${sanitize(tpl.title)}-${tpl.topics.length}t.json`;
   downloadFile(
-    new Blob([JSON.stringify(tpl, null, 2)], { type: 'application/json' }), 
+    new Blob([JSON.stringify(tpl, null, 2)], { type: 'application/json' }),
     name
   );
+  useStore.getState().recordExport('json');
 };
 
 export const exportPDF = async () => {
@@ -147,6 +148,7 @@ export const exportPDF = async () => {
   const name = `${sanitize(tpl.title)}-${tpl.topics.length}t.pdf`;
   doc.save(name);
   document.body.style.cursor = '';
+  useStore.getState().recordExport('pdf');
 };
 
 export const renderSocialCard = (tpl: Template): HTMLElement => {
@@ -204,6 +206,7 @@ export const exportJPEG = async () => {
     if (!blob) return alert('Could not capture image.');
     const name = `${sanitize(tpl.title)}-share.jpg`;
     downloadFile(blob, name);
+    useStore.getState().recordExport('jpeg');
   }, 'image/jpeg', 0.95);
   document.body.style.cursor = '';
 };
@@ -233,9 +236,10 @@ export const exportBallotJSON = () => {
   const ballot = buildBallot();
   const name = `${sanitize(ballot.title)}-ballot.json`;
   downloadFile(
-    new Blob([JSON.stringify(ballot, null, 2)], { type: 'application/json' }), 
+    new Blob([JSON.stringify(ballot, null, 2)], { type: 'application/json' }),
     name
   );
+  useStore.getState().recordExport('ballot-json');
 };
 
 export const exportBallotPDF = async () => {
@@ -398,6 +402,7 @@ export const exportBallotPDF = async () => {
   const name = `${sanitize(ballot.title)}-ballot.pdf`;
   doc.save(name);
   document.body.style.cursor = '';
+  useStore.getState().recordExport('ballot-pdf');
 };
 
 export const renderBallotCard = (ballot: Ballot): HTMLElement => {
@@ -459,6 +464,7 @@ export const exportBallotJPEG = async () => {
     if (!blob) return alert('Could not capture image.');
     const name = `${sanitize(ballot.title)}-ballot.jpg`;
     downloadFile(blob, name);
+    useStore.getState().recordExport('ballot-jpeg');
   }, 'image/jpeg', 0.95);
   document.body.style.cursor = '';
 };

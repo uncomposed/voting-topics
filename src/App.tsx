@@ -36,6 +36,8 @@ export const App: React.FC = () => {
   const [showDiffComparison, setShowDiffComparison] = useState(false);
   const [showLLMIntegration, setShowLLMIntegration] = useState(false);
   const [showGettingStarted, setShowGettingStarted] = useState(false);
+  const hasSeenOnboarding = useStore(state => state.hasSeenOnboarding);
+  const setHasSeenOnboarding = useStore(state => state.setHasSeenOnboarding);
 
   // Set up expand/collapse button handler (other buttons are wired in main.tsx)
   useEffect(() => {
@@ -73,6 +75,12 @@ export const App: React.FC = () => {
 
   // Keep URL share payload in sync with current topics
   useShareUrlSync(true, 500);
+
+  useEffect(() => {
+    if (!hasSeenOnboarding) {
+      setShowGettingStarted(true);
+    }
+  }, [hasSeenOnboarding]);
 
   // Card view handlers
   const handleTopicReorder = (topicId: string, newImportance: number) => {
@@ -301,7 +309,10 @@ export const App: React.FC = () => {
 
       {/* Getting Started Guide Modal */}
       {showGettingStarted && (
-        <GettingStartedGuide onClose={() => setShowGettingStarted(false)} />
+        <GettingStartedGuide onClose={() => {
+          setShowGettingStarted(false);
+          setHasSeenOnboarding(true);
+        }} />
       )}
 
       {/* Template Info (portaled into aside area) */}

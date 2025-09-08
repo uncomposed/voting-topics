@@ -15,7 +15,7 @@ export const StarterPackPicker: React.FC = () => {
   const topics = useStore(state => state.topics);
   const addTopicFromStarter = useStore(state => state.addTopicFromStarter);
   const currentFlowStep = useStore(state => state.currentFlowStep);
-  const setCurrentFlowStep = useStore(state => state.setCurrentFlowStep);
+  const advanceFlowStep = useStore(state => state.advanceFlowStep);
   const [pool] = useState<StarterTopic[]>(() => {
     const raw = (starterPack as any)?.topics || [];
     return raw.map((t: any) => ({ id: t.id, title: t.title, directions: (t.directions || []).map((d: any) => ({ text: d.text })) }));
@@ -44,6 +44,7 @@ export const StarterPackPicker: React.FC = () => {
       addTopicFromStarter(topic);
     });
     setSelected([]);
+    if (currentFlowStep === 'starter') advanceFlowStep();
   };
 
   const toggleAll = () => {
@@ -165,7 +166,6 @@ export const StarterPackPicker: React.FC = () => {
                 className="btn" 
                 onClick={() => {
                   addSelected();
-                  setCurrentFlowStep('cards');
                   // Trigger view change to card view
                   const toggleBtn = document.getElementById('btn-toggle-view');
                   if (toggleBtn && !toggleBtn.textContent?.includes('Card View')) {
