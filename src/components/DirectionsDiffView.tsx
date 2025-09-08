@@ -215,8 +215,9 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
       </div>
 
       <div className="directions-filters">
+        <div className="muted" style={{ fontWeight: 600, marginBottom: 4 }}>Filters</div>
         <div className="filter-group">
-          <label>Topic Filter:</label>
+          <label>Topic</label>
           <select 
             value={filters.topicFilter} 
             onChange={(e) => updateFilter('topicFilter', e.target.value as any)}
@@ -230,7 +231,7 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
         </div>
 
         <div className="filter-group">
-          <label>Direction Filter:</label>
+          <label>Direction</label>
           <select 
             value={filters.directionFilter} 
             onChange={(e) => updateFilter('directionFilter', e.target.value as any)}
@@ -244,7 +245,7 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
         </div>
 
         <div className="filter-group">
-          <label>Magnitude Filter:</label>
+          <label>Magnitude</label>
           <select 
             value={filters.magnitudeFilter} 
             onChange={(e) => updateFilter('magnitudeFilter', e.target.value as any)}

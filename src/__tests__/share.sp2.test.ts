@@ -4,67 +4,66 @@ import { encodeStarterPreferencesV2, decodeStarterPreferencesV2, extractAndDecod
 
 describe('sp2 share encoding', () => {
   it('roundtrips small set and stays short', () => {
-    const firearmsIdx = topicIndex.indexOf('topic-firearms');
-    const climateIdx = topicIndex.indexOf('topic-climate');
-    expect(firearmsIdx).toBeGreaterThanOrEqual(0);
-    expect(climateIdx).toBeGreaterThanOrEqual(0);
+    // Choose first topic with at least 2 directions and another with at least 1
+    const t1 = directionIndex.findIndex(row => (row?.length || 0) >= 2);
+    const t2 = directionIndex.findIndex((row, i) => i !== t1 && (row?.length || 0) >= 1);
+    expect(t1).toBeGreaterThanOrEqual(0);
+    expect(t2).toBeGreaterThanOrEqual(0);
+
+    const t1row = directionIndex[t1];
+    const t2row = directionIndex[t2];
+    const t1d1 = t1row[0];
+    const t1d2 = t1row[1];
+    const t2d1 = t2row[0];
 
     const topics: Topic[] = [
       {
-        id: 'topic-firearms',
-        title: 'Firearms',
+        id: topicIndex[t1],
+        title: topicIndex[t1],
         importance: 5,
         stance: 'neutral',
         directions: [
-          { id: 'dir-f1', text: 'Much less death and injury by firearms', stars: 3, sources: [], tags: [] },
-          { id: 'dir-f2', text: 'People use firearms responsibly', stars: 2, sources: [], tags: [] },
+          { id: t1d1, text: 'A', stars: 3, sources: [], tags: [] },
+          { id: t1d2, text: 'B', stars: 2, sources: [], tags: [] },
         ],
-        notes: '',
-        sources: [],
-        relations: { broader: [], narrower: [], related: [] },
+        notes: '', sources: [], relations: { broader: [], narrower: [], related: [] },
       },
       {
-        id: 'topic-climate',
-        title: 'Climate',
+        id: topicIndex[t2],
+        title: topicIndex[t2],
         importance: 4,
         stance: 'neutral',
         directions: [
-          { id: 'dir-c1', text: 'Lower greenhouse gas emissions', stars: 5, sources: [], tags: [] },
+          { id: t2d1, text: 'C', stars: 5, sources: [], tags: [] },
         ],
-        notes: '',
-        sources: [],
-        relations: { broader: [], narrower: [], related: [] },
+        notes: '', sources: [], relations: { broader: [], narrower: [], related: [] },
       },
     ];
 
     const payload = encodeStarterPreferencesV2(topics);
     expect(typeof payload).toBe('string');
-    // sanity: should be fairly short for a small set
     expect(payload.length).toBeLessThan(120);
 
     const decoded = decodeStarterPreferencesV2(payload)!;
     expect(decoded).toBeTruthy();
-    // tip should include both topics
-    expect(decoded.tip).toContainEqual([firearmsIdx, 5]);
-    expect(decoded.tip).toContainEqual([climateIdx, 4]);
+    expect(decoded.tip).toContainEqual([t1, 5]);
+    expect(decoded.tip).toContainEqual([t2, 4]);
 
-    // dsp should include specific directions
-    const fRow = directionIndex[firearmsIdx];
-    const cRow = directionIndex[climateIdx];
-    const f1 = fRow.indexOf('dir-f1');
-    const f2 = fRow.indexOf('dir-f2');
-    const c1 = cRow.indexOf('dir-c1');
+    const f1 = directionIndex[t1].indexOf(t1d1);
+    const f2 = directionIndex[t1].indexOf(t1d2);
+    const c1 = directionIndex[t2].indexOf(t2d1);
     expect(f1).toBeGreaterThanOrEqual(0);
     expect(f2).toBeGreaterThanOrEqual(0);
     expect(c1).toBeGreaterThanOrEqual(0);
-    expect(decoded.dsp).toContainEqual([firearmsIdx, f1, 3]);
-    expect(decoded.dsp).toContainEqual([firearmsIdx, f2, 2]);
-    expect(decoded.dsp).toContainEqual([climateIdx, c1, 5]);
+    expect(decoded.dsp).toContainEqual([t1, f1, 3]);
+    expect(decoded.dsp).toContainEqual([t1, f2, 2]);
+    expect(decoded.dsp).toContainEqual([t2, c1, 5]);
   });
 
   it('extracts from #sp2= URL', () => {
+    const id0 = topicIndex[0];
     const topics: Topic[] = [
-      { id: 'topic-firearms', title: 'Firearms', importance: 1, stance: 'neutral', directions: [], notes: '', sources: [], relations: { broader: [], narrower: [], related: [] } },
+      { id: id0, title: id0, importance: 1, stance: 'neutral', directions: [], notes: '', sources: [], relations: { broader: [], narrower: [], related: [] } },
     ];
     const p2 = encodeStarterPreferencesV2(topics);
     const url = `https://example.com/app#sp2=${p2}`;
@@ -95,14 +94,13 @@ describe('sp2 share encoding', () => {
   });
 
   it('clamps values to 0..5', () => {
-    const firearmsIdx = topicIndex.indexOf('topic-firearms');
-    expect(firearmsIdx).toBeGreaterThanOrEqual(0);
-    const drow = directionIndex[firearmsIdx];
-    const dirId = drow[0];
+    const ti = directionIndex.findIndex(row => (row?.length || 0) >= 1);
+    expect(ti).toBeGreaterThanOrEqual(0);
+    const dirId = directionIndex[ti][0];
     const topics: Topic[] = [
       {
-        id: 'topic-firearms',
-        title: 'Firearms',
+        id: topicIndex[ti],
+        title: topicIndex[ti],
         importance: 9, // should clamp to 5
         stance: 'neutral',
         directions: [
@@ -113,10 +111,10 @@ describe('sp2 share encoding', () => {
     ];
     const p = encodeStarterPreferencesV2(topics);
     const decoded = decodeStarterPreferencesV2(p)!;
-    const tipEntry = decoded.tip.find(([i]) => i === firearmsIdx);
+    const tipEntry = decoded.tip.find(([i]) => i === ti);
     expect(tipEntry?.[1]).toBe(5);
-    const di = directionIndex[firearmsIdx].indexOf(dirId);
-    const dspEntry = decoded.dsp.find(([ti, dj]) => ti === firearmsIdx && dj === di);
+    const di = directionIndex[ti].indexOf(dirId);
+    const dspEntry = decoded.dsp.find(([tidx, dj]) => tidx === ti && dj === di);
     expect(dspEntry?.[2]).toBe(5);
   });
 

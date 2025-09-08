@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - JSON import via Vite/TS
-import starterPack from '../../starter-pack.v1.json';
+import starterPack from '../../starter-pack.v2.4.json';
 
 
 interface StarterTopic { 

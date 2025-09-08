@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { PreferenceSetDiffView } from './PreferenceSetDiffView';
 import { parseIncomingPreferenceSet } from '../schema';
 import type { PreferenceSet } from '../schema';
 import { buildTemplate } from '../exporters';
+import { buildPreferenceSetFromPrefs, type PrefMap } from '../utils/library';
+import libraryIndexJson from '/politician-pref-sets/library.index.json';
 
 interface PreferenceSetComparisonProps {
   onClose: () => void;
@@ -13,6 +15,39 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
   const [rightPreferenceSet, setRightPreferenceSet] = useState<PreferenceSet | null>(null);
   const [step, setStep] = useState<'upload' | 'compare'>('upload');
   const [error, setError] = useState<string>('');
+  const [selectedLeftLib, setSelectedLeftLib] = useState<string>('');
+  const [selectedRightLib, setSelectedRightLib] = useState<string>('');
+
+  // Prefer a compact index that stores only stars-by-id and synthesize sets on demand
+  type LibraryIndexCandidate = {
+    id?: string;
+    name?: string;
+    year?: number;
+    party?: string;
+    stage?: string;
+    title?: string;
+    notes?: string;
+    prefs: PrefMap;
+  };
+  type LibraryIndex = { version?: string; candidates?: LibraryIndexCandidate[] };
+  const library = useMemo(() => {
+    type LibItem = { id: string; title: string; build: () => PreferenceSet };
+    const items: LibItem[] = [];
+    // Use compact index only (prevents bundling bulky JSON files)
+    try {
+      const obj = libraryIndexJson as unknown as LibraryIndex;
+      const arr = Array.isArray(obj?.candidates) ? obj.candidates : [];
+      for (const c of arr) {
+        if (!c || !c.title || !c.prefs) continue;
+        const id = c.id || `${String(c.name||'candidate')}-${String(c.year||'')}-${String(c.stage||'')}`.toLowerCase().replace(/\s+/g,'-');
+        const prefs: PrefMap = c.prefs;
+        const title = String(c.title);
+        items.push({ id, title, build: () => buildPreferenceSetFromPrefs(title, prefs, c.notes || '') });
+      }
+    } catch (_e) { void 0; }
+    items.sort((a, b) => a.title.localeCompare(b.title));
+    return items;
+  }, []);
 
   // Support global clear event from Toolbar/Menu
   React.useEffect(() => {
@@ -126,9 +161,35 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
                   Use Current
                 </button>
                 <button className="btn small" onClick={() => {
-                  const url = prompt('Paste JSON URL');
+                  const url = prompt('Paste link');
                   if (url) handleUrlLoad(url, 'left');
                 }}>Load from URL</button>
+                {library.length > 0 && (
+                  <div style={{ background: 'rgba(139, 211, 255, 0.12)', border: '1px solid rgba(139, 211, 255, 0.35)', borderRadius: 6, padding: 8, marginTop: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <select
+                      className="btn-select"
+                      aria-label="Select Politician (Set A)"
+                      value={selectedLeftLib}
+                      onChange={(e) => setSelectedLeftLib(e.currentTarget.value)}
+                    >
+                      <option value="">Select Politician…</option>
+                      {library.map(item => (
+                        <option key={item.id} value={item.id}>{item.title}</option>
+                      ))}
+                    </select>
+                    <button
+                      className="btn small primary"
+                      style={{ marginLeft: 8 }}
+                      disabled={!selectedLeftLib}
+                      onClick={() => {
+                        const chosen = library.find(i => i.id === selectedLeftLib);
+                        if (chosen) setLeftPreferenceSet(chosen.build());
+                      }}
+                    >
+                      Load Selected
+                    </button>
+                  </div>
+                )}
                 {leftPreferenceSet && (
                   <button className="btn small ghost" onClick={() => setLeftPreferenceSet(null)}>
                     Clear
@@ -174,9 +235,35 @@ export const PreferenceSetComparison: React.FC<PreferenceSetComparisonProps> = (
                   Use Current
                 </button>
                 <button className="btn small" onClick={() => {
-                  const url = prompt('Paste JSON URL');
+                  const url = prompt('Paste link');
                   if (url) handleUrlLoad(url, 'right');
                 }}>Load from URL</button>
+                {library.length > 0 && (
+                  <div style={{ background: 'rgba(139, 211, 255, 0.12)', border: '1px solid rgba(139, 211, 255, 0.35)', borderRadius: 6, padding: 8, marginTop: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <select
+                      className="btn-select"
+                      aria-label="Select Politician (Set B)"
+                      value={selectedRightLib}
+                      onChange={(e) => setSelectedRightLib(e.currentTarget.value)}
+                    >
+                      <option value="">Select Politician…</option>
+                      {library.map(item => (
+                        <option key={item.id} value={item.id}>{item.title}</option>
+                      ))}
+                    </select>
+                    <button
+                      className="btn small primary"
+                      style={{ marginLeft: 8 }}
+                      disabled={!selectedRightLib}
+                      onClick={() => {
+                        const chosen = library.find(i => i.id === selectedRightLib);
+                        if (chosen) setRightPreferenceSet(chosen.build());
+                      }}
+                    >
+                      Load Selected
+                    </button>
+                  </div>
+                )}
                 {rightPreferenceSet && (
                   <button className="btn small ghost" onClick={() => setRightPreferenceSet(null)}>
                     Clear

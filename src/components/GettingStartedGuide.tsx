@@ -16,6 +16,27 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
           <div style={{ background: 'rgba(139, 211, 255, 0.1)', padding: '12px', borderRadius: '6px', marginTop: '12px' }}>
             <strong>⏱️ Time Estimate:</strong> 15-30 minutes for a complete preference set
           </div>
+          <div style={{ marginTop: 12, fontSize: '0.9rem' }}>
+            Want to suggest improvements to the starter pack?
+            <a
+              href="https://github.com/uncomposed/voting-topics/issues/new"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ marginLeft: 6, textDecoration: 'underline' }}
+            >
+              Open an issue
+            </a>
+            or
+            <a
+              href="https://github.com/uncomposed/voting-topics/pulls"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ marginLeft: 6, textDecoration: 'underline' }}
+            >
+              create a pull request
+            </a>
+            .
+          </div>
         </div>
       )
     },
@@ -36,17 +57,24 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
       )
     },
     {
-      title: "Step 2: Add Directions (10-15 minutes)",
+      title: "Step 2: Topics vs. Directions (why they feel abstract)",
       content: (
         <div>
-          <p>For each topic, add specific directions - the outcomes you want to see:</p>
+          <p>
+            Topics are containers (e.g., "Privacy", "Housing"). Directions are the outcomes you want under a topic
+            (e.g., "Less unauthorized surveillance", "Housing costs take a smaller share of income").
+          </p>
+          <p>
+            You won’t see specific policies or bills here by default. That’s intentional: we separate <em>ends</em> (outcomes you care about)
+            from <em>means</em> (policies that might achieve them). This keeps the conversation constructive and makes sharing preferences concise.
+          </p>
           <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
-            <li>Be specific: "Reduce gun violence" not just "Gun policy"</li>
-            <li>Add 2-5 directions per topic</li>
-            <li>Include both positive and negative outcomes</li>
+            <li>Add 2–5 directions per topic</li>
+            <li>Be concrete about results, not prescriptions</li>
+            <li>Rate each direction’s importance later (0–5 stars)</li>
           </ul>
           <div style={{ background: 'rgba(255, 209, 102, 0.1)', padding: '8px', borderRadius: '6px', marginTop: '8px' }}>
-            <strong>🎯 Goal:</strong> Capture the nuances of your views
+            <strong>💡 Why this design?</strong> It avoids unproductive policy fights and highlights shared goals first.
           </div>
         </div>
       )

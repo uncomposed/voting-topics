@@ -38,6 +38,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  max-width: 100%;
 }
 
 .filter-group label {
@@ -45,6 +46,22 @@
   font-size: 14px;
   white-space: nowrap;
 }
+
+/* Make selects behave like buttons and never overflow */
+.directions-filters .select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  max-width: 100%;
+}
+.directions-filters .select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.directions-filters .select:hover { border-color: var(--accent); }
 
 .directions-stats {
   display: flex;
@@ -253,6 +270,8 @@
     align-items: flex-start;
     gap: 12px;
   }
+  .filter-group { width: 100%; }
+  .filter-group .select { width: 100%; box-sizing: border-box; }
   
   .directions-stats {
     flex-direction: column;

@@ -3,10 +3,12 @@ import type { Topic } from '../schema';
 // Import the current starter pack to derive a stable index
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - JSON import is enabled via Vite
-import starterPack from '../../starter-pack.v1.json';
+import starterPack from '../../starter-pack.v2.4.json';
 
 // Stable pack identifier. Increment when the starter index order changes.
-export const packId = 'sp-v1';
+// Keep older IDs decodable for existing links.
+export const packId = 'sp-v2.4';
+const allowedPackIds = new Set<string>(['sp-v2.4', 'sp-v1']);
 
 type StarterPack = { topics: Array<{ id: string; directions?: Array<{ id: string }> }> };
 const sp = (starterPack as StarterPack) || { topics: [] };
@@ -73,8 +75,12 @@ export type StarterPayload = StarterPayloadDense | StarterPayloadSparse;
 // Format: [0x02, packCode]
 //         varint Nti, then Nti * (varint topicIdx, u8 importance)
 //         varint Ndsp, then Ndsp * (varint topicIdx, varint dirIdx, u8 stars)
-const packCode = (id: string): number => (id === 'sp-v1' ? 1 : 0);
-const packFromCode = (code: number): string => (code === 1 ? 'sp-v1' : 'sp-v1');
+const PACK_CODES: Record<string, number> = { 'sp-v1': 1, 'sp-v2.4': 2 };
+const packCode = (id: string): number => PACK_CODES[id] ?? 0;
+const packFromCode = (code: number): string => {
+  const entry = Object.entries(PACK_CODES).find(([, v]) => v === code);
+  return entry ? entry[0] : 'sp-v1';
+};
 
 export const encodeStarterPreferencesV2 = (topics: Topic[]): string => {
   // Build sparse like v1, then pack
@@ -175,7 +181,7 @@ export const decodeStarterPreferences = (payload: string): StarterPayload | null
     // Fallback to v1 JSON sparse/dense
     const json = base64urlDecode(payload);
     const obj = JSON.parse(json) as StarterPayload;
-    if (!obj || (obj as any).v !== packId) return null;
+    if (!obj || !allowedPackIds.has((obj as any).v)) return null;
     return obj;
   } catch {
     return null;

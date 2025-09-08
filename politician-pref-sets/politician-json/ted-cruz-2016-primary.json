@@ -1,0 +1,1417 @@
+{
+  "version": "tsb.v1",
+  "title": "Ted Cruz — 2016 (R) Primary",
+  "notes": "",
+  "createdAt": "2025-09-08T00:44:25Z",
+  "updatedAt": "2025-09-08T00:44:25Z",
+  "topics": [
+    {
+      "id": "topic-economy-work",
+      "title": "Economy & Work",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-lw1",
+          "text": "Real wages are higher",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-lw2",
+          "text": "Job stability is higher (lower involuntary separations/underemployment)",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-lw3",
+          "text": "Fewer exploitative working conditions",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-lw4",
+          "text": "Workforce skills better match employer needs",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-lw5",
+          "text": "Worker benefits (leave, healthcare) are more accessible",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ec1",
+          "text": "Employment rate is higher",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ec2",
+          "text": "Inflation is lower and more stable",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ec3",
+          "text": "Productivity and innovation grow faster",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ec4",
+          "text": "Small business creation and survival improve",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ec5",
+          "text": "Manufacturing output and jobs increase",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ec6",
+          "text": "Labor force participation is higher",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ec7",
+          "text": "Federal deficit is lower",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ec8",
+          "text": "National debt grows more slowly",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ip1",
+          "text": "Strategic industries add capacity in the U.S.",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ip2",
+          "text": "R&D-to-production transitions are faster",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ip3",
+          "text": "Permitting and siting for factories are faster",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-taxes",
+      "title": "Taxes",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-ta1",
+          "text": "Tax burden is perceived as fairer",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ta2",
+          "text": "Tax compliance is simpler",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ta3",
+          "text": "Revenues are more predictable for essential services",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ta4",
+          "text": "Tax base is broader with fewer loopholes",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ta5",
+          "text": "Tax incentives encourage domestic investment",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-healthcare",
+      "title": "Healthcare",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-he1",
+          "text": "More people have affordable coverage",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-he2",
+          "text": "Preventable deaths are lower",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-he3",
+          "text": "Fewer medical bankruptcies",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-public-health",
+      "title": "Public Health",
+      "importance": 4,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-ph1",
+          "text": "Pandemic preparedness and response capacity are stronger",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ph2",
+          "text": "Vaccination coverage and trust are higher",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ph3",
+          "text": "Overdose and addiction-related deaths are lower",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ph4",
+          "text": "Mental and behavioral health outcomes improve",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ph5",
+          "text": "Public health data systems are more interoperable and timely",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ph6",
+          "text": "Childhood obesity and chronic disease rates are lower",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-reproductive-health",
+      "title": "Reproductive Health",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-a1",
+          "text": "Abortion is less frequently needed",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-a2",
+          "text": "Abortion care is safe when needed",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-a3",
+          "text": "People face fewer barriers in private medical decisions",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-climate-change",
+      "title": "Climate Change",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-c1",
+          "text": "Lower greenhouse gas emissions",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-c2",
+          "text": "Communities are more resilient to climate-related disasters",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-c3",
+          "text": "Less climate-related damage to health and property",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-c4",
+          "text": "Climate targets are met on schedule",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-c5",
+          "text": "Climate-related insurance costs rise more slowly",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-energy",
+      "title": "Energy",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-en1",
+          "text": "Fewer blackouts and energy disruptions",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-en2",
+          "text": "Energy comes from a more diverse set of sources",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-en3",
+          "text": "Lower pollution from energy production and use",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-en4",
+          "text": "Permitting timelines for energy projects are shorter",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-en5",
+          "text": "Firm clean power capacity increases (e.g., nuclear)",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-environment",
+      "title": "Environment",
+      "importance": 3,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-e1",
+          "text": "Cleaner air and water",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-e2",
+          "text": "Biodiversity and habitats are preserved",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-e3",
+          "text": "Public lands are well stewarded and accessible",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-e4",
+          "text": "Industrial pollution incidents are less frequent",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-e5",
+          "text": "Community exposure to environmental hazards is reduced",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-education",
+      "title": "Education",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-ed1",
+          "text": "Students achieve higher learning outcomes",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ed2",
+          "text": "Gaps in educational quality are smaller",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ed3",
+          "text": "Graduates are better prepared for jobs and civic life",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ed4",
+          "text": "Parents have clearer insight into curricula and school performance",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ed5",
+          "text": "Postsecondary education is more affordable",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ed6",
+          "text": "Student debt burdens are lower",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-immigration",
+      "title": "Immigration",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-im1",
+          "text": "The immigration system is more orderly and predictable",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-im2",
+          "text": "Immigrants integrate successfully into society",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-im3",
+          "text": "Unlawful crossings and violations are reduced",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-im4",
+          "text": "Asylum claims are resolved faster and more fairly",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-im5",
+          "text": "Employer verification is more consistent",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-im6",
+          "text": "Visa processing times are shorter",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-justice-rights-safety",
+      "title": "Justice, Rights & Safety",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-cj1",
+          "text": "Violent crime is lower",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cj2",
+          "text": "Unnecessary incarceration is lower",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cj3",
+          "text": "Fair treatment across groups improves",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cj4",
+          "text": "Recidivism rates are lower",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cj5",
+          "text": "Clear accountability in cases of police misconduct",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cr1",
+          "text": "Racial and ethnic disparities are reduced",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cr2",
+          "text": "LGBTQ+ people have equal protections and inclusion",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cr3",
+          "text": "Disability access and inclusion improve",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cr4",
+          "text": "Religious minorities are protected from discrimination",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ps2",
+          "text": "Traffic deaths and serious injuries are lower",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ps3",
+          "text": "Emergency response times are shorter",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ps4",
+          "text": "Fewer overdose deaths linked to illicit drug trafficking",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ps5",
+          "text": "Hate crimes and bias-motivated incidents are lower",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-elections-campaign-finance",
+      "title": "Elections & Campaign Finance",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-v1",
+          "text": "Voter turnout is higher",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-v2",
+          "text": "Wait times at polling places are shorter",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-v3",
+          "text": "Fewer ballots are rejected due to errors",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-v4",
+          "text": "Public confidence in election integrity is higher",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-v5",
+          "text": "Voter rolls are more accurate and up to date",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cf1",
+          "text": "Influence of large donors and dark money is reduced",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cf2",
+          "text": "Campaign finance transparency is higher",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cf3",
+          "text": "Stronger revolving-door and lobbying limits",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cf4",
+          "text": "Small-donor participation is higher",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-governance-judiciary-ethics",
+      "title": "Governance, Judiciary & Ethics",
+      "importance": 4,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-gov1",
+          "text": "Government services are more efficient and accessible",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-gov2",
+          "text": "Corruption and self-dealing are reduced",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-gov3",
+          "text": "Data and decisions are more transparent and auditable",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-gov4",
+          "text": "Conflicts of interest are disclosed and managed better",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-gov5",
+          "text": "Public services adopt modern, user-friendly digital interfaces",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ju1",
+          "text": "Federal court vacancies are filled promptly",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ju2",
+          "text": "Court backlogs and case times are shorter",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ju3",
+          "text": "Public confidence in judicial impartiality is higher",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-foreign-policy-security",
+      "title": "Foreign Policy & Security",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-ia1",
+          "text": "Alliances are more reliable and effective",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ia2",
+          "text": "Defense burdens are more evenly shared",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ia3",
+          "text": "Crises are addressed more often with allied cooperation",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ia4",
+          "text": "Collective deterrence against adversaries is stronger",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ia5",
+          "text": "Allied supply chains are less dependent on adversaries",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-tr1",
+          "text": "Supply chains are more resilient to shocks",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-tr2",
+          "text": "Domestic workers benefit more from trade",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-tr3",
+          "text": "Consumer prices are more stable",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-tr4",
+          "text": "U.S. strategic sectors are less dependent on adversaries",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-tr5",
+          "text": "Trade enforcement actions are more timely and predictable",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-mi1",
+          "text": "Deterrence is stronger and readiness is higher",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-mi2",
+          "text": "Fewer unnecessary overseas deployments",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-mi3",
+          "text": "Veterans receive better care and support",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-mi4",
+          "text": "Procurement delivers better value and fewer overruns",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-mi5",
+          "text": "Recruitment and retention goals are met",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-fp1",
+          "text": "Russia’s aggression is deterred without destabilizing Europe",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-fp2",
+          "text": "Israel’s security is stable",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-fp3",
+          "text": "Prospects for Palestinian self-determination improve",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-fp4",
+          "text": "U.S. role in Middle East conflicts is more stabilizing than destabilizing",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-fp5",
+          "text": "U.S. deterrence in the Indo-Pacific is credible",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-fp6",
+          "text": "Taiwan’s security is stable",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-technology-privacy",
+      "title": "Technology & Privacy",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-pr1",
+          "text": "Less collection and retention of personal data",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-pr2",
+          "text": "People have more control over their digital identities",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-pr3",
+          "text": "Unauthorized surveillance is reduced",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-pr4",
+          "text": "Data breaches and identity theft are less frequent",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-pr5",
+          "text": "Government and corporate data use is more transparent",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-te1",
+          "text": "People have stronger privacy protections online",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-te2",
+          "text": "Harmful uses of technology are reduced (fraud, disinformation)",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-te3",
+          "text": "Benefits of technology are more broadly shared",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-te4",
+          "text": "Online content moderation is more transparent and consistent",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-te5",
+          "text": "Market concentration in key tech sectors is lower",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-te6",
+          "text": "Critical infrastructure is more resilient to cyber threats",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-science-research-innovation",
+      "title": "Science, Research & Innovation",
+      "importance": 4,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-sr1",
+          "text": "Public trust in science is higher",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-sr2",
+          "text": "More open access to publicly funded research",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-sr3",
+          "text": "Research outcomes are more reproducible",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-sr4",
+          "text": "Federal funding for basic research is stable and predictable",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-sr5",
+          "text": "Scientific findings are less distorted by political or commercial influence",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-agriculture-rural",
+      "title": "Agriculture & Rural",
+      "importance": 4,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-ag1",
+          "text": "Farm incomes are more stable across price shocks",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ag2",
+          "text": "Rural broadband access and reliability improve",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-ag3",
+          "text": "Soil and water conservation outcomes improve on working lands",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-infrastructure-housing",
+      "title": "Infrastructure & Housing",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-h1",
+          "text": "Housing costs are a smaller share of income",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-h2",
+          "text": "More homes are available near jobs and transit",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-h3",
+          "text": "Fewer people are displaced or evicted",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-h4",
+          "text": "Permitting and approval timelines for housing are shorter",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-h5",
+          "text": "Homelessness is lower",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-in1",
+          "text": "Transportation systems are safer and more reliable",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-in2",
+          "text": "Commute times and congestion are reduced",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-in3",
+          "text": "Critical infrastructure is more resilient to disasters",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-church-state",
+      "title": "Church & State",
+      "importance": 4,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-cs1",
+          "text": "Religious freedom is better protected for minority faiths and non-believers",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cs2",
+          "text": "Government policy is less influenced by religious doctrine",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cs3",
+          "text": "Public funds are not used for religious purposes",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cs4",
+          "text": "Individuals face fewer barriers to practicing religion privately",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-cs5",
+          "text": "Fewer disputes arise over religious symbols in public institutions",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-cost-of-living",
+      "title": "Cost of Living",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-col1",
+          "text": "Everyday essentials (groceries, gas, utilities) are more affordable",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-col2",
+          "text": "Food is affordable and accessible",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-col3",
+          "text": "Housing costs are a smaller share of income",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-col4",
+          "text": "Inflation is lower and more stable",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-guns-firearms",
+      "title": "Guns & Firearms",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-gf1",
+          "text": "Gun deaths and injuries are lower",
+          "stars": 3,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-gf2",
+          "text": "Law-abiding citizens retain access to firearms",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-gf3",
+          "text": "Background checks and compliance are stronger",
+          "stars": 2,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-gf4",
+          "text": "Violent crime is lower",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    },
+    {
+      "id": "topic-retirement-security",
+      "title": "Retirement Security",
+      "importance": 5,
+      "stance": "neutral",
+      "directions": [
+        {
+          "id": "dir-rs1",
+          "text": "Social Security benefits are stable and predictable",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-rs2",
+          "text": "Medicare benefits are stable and predictable",
+          "stars": 5,
+          "sources": [],
+          "tags": []
+        },
+        {
+          "id": "dir-rs3",
+          "text": "Retirement savings last longer against inflation",
+          "stars": 4,
+          "sources": [],
+          "tags": []
+        }
+      ],
+      "notes": "",
+      "sources": [],
+      "relations": {
+        "broader": [],
+        "narrower": [],
+        "related": []
+      }
+    }
+  ]
+}

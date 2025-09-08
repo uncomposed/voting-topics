@@ -652,6 +652,18 @@ textarea {
   text-overflow: ellipsis;
 }
 
+/* Icon-sized buttons: do not stretch; keep compact footprint */
+.mobile-action-bar .btn.icon {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
 @media (max-width: 768px) {
   .mobile-action-bar .btn { font-size: 0.9rem; padding: 10px 12px; }
 }
@@ -684,6 +696,31 @@ textarea {
   /* prevent content from being obscured by fixed action bar */
   .container { padding-bottom: 110px; }
 }
+
+/* Ensure topic cards never overflow their container on mobile */
+@media (max-width: 768px) {
+  .panel .topic-card { max-width: 100%; box-sizing: border-box; }
+  .panel .topic { max-width: 100%; box-sizing: border-box; overflow: hidden; }
+  .topic-header-main .input { min-width: 0; }
+}
+
+/* Make native selects look like ghost buttons */
+.btn-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+}
+.btn-select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.btn-select:hover { border-color: var(--accent); }
+
+/* Give Next button more breathing room on mobile */
+.mobile-action-bar #m-next { flex: 2; }
 
 /* Mobile slide-out menu */
 .mobile-hamburger {
@@ -1776,8 +1813,9 @@ textarea {
 
 .topic-diff-controls {
   display: flex;
-  gap: 16px;
+  gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .topic-diff-list {
@@ -2053,11 +2091,11 @@ textarea {
     flex-direction: column;
     gap: 20px;
     align-items: center;
+    overflow: hidden; /* prevent rounded container overflow */
   }
   
-  .summary-stats {
-    gap: 20px;
-  }
+  .summary-stats { gap: 20px; flex-wrap: wrap; justify-content: center; }
+  .stat-item { min-width: 76px; }
   
   .diff-tabs {
     flex-direction: column;

@@ -66,5 +66,7 @@
     "typescript"
   ],
   "author": "",
-  "license": "MIT"
-}
+  "license": "MIT",
+    "library:build": "node scripts/build-library-index.mjs",
+    "library:expand": "node scripts/expand-library-index.mjs"
+  }

@@ -119,6 +119,30 @@ export const App: React.FC = () => {
   return (
     <>
       {(() => {
+        // Global view events to switch special views reliably even when Compare is open
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        React.useEffect(() => {
+          const openLlm = () => { setShowDiffComparison(false); setBallotMode('preference'); setShowLLMIntegration(true); };
+          const openDiff = () => { setShowLLMIntegration(false); setBallotMode('preference'); setShowDiffComparison(true); };
+          const backPrefs = () => { setShowLLMIntegration(false); setShowDiffComparison(false); setBallotMode('preference'); };
+          const openGS = () => { setShowLLMIntegration(false); setShowDiffComparison(false); setBallotMode('preference'); setShowGettingStarted(true); };
+          const exitSpecial = () => { setShowLLMIntegration(false); setShowDiffComparison(false); setBallotMode('preference'); setShowCards(false); };
+          window.addEventListener('vt-open-llm', openLlm as EventListener);
+          window.addEventListener('vt-open-diff', openDiff as EventListener);
+          window.addEventListener('vt-back-preferences', backPrefs as EventListener);
+          window.addEventListener('vt-open-getting-started', openGS as EventListener);
+          window.addEventListener('vt-exit-special', exitSpecial as EventListener);
+          return () => {
+            window.removeEventListener('vt-open-llm', openLlm as EventListener);
+            window.removeEventListener('vt-open-diff', openDiff as EventListener);
+            window.removeEventListener('vt-back-preferences', backPrefs as EventListener);
+            window.removeEventListener('vt-open-getting-started', openGS as EventListener);
+            window.removeEventListener('vt-exit-special', exitSpecial as EventListener);
+          };
+        }, []);
+        return null;
+      })()}
+      {(() => {
         // On first mount, check for starter preferences payload in the URL hash
         // Auto-apply and show success with undo, then clear the hash
         // eslint-disable-next-line react-hooks/rules-of-hooks

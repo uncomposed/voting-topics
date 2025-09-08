@@ -19,14 +19,14 @@ describe('applyStarterPreferences', () => {
   });
 
   it('appends missing starter topics when payload has non-zero data', () => {
-    const firearmsIdx = topicIndex.indexOf('topic-firearms');
-    expect(firearmsIdx).toBeGreaterThanOrEqual(0);
-    const d0 = directionIndex[firearmsIdx]?.[0];
+    const ti = directionIndex.findIndex(row => (row?.length || 0) >= 1);
+    expect(ti).toBeGreaterThanOrEqual(0);
+    const tid = topicIndex[ti];
+    const d0 = directionIndex[ti]?.[0];
     expect(typeof d0).toBe('string');
 
-    // Build a small topic set with non-zero values
     const topics: Topic[] = [
-      { id: 'topic-firearms', title: 'Firearms', importance: 3, stance: 'neutral',
+      { id: tid, title: tid, importance: 3, stance: 'neutral',
         directions: d0 ? [{ id: d0!, text: 'x', stars: 4, sources: [], tags: [] }] : [],
         notes: '', sources: [], relations: { broader: [], narrower: [], related: [] } },
     ];
@@ -37,7 +37,7 @@ describe('applyStarterPreferences', () => {
     expect(applied).toBeGreaterThanOrEqual(1);
 
     const state = useStore.getState();
-    const added = state.topics.find(t => t.id === 'topic-firearms' || t.title === 'Firearms');
+    const added = state.topics.find(t => t.id === tid || t.title === tid);
     expect(added).toBeTruthy();
     expect(added?.importance).toBe(3);
     if (d0) {
@@ -47,27 +47,28 @@ describe('applyStarterPreferences', () => {
   });
 
   it('updates existing topics that match by id/title', () => {
-    // Seed store with an existing starter topic with zeros
+    const ti = directionIndex.findIndex(row => (row?.length || 0) >= 1);
+    expect(ti).toBeGreaterThanOrEqual(0);
+    const tid = topicIndex[ti];
+    const d0 = directionIndex[ti][0];
+    // Seed with existing topic matching by id
     const seed: Topic = {
-      id: 'topic-firearms',
-      title: 'Firearms',
+      id: tid,
+      title: tid,
       importance: 0,
       stance: 'neutral',
-      directions: [{ id: 'dir-f1', text: 'Much less death and injury by firearms', stars: 0, sources: [], tags: [] }],
-      notes: '',
-      sources: [],
-      relations: { broader: [], narrower: [], related: [] },
+      directions: [{ id: d0, text: 'x', stars: 0, sources: [], tags: [] }],
+      notes: '', sources: [], relations: { broader: [], narrower: [], related: [] },
     };
     useStore.setState({ topics: [seed] });
 
-    // Desired updates
     const topics: Topic[] = [
       {
-        id: 'topic-firearms',
-        title: 'Firearms',
+        id: tid,
+        title: tid,
         importance: 5,
         stance: 'neutral',
-        directions: [{ id: 'dir-f1', text: 'Much less death and injury by firearms', stars: 2, sources: [], tags: [] }],
+        directions: [{ id: d0, text: 'x', stars: 2, sources: [], tags: [] }],
         notes: '', sources: [], relations: { broader: [], narrower: [], related: [] },
       }
     ];
@@ -84,4 +85,3 @@ describe('applyStarterPreferences', () => {
     expect(d?.stars).toBe(2);
   });
 });
-

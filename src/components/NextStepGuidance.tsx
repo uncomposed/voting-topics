@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useStore } from '../store';
 
 export const NextStepGuidance: React.FC = () => {
@@ -7,9 +7,6 @@ export const NextStepGuidance: React.FC = () => {
   const currentFlowStep = useStore(state => state.currentFlowStep);
   const hintsEnabled = useStore(state => state.hintsEnabled);
   const setHintsEnabled = useStore(state => state.setHintsEnabled);
-  const [seen, setSeen] = useState<boolean>(() => {
-    try { return localStorage.getItem('vt.seenGuide') === '1'; } catch { return false; }
-  });
   
   // Determine current step and next step based on flow state
   const getCurrentStep = () => {
@@ -182,6 +179,13 @@ export const NextStepGuidance: React.FC = () => {
               onClick={() => setHintsEnabled(false)}
             >
               Disable Hint Mode
+            </button>
+            <button
+              className="btn ghost"
+              style={{ padding: '2px 6px' }}
+              onClick={() => window.dispatchEvent(new Event('vt-open-getting-started'))}
+            >
+              Open Getting Started Guide
             </button>
           </div>
         </>

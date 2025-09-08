@@ -204,22 +204,29 @@ export const TopicDiffSection: React.FC<TopicDiffSectionProps> = ({ diff }) => {
                             <div className="direction-changes modified">
                               <strong>Modified:</strong>
                               <ul>
-                                {topicDiff.changes.directions.modified.map(dirDiff => (
-                                  <li key={dirDiff.direction.id}>
-                                    <div className="direction-diff">
-                                      <div className="direction-text">
-                                        <span className="change-left">{dirDiff.changes.text.left}</span>
-                                        <span className="change-arrow">→</span>
-                                        <span className="change-right">{dirDiff.changes.text.right}</span>
+                                {topicDiff.changes.directions.modified.map(dirDiff => {
+                                  const leftText = dirDiff.changes.text.left || '';
+                                  const rightText = dirDiff.changes.text.right || '';
+                                  const sameText = leftText.trim().toLowerCase() === rightText.trim().toLowerCase();
+                                  const label = (rightText || leftText);
+                                  return (
+                                    <li key={dirDiff.direction.id}>
+                                      <div className="direction-diff">
+                                        <div className="direction-text">
+                                          {label}
+                                          {!sameText && (
+                                            <span className="muted" style={{ marginLeft: 8, fontSize: '11px' }}>(was: {leftText || '—'})</span>
+                                          )}
+                                        </div>
+                                        <div className="direction-stars">
+                                          <span className="change-left">{dirDiff.changes.stars.left}/5</span>
+                                          <span className="change-arrow">→</span>
+                                          <span className="change-right">{dirDiff.changes.stars.right}/5</span>
+                                        </div>
                                       </div>
-                                      <div className="direction-stars">
-                                        <span className="change-left">{dirDiff.changes.stars.left}/5</span>
-                                        <span className="change-arrow">→</span>
-                                        <span className="change-right">{dirDiff.changes.stars.right}/5</span>
-                                      </div>
-                                    </div>
-                                  </li>
-                                ))}
+                                    </li>
+                                  );
+                                })}
                               </ul>
                             </div>
                           )}

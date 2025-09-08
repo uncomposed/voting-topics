@@ -60,7 +60,7 @@ npm test
 
 ## Starter Pack
 
-Load `starter-pack.v1.json` to see example topics with the new structure.
+The app ships with a curated starter pack (`starter-pack.v2.4.json`) of neutral topics and outcome‑oriented directions. Use it to get going fast; you can always add your own topics and directions.
 
 ## Contributing
 

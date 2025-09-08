@@ -147,7 +147,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
       {ballotMode !== 'ballot' && !showDiffComparison && !showLLMIntegration && (
         <button
           id="m-new"
-          className="btn"
+          className="btn icon"
           onClick={() => {
             const before = useStore.getState().topics[0]?.id;
             addTopic(0);
@@ -163,16 +163,22 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
           }}
           aria-label="New Topic"
         >
-          {(exportReady || ballotReadyToShare) ? '+' : '+ New'}
+          +
         </button>
       )}
       {hasTopics && (
         <button
           id="m-toggle"
           className="btn"
+          style={{ minWidth: 64 }}
           onClick={() => {
             if (ballotMode === 'ballot') {
               window.dispatchEvent(new Event('vt-back-preferences'));
+              return;
+            }
+            if (showLLMIntegration || showDiffComparison) {
+              window.dispatchEvent(new Event('vt-exit-special'));
+              setTimeout(() => onToggleView(), 0);
             } else {
               onToggleView();
             }
@@ -188,7 +194,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
           <>
             <button
               id="m-export"
-              className="btn"
+              className="btn icon"
               onClick={() => setOpen(v => { const next = !v; if (next) ignoreNextDocClick.current = true; return next; })}
               aria-haspopup="true"
               aria-expanded={open}
@@ -305,7 +311,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
       )}
 
       {/* Hamburger to open mobile menu */}
-      <button id="m-menu" className="btn" aria-label="Menu" onClick={() => window.dispatchEvent(new Event('vt-open-mobile-menu'))}>☰</button>
+      <button id="m-menu" className="btn icon" aria-label="Menu" onClick={() => window.dispatchEvent(new Event('vt-open-mobile-menu'))}>☰</button>
     </div>
   );
 };
