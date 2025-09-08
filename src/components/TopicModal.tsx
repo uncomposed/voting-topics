@@ -132,10 +132,13 @@ export const TopicModal: React.FC<TopicModalProps> = ({
 
               <div className="form-group">
                 <label>Importance</label>
-                <Stars 
-                  value={formData.importance || 0} 
-                  onChange={(value) => updateField('importance', value)} 
+                <Stars
+                  value={formData.importance || 0}
+                  onChange={(value) => updateField('importance', value)}
                 />
+                <div className="muted" style={{ fontSize: '12px', marginTop: '4px' }}>
+                  Higher stars give this topic more weight when building your ballot.
+                </div>
               </div>
 
 
@@ -143,9 +146,9 @@ export const TopicModal: React.FC<TopicModalProps> = ({
               <div className="form-group">
                 <label>Directions</label>
                 <div className="muted" style={{ fontSize: '12px', marginBottom: '8px' }}>
-                  Add specific outcomes or changes you want to see within this topic. Each direction gets its own importance rating.
+                  Add specific outcomes or changes you want to see within this topic (e.g., "Increase teacher pay"). Each direction gets its own importance rating and shapes your ballot.
                 </div>
-                <DirectionsList 
+                <DirectionsList
                   directions={formData.directions || []}
                   onChange={(directions) => updateField('directions', directions)}
                 />

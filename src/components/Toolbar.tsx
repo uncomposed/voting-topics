@@ -267,14 +267,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const ballotReadyToShare = isBallotShareReady(currentBallot);
   const hasStarterTopics = topics.some(t => topicIndex.includes(t.id) || topicTitleIndex.includes((t.title || '').toLowerCase()));
 
-  const scrollToStarter = () => {
-    const el = document.getElementById('starter-pack');
-    if (el && 'scrollIntoView' in el) {
-      try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; } catch (_e) { /* noop */ }
-    }
-    try { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); } catch (_e) { /* noop */ }
-  };
-
   const jumpToTopicId = (id: string | undefined) => {
     if (!id) return;
     const target = document.querySelector(`[data-topic-id="${id}"]`) as HTMLElement | null;
@@ -289,20 +281,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   type NextAction = { label: string; onClick: () => void } | null;
   let nextAction: NextAction = null;
   if (!hasTopics) {
-    nextAction = {
-      label: 'Get Started',
-      onClick: () => {
-        if (isInSpecialView) {
-          setShowDiffComparison(false);
-          setShowLLMIntegration(false);
-          setBallotMode('preference');
-          setShowCards(false);
-          setTimeout(() => { scrollToStarter(); window.dispatchEvent(new Event('vt-open-starter')); }, 50);
-        } else {
-          scrollToStarter(); window.dispatchEvent(new Event('vt-open-starter'));
-        }
-      }
-    };
+    if (starterSelectedCount > 0) {
+      nextAction = {
+        label: `Add (${starterSelectedCount})`,
+        onClick: () => window.dispatchEvent(new Event('vt-starter-add-selected')),
+      };
+    } else {
+      nextAction = { label: 'Start Here', onClick: () => setShowGettingStarted(true) };
+    }
   } else if (anyUnratedTopic) {
     // Encourage organizing priorities: card on desktop, list on mobile
     if (isMobile) {
@@ -526,7 +512,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Export JSON moved into the Menu */}
 
 
-      {!collapseToggle && ballotMode !== 'ballot' && (!nextAction || nextAction.label !== toggleViewLabel) && (
+      {hasTopics && !collapseToggle && ballotMode !== 'ballot' && (!nextAction || nextAction.label !== toggleViewLabel) && (
       <button id="btn-toggle-view" className="btn" onClick={() => {
         if (isInSpecialView) {
           setShowDiffComparison(false);
@@ -540,7 +526,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       >{toggleViewLabel}</button>
       )}
 
-      {!collapseCompare && (
+      {hasTopics && !collapseCompare && (
         <button id="btn-diff-comparison" className="btn" onClick={() => setShowDiffComparison(!showDiffComparison)}
           onMouseEnter={() => emitHint('compare', 'btn-diff-comparison', 'Compare two preference sets side by side.')}
         >
@@ -548,7 +534,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </button>
       )}
 
-      {(!nextAction || nextAction.label !== ballotLabel) && (
+      {hasTopics && (!nextAction || nextAction.label !== ballotLabel) && (
       <button id="btn-ballot-mode" className="btn" onClick={() => {
         if (ballotMode === 'ballot') {
           setBallotMode('preference');
@@ -592,10 +578,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             )}
             {/* Collapsed items will be injected here via conditions below */}
             {/* Collapsed Toggle / Compare shortcuts */}
-            {collapseToggle && (
+            {hasTopics && collapseToggle && (
               <button id="btn-toggle-view-menu" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); if (isInSpecialView) { setShowDiffComparison(false); setShowLLMIntegration(false); setBallotMode('preference'); } else { setShowCards(!showCards); } }}>{toggleViewLabel}</button>
             )}
-            {collapseCompare && (
+            {hasTopics && collapseCompare && (
               <button id="btn-diff-menu" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowDiffComparison(!showDiffComparison); }}>{showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}</button>
             )}
             <button id="btn-import" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import JSON</button>

@@ -76,7 +76,7 @@ interface Store {
 
 export const useStore = create<Store>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       // Preference set state
       title: '',
       notes: '',

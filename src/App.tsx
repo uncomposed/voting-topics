@@ -173,9 +173,9 @@ export const App: React.FC = () => {
             setShowDiffComparison(false);
             setBallotMode('preference');
             setShowCards(true);
-          } catch {}
+          } catch (_e) { /* noop */ }
           finally {
-            try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch {}
+            try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (_e) { /* noop */ }
           }
         }, []);
         return null;
