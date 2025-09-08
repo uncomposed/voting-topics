@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { uid } from './utils';
 
-// New stance enum replacing the old direction scale
+// Deprecated stance enum retained for backward compatibility
 export const Stance = z.enum([
   "against",
   "lean_against", 
@@ -45,7 +45,7 @@ export const TopicSchema = z.object({
   id: z.string(),
   title: z.string().min(1, 'Title required'),
   importance: z.number().min(0).max(5).int(), // topic-level priority
-  stance: Stance.default("neutral"), // topic-level stance
+  stance: Stance.default("neutral"), // [DEPRECATED] topic-level stance
   directions: z.array(Direction).default([]), // multiple directions with their own stars
   notes: z.string().optional(),
   sources: z.array(SourceSchema).max(5),

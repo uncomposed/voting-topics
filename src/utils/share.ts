@@ -205,6 +205,9 @@ export const applyStarterPreferences = (data: StarterPayload) => {
     sp.tip.forEach(([i, v]) => { if (i >= 0 && i < tiArr.length) tiArr[i] = v; });
     sp.dsp.forEach(([ti, di, v]) => { if (dsArr[ti] && di >= 0 && di < dsArr[ti].length) dsArr[ti][di] = v; });
   }
+  // Clamp all values to [0,5]
+  tiArr = tiArr.map(v => Math.max(0, Math.min(5, Number(v) || 0)));
+  dsArr = dsArr.map(row => row.map(v => Math.max(0, Math.min(5, Number(v) || 0))));
   // First pass: apply updates to existing topics that match starter-pack IDs or titles
   const seenStarterIndices = new Set<number>();
   const nextTopics = prevTopics.map(t => {
@@ -262,14 +265,20 @@ export const applyStarterPreferences = (data: StarterPayload) => {
   return { applied };
 };
 
-export const buildShareUrl = (payload: string): string => {
-  const { origin, pathname, search } = window.location;
-  return `${origin}${pathname}${search}#sp=${payload}`;
+export const buildShareUrl = (
+  payload: string,
+  base: string = typeof window !== 'undefined' ? window.location.href : 'http://localhost/'
+): string => {
+  const url = new URL(base);
+  return `${url.origin}${url.pathname}${url.search}#sp=${payload}`;
 };
 
-export const buildShareUrlV2 = (payload: string): string => {
-  const { origin, pathname, search } = window.location;
-  return `${origin}${pathname}${search}#sp2=${payload}`;
+export const buildShareUrlV2 = (
+  payload: string,
+  base: string = typeof window !== 'undefined' ? window.location.href : 'http://localhost/'
+): string => {
+  const url = new URL(base);
+  return `${url.origin}${url.pathname}${url.search}#sp2=${payload}`;
 };
 
 // Extract and decode share payload from a URL string (supports sp2, then sp)

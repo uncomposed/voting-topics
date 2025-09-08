@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Topic } from '../schema';
-import { encodeStarterPreferencesV2, decodeStarterPreferencesV2, extractAndDecodeFromUrl, topicIndex, directionIndex } from '../utils/share';
+import { encodeStarterPreferencesV2, decodeStarterPreferencesV2, extractAndDecodeFromUrl, topicIndex, directionIndex, buildShareUrl, buildShareUrlV2 } from '../utils/share';
 
 describe('sp2 share encoding', () => {
   it('roundtrips small set and stays short', () => {
@@ -69,6 +69,13 @@ describe('sp2 share encoding', () => {
     const url = `https://example.com/app#sp2=${p2}`;
     const parsed = extractAndDecodeFromUrl(url);
     expect(parsed && 'tip' in parsed).toBe(true);
+  });
+
+  it('builds share urls with custom base', () => {
+    const url1 = buildShareUrl('abc', 'https://example.com/app?x=1');
+    expect(url1).toBe('https://example.com/app?x=1#sp=abc');
+    const url2 = buildShareUrlV2('def', 'https://example.com/');
+    expect(url2).toBe('https://example.com/#sp2=def');
   });
 
   it('handles empty payload (no non-zero entries)', () => {
@@ -141,5 +148,12 @@ describe('sp2 share encoding', () => {
     expect(decoded.tip.length).toBeGreaterThanOrEqual(count);
     // dsp may be less than count if some topics have no directions
     expect(Array.isArray(decoded.dsp)).toBe(true);
+  });
+
+  it('returns null for malformed or unknown payloads', () => {
+    expect(extractAndDecodeFromUrl('https://x#sp2=%%%')).toBeNull();
+    const bad = Buffer.from(JSON.stringify({ v: 'unknown', ti: [], ds: [] }), 'utf8').toString('base64')
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    expect(extractAndDecodeFromUrl(`https://x#sp=${bad}`)).toBeNull();
   });
 });

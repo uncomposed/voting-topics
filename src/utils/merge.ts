@@ -46,6 +46,18 @@ const mergeDirections = (current: Direction[], incoming: Direction[]): Direction
   return merged;
 };
 
+const normalizeUrl = (url: string): string => {
+  try {
+    const u = new URL(url);
+    u.hostname = u.hostname.toLowerCase();
+    // trim trailing slashes from pathname
+    u.pathname = u.pathname.replace(/\/+$/, '');
+    return u.toString();
+  } catch {
+    return url.trim().replace(/\/+$/, '');
+  }
+};
+
 const mergeTopic = (current: Topic, incoming: Topic): Topic => {
   return {
     id: current.id,
@@ -65,7 +77,7 @@ const mergeTopic = (current: Topic, incoming: Topic): Topic => {
       if (!b.length) return a;
       const seen = new Set<string>();
       const merged = [...a, ...b].filter(s => {
-        const key = `${s.label}|${s.url}`;
+        const key = `${s.label}|${normalizeUrl(s.url || '')}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
