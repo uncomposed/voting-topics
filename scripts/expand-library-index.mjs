@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
-const root = path.resolve(repoRoot, '..');
+const root = repoRoot; // use project root
 
 const STARTER = process.env.STARTER || path.join(root, 'starter-pack.v2.4.json');
 const INDEX = process.env.LIBRARY_INDEX || path.join(root, 'politician-pref-sets', 'library.index.json');

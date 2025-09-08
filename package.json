@@ -23,7 +23,9 @@
     "suggest-refactors": "node scripts/check-duplicates.js --suggest",
     "show-resources": "node scripts/check-duplicates.js --resources",
     "setup-hooks": "node scripts/setup-pre-commit.js",
-    "prepare": "npm run setup-hooks"
+    "prepare": "npm run setup-hooks",
+    "library:build": "node scripts/build-library-index.mjs",
+    "library:expand": "node scripts/expand-library-index.mjs"
   },
   "dependencies": {
     "html2canvas": "^1.4.1",
@@ -66,7 +68,5 @@
     "typescript"
   ],
   "author": "",
-  "license": "MIT",
-    "library:build": "node scripts/build-library-index.mjs",
-    "library:expand": "node scripts/expand-library-index.mjs"
-  }
+  "license": "MIT"
+}

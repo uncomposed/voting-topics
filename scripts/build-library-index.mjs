@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
-const root = path.resolve(repoRoot, '..');
+const root = repoRoot; // use project root
 
 const GLOB_DIR = process.env.LIB_SRC || path.join(root, 'politician-pref-sets', 'politician-json');
 const OUT = process.env.LIBRARY_INDEX || path.join(root, 'politician-pref-sets', 'library.index.json');
