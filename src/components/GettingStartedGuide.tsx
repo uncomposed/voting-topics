@@ -26,7 +26,7 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
             >
               Open an issue 
             </a>
-            or
+            or 
             <a
               href="https://github.com/uncomposed/voting-topics/pulls"
               target="_blank"
