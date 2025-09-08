@@ -311,9 +311,10 @@ This tool validates all imported JSON against the schema. Invalid data will be r
         >
           Export & Schema
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'import' ? 'active' : ''}`}
           onClick={() => setActiveTab('import')}
+          aria-hidden={activeTab === 'import'}
         >
           Import JSON
         </button>
