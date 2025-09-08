@@ -106,6 +106,22 @@ describe('Diff functionality', () => {
     expect(diff.summary.removedCount).toBe(1);
     expect(diff.summary.modifiedCount).toBe(1);
     expect(diff.summary.unchangedCount).toBe(0);
+
+    // Modified topic should capture direction changes (stance is ignored)
+    const climate = diff.topics.modified[0];
+    // Direction matched by id should be reported as modified rather than added/removed
+    expect(climate.changes.directions.added).toHaveLength(0);
+    expect(climate.changes.directions.removed).toHaveLength(0);
+    expect(climate.changes.directions.modified).toHaveLength(1);
+    expect(climate.changes.directions.modified[0].changes.text.right).toBe('Reduce emissions significantly');
+  });
+
+  it('ignores pure stance changes', () => {
+    const right = JSON.parse(JSON.stringify(leftTemplate)) as Template;
+    right.topics[0].stance = 'against';
+    const diff = computeTemplateDiff(leftTemplate, right);
+    expect(diff.topics.modified).toHaveLength(0);
+    expect(diff.topics.unchanged).toHaveLength(2);
   });
 
   it('should compute priority comparison correctly', () => {

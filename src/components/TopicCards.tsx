@@ -18,7 +18,7 @@ interface DragState {
 
 export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonText: () => void }, TopicCardsProps>(({ topics, onReorder, onTopicClick }, ref) => {
   const currentFlowStep = useStore(state => state.currentFlowStep);
-  const setCurrentFlowStep = useStore(state => state.setCurrentFlowStep);
+  const advanceFlowStep = useStore(state => state.advanceFlowStep);
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     draggedTopic: null,
@@ -192,7 +192,7 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
           <button 
             className="btn" 
             onClick={() => {
-              setCurrentFlowStep('list');
+              advanceFlowStep();
               // Trigger view change to list view
               const toggleBtn = document.getElementById('btn-toggle-view');
               if (toggleBtn && !toggleBtn.textContent?.includes('List View')) {

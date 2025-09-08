@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Stars } from './Stars';
 import type { Direction } from '../schema';
 import { uid } from '../utils';
+import { toast } from '../utils/toast';
 
 interface DirectionsListProps {
   directions: Direction[];
@@ -14,7 +15,7 @@ export const DirectionsList: React.FC<DirectionsListProps> = ({ directions, onCh
   const addDirection = () => {
     const trimmedText = text.trim();
     if (!trimmedText) return;
-    
+
     const newDirection: Direction = {
       id: uid(),
       text: trimmedText,
@@ -25,6 +26,11 @@ export const DirectionsList: React.FC<DirectionsListProps> = ({ directions, onCh
     
     onChange([...directions, newDirection]);
     setText("");
+    toast.show({ variant: 'success', title: 'Direction added', message: trimmedText, duration: 3000 });
+    setTimeout(() => {
+      const target = document.querySelector(`[data-direction-id="${newDirection.id}"]`) as HTMLElement | null;
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
   };
 
   const updateDirection = (directionId: string, patch: Partial<Direction>) => {
@@ -69,7 +75,7 @@ export const DirectionsList: React.FC<DirectionsListProps> = ({ directions, onCh
       </div>
 
       {directions.map(direction => (
-        <div key={direction.id} className="direction-item">
+        <div key={direction.id} data-direction-id={direction.id} className="direction-item">
           <div className="direction-item-header">
             <div>{direction.text}</div>
             <button

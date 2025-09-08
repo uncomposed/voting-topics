@@ -12,7 +12,7 @@ interface TopicListProps {
 
 export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: () => void }, TopicListProps>(({ topics, onChange, onDelete }, ref) => {
   const currentFlowStep = useStore(state => state.currentFlowStep);
-  const setCurrentFlowStep = useStore(state => state.setCurrentFlowStep);
+  const advanceFlowStep = useStore(state => state.advanceFlowStep);
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(topics.map(t => t.id)));
   const [allExpanded, setAllExpanded] = useState(true);
 
@@ -116,7 +116,7 @@ export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: (
             <button 
               className="btn" 
               onClick={() => {
-                setCurrentFlowStep('complete');
+                advanceFlowStep();
                 // Trigger export functionality
                 const exportBtn = document.getElementById('btn-export');
                 if (exportBtn) exportBtn.click();
@@ -135,7 +135,7 @@ export const TopicList = forwardRef<{ toggleAll: () => void; updateButtonText: (
             <button 
               className="btn" 
               onClick={() => {
-                setCurrentFlowStep('complete');
+                advanceFlowStep();
                 // Trigger ballot creation
                 const ballotBtn = document.getElementById('btn-ballot-mode');
                 if (ballotBtn) ballotBtn.click();

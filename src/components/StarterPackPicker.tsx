@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - JSON import via Vite/TS
+import { toast } from '../utils/toast';
 import starterPack from '../../starter-pack.v2.4.json';
 
 
@@ -15,12 +14,15 @@ export const StarterPackPicker: React.FC = () => {
   const topics = useStore(state => state.topics);
   const addTopicFromStarter = useStore(state => state.addTopicFromStarter);
   const currentFlowStep = useStore(state => state.currentFlowStep);
-  const setCurrentFlowStep = useStore(state => state.setCurrentFlowStep);
-  const [pool] = useState<StarterTopic[]>(() => {
-    const raw = (starterPack as any)?.topics || [];
-    return raw.map((t: any) => ({ id: t.id, title: t.title, directions: (t.directions || []).map((d: any) => ({ text: d.text })) }));
+  const advanceFlowStep = useStore(state => state.advanceFlowStep);
+  const [pool, setPool] = useState<StarterTopic[]>(() => {
+    const raw = (starterPack as { topics: StarterTopic[] }).topics || [];
+    return raw.map((t) => ({
+      id: t.id,
+      title: t.title,
+      directions: (t.directions || []).map((d) => ({ text: d.text }))
+    }));
   });
-  const [selected, setSelected] = useState<string[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const autoCollapsed = useRef(false);
 
@@ -34,24 +36,21 @@ export const StarterPackPicker: React.FC = () => {
     }
   }, [topics.length, isCollapsed]);
 
-  const toggle = (id: string) => {
-    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  };
-
-  const addSelected = () => {
-    const selectedTopics = pool.filter(p => selected.includes(p.id));
-    selectedTopics.forEach(topic => {
-      addTopicFromStarter(topic);
-    });
-    setSelected([]);
-  };
-
-  const toggleAll = () => {
-    if (selected.length === pool.length) {
-      setSelected([]);
-    } else {
-      setSelected(pool.map(p => p.id));
-    }
+  const handleAdd = (topic: StarterTopic) => {
+    addTopicFromStarter(topic);
+    // Remove from pool so it's not offered again
+    setPool(prev => prev.filter(p => p.id !== topic.id));
+    // Notify user and move them along the flow
+    toast.show({ variant: 'success', title: 'Topic added', message: topic.title, duration: 3000 });
+    if (currentFlowStep === 'starter') advanceFlowStep();
+    // Scroll to the newly added topic
+    const newId = useStore.getState().topics[0]?.id;
+    setTimeout(() => {
+      if (newId) {
+        const target = document.querySelector(`[data-topic-id="${newId}"]`) as HTMLElement | null;
+        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
   };
 
   // Always show starter pack, but in minimized state when topics exist
@@ -60,19 +59,11 @@ export const StarterPackPicker: React.FC = () => {
   // Open/expand when requested from toolbar
   useEffect(() => {
     const openStarter = () => setIsCollapsed(false);
-    const addSelectedHandler = () => addSelected();
     window.addEventListener('vt-open-starter', openStarter as EventListener);
-    window.addEventListener('vt-starter-add-selected', addSelectedHandler as EventListener);
     return () => {
       window.removeEventListener('vt-open-starter', openStarter as EventListener);
-      window.removeEventListener('vt-starter-add-selected', addSelectedHandler as EventListener);
     };
-  }, [pool, selected]);
-
-  // Broadcast selection count whenever it changes
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('vt-starter-selection-changed', { detail: { count: selected.length } }));
-  }, [selected.length]);
+  }, []);
 
   return (
     <div id="starter-pack" className="panel starter-pack-panel" style={{ marginTop: 16 }}>
@@ -82,14 +73,20 @@ export const StarterPackPicker: React.FC = () => {
             <>
               <h2 className="panel-title">➕ Add More Topics</h2>
               <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>
-                Choose from {pool.length} additional topics to expand your preferences
+                Click a topic below to add it to your list
+              </p>
+              <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.8rem' }}>
+                When you're ready, try the LLM assistant under More actions to draft a ballot for your election.
               </p>
             </>
           ) : (
             <>
               <h2 className="panel-title">🚀 Get Started with Starter Pack</h2>
               <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>
-                Choose from {pool.length} pre-built topics to jumpstart your preferences
+                Click a topic below to jumpstart your preferences
+              </p>
+              <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.8rem' }}>
+                Aim for about 3–7 topics. You can later ask the AI helper to build a ballot using the web and our schema.
               </p>
             </>
           )}
@@ -105,86 +102,22 @@ export const StarterPackPicker: React.FC = () => {
       
       {!isCollapsed && (
         <>
-          <div className="starter-pack-controls" style={{ marginBottom: 12 }}>
-            <button className="btn ghost" onClick={toggleAll}>
-              {selected.length === pool.length ? 'Deselect All' : 'Select All'}
-            </button>
-            <span className="muted" style={{ marginLeft: 'auto' }}>
-              {selected.length} of {pool.length} selected
-            </span>
-          </div>
-          
-          {/* Top Add Button */}
-          {selected.length > 0 && (
-            <div className="row" style={{ justifyContent: 'center', marginBottom: 16, padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
-              <button 
-                className="btn primary" 
-                onClick={addSelected} 
-                style={{ 
-                  fontSize: '0.95rem', 
-                  padding: '10px 20px',
-                  fontWeight: '600'
-                }}
-              >
-                ✨ Add {selected.length} Selected Topic{selected.length !== 1 ? 's' : ''} to My List
-              </button>
-            </div>
-          )}
           <div className="starter-pack-list">
             {pool.map((item) => (
               <label key={item.id} className="starter-pack-item">
                 <input
                   type="checkbox"
-                  checked={selected.includes(item.id)}
-                  onChange={() => toggle(item.id)}
+                  onChange={() => handleAdd(item)}
                 />
                 <span className="starter-pack-title">{item.title}</span>
               </label>
             ))}
+            {pool.length === 0 && (
+              <p className="muted" style={{ padding: '8px 0' }}>
+                All starter topics added.
+              </p>
+            )}
           </div>
-          {/* Bottom Add Button */}
-          <div className="row" style={{ justifyContent: 'center', marginTop: 20, padding: '16px 0', borderTop: '1px solid var(--border)' }}>
-            <button 
-              className="btn primary" 
-              onClick={addSelected} 
-              disabled={selected.length === 0}
-              style={{ 
-                fontSize: '0.95rem', 
-                padding: '10px 20px',
-                fontWeight: '600'
-              }}
-            >
-              ✨ Add {selected.length} Selected Topic{selected.length !== 1 ? 's' : ''} to My List
-            </button>
-          </div>
-          
-          {/* Next Button - only show when in starter flow step and topics will be added */}
-          {currentFlowStep === 'starter' && selected.length > 0 && (
-            <div className="row" style={{ justifyContent: 'center', marginTop: 12, padding: '12px 0' }}>
-              <button 
-                className="btn" 
-                onClick={() => {
-                  addSelected();
-                  setCurrentFlowStep('cards');
-                  // Trigger view change to card view
-                  const toggleBtn = document.getElementById('btn-toggle-view');
-                  if (toggleBtn && !toggleBtn.textContent?.includes('Card View')) {
-                    toggleBtn.click();
-                  }
-                }}
-                style={{ 
-                  fontSize: '0.95rem', 
-                  padding: '10px 20px',
-                  fontWeight: '600',
-                  background: 'var(--accent-2)',
-                  color: 'var(--bg)',
-                  border: 'none'
-                }}
-              >
-                ➡️ Next: Sort Priorities in Card View
-              </button>
-            </div>
-          )}
         </>
       )}
     </div>

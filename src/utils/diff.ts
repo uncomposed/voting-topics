@@ -11,7 +11,14 @@ const findDirectionByText = (directions: Direction[], text: string): Direction |
   return directions.find(d => d.text.toLowerCase().trim() === text.toLowerCase().trim());
 };
 
+// Helper function to find directions by id
+const findDirectionById = (directions: Direction[], id?: string): Direction | undefined => {
+  if (!id) return undefined;
+  return directions.find(d => d.id === id);
+};
+
 // Check if two topics are identical
+// NOTE: stance is deprecated and intentionally excluded from comparisons
 const topicsEqual = (left: Topic, right: Topic): boolean => {
   if (left.title !== right.title) return false;
   if (left.importance !== right.importance) return false;
@@ -20,7 +27,7 @@ const topicsEqual = (left: Topic, right: Topic): boolean => {
   
   // Check directions
   for (const leftDir of left.directions) {
-    const rightDir = findDirectionByText(right.directions, leftDir.text);
+    const rightDir = findDirectionById(right.directions, leftDir.id) || findDirectionByText(right.directions, leftDir.text);
     if (!rightDir) return false;
     if (leftDir.stars !== rightDir.stars) return false;
     if (leftDir.notes !== rightDir.notes) return false;
@@ -45,7 +52,7 @@ const computeTopicDiff = (left: Topic, right: Topic): TopicDiff => {
   
   // Find modified and unchanged directions
   for (const leftDir of left.directions) {
-    const rightDir = findDirectionByText(right.directions, leftDir.text);
+    const rightDir = findDirectionById(right.directions, leftDir.id) || findDirectionByText(right.directions, leftDir.text);
     if (rightDir) {
       if (directionsEqual(leftDir, rightDir)) {
         unchangedDirections.push(leftDir);
@@ -67,13 +74,13 @@ const computeTopicDiff = (left: Topic, right: Topic): TopicDiff => {
   
   // Find added directions
   for (const rightDir of right.directions) {
-    const leftDir = findDirectionByText(left.directions, rightDir.text);
+    const leftDir = findDirectionById(left.directions, rightDir.id) || findDirectionByText(left.directions, rightDir.text);
     if (!leftDir) {
       addedDirections.push(rightDir);
     }
   }
   
-  const hasChanges = 
+  const hasChanges =
     left.importance !== right.importance ||
     left.notes !== right.notes ||
     directionDiffs.length > 0 ||

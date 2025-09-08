@@ -22,6 +22,7 @@ export interface PreferenceSetDiff {
 
 export interface TopicDiff {
   topic: Topic;
+  // stance is deprecated and intentionally excluded from changes
   changes: {
     importance: { left: number; right: number };
     directions: {

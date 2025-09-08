@@ -1,13 +1,14 @@
 // Utilities for building PreferenceSets from compact library mappings
 import type { PreferenceSet } from '../schema';
-// @ts-ignore - JSON import enabled by Vite
 import starterPack from '../../starter-pack.v2.4.json';
 
 type Stars = number; // 0..5
 export type PrefMap = Record<string, Record<string, Stars>>; // topicId -> directionId -> stars
 
-type StarterPack = { topics: Array<{ id: string; title: string; importance?: number; directions?: Array<{ id: string; text: string }> }> };
-const sp = (starterPack as StarterPack) || { topics: [] };
+interface StarterPackDirection { id: string; text: string; }
+interface StarterPackTopic { id: string; title: string; importance?: number; directions?: StarterPackDirection[] }
+interface StarterPack { topics: StarterPackTopic[] }
+const sp: StarterPack = (starterPack as StarterPack) || { topics: [] };
 
 export const buildPreferenceSetFromPrefs = (title: string, prefs: PrefMap, notes: string = ''): PreferenceSet => {
   const now = new Date().toISOString();

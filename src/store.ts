@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { uid } from './utils';
 import type { Topic, Source, Direction, Stance, Ballot, Office, Candidate, Measure, ElectionInfo, ReasoningLink } from './schema';
+import { trackEvent, setAnalyticsEnabled as setAnalyticsFlag } from './utils/analytics';
 
 interface Store {
   // Preference set state
@@ -17,7 +18,7 @@ interface Store {
   
   // Flow state for guided user experience
   currentFlowStep: 'starter' | 'cards' | 'list' | 'complete';
-  
+
   // Preference set actions
   setTitle: (title: string) => void;
   setNotes: (notes: string) => void;
@@ -64,6 +65,13 @@ interface Store {
   seenHints: string[];
   setHintsEnabled: (v: boolean) => void;
   markHintSeen: (key: string) => void;
+  hasSeenOnboarding: boolean;
+  setHasSeenOnboarding: (v: boolean) => void;
+
+  // Analytics state
+  analyticsEnabled: boolean;
+  setAnalyticsEnabled: (v: boolean) => void;
+  recordExport: (type: string) => void;
 }
 
 export const useStore = create<Store>()(
@@ -202,17 +210,23 @@ export const useStore = create<Store>()(
       }),
       
       // Flow actions
-      setCurrentFlowStep: (step) => set({ currentFlowStep: step }),
+      setCurrentFlowStep: (step) => {
+        trackEvent('flow_step', { step });
+        set({ currentFlowStep: step });
+      },
       advanceFlowStep: () => set((state) => {
         const steps: Array<'starter' | 'cards' | 'list' | 'complete'> = ['starter', 'cards', 'list', 'complete'];
         const currentIndex = steps.indexOf(state.currentFlowStep);
         const nextIndex = Math.min(currentIndex + 1, steps.length - 1);
-        return { currentFlowStep: steps[nextIndex] };
+        const step = steps[nextIndex];
+        trackEvent('flow_step', { step });
+        return { currentFlowStep: step };
       }),
       
       // Ballot actions
       setBallotMode: (mode) => set({ ballotMode: mode }),
       createBallot: (electionInfo) => set(() => {
+        trackEvent('ballot_created', { election: electionInfo.name });
         const now = new Date().toISOString();
         const newBallot: Ballot = {
           version: 'tsb.ballot.v1',
@@ -369,13 +383,25 @@ export const useStore = create<Store>()(
       clearBallot: () => set({ currentBallot: null }),
 
       // Hints
-      hintsEnabled: false,
+      hintsEnabled: true,
       seenHints: [],
       setHintsEnabled: (v: boolean) => set({ hintsEnabled: v }),
       markHintSeen: (key: string) => set((state) => (
         state.seenHints.includes(key) ? state : { seenHints: [...state.seenHints, key] }
       )),
+      hasSeenOnboarding: false,
+      setHasSeenOnboarding: (v: boolean) => set({ hasSeenOnboarding: v }),
+      analyticsEnabled: new URLSearchParams(window.location.search).get('telemetry') === '1',
+      setAnalyticsEnabled: (v: boolean) => {
+        setAnalyticsFlag(v);
+        set({ analyticsEnabled: v });
+      },
+      recordExport: (type: string) => {
+        trackEvent('export', { type });
+      },
     }),
     { name: 'vt.m1' }
   )
 );
+
+setAnalyticsFlag(useStore.getState().analyticsEnabled);

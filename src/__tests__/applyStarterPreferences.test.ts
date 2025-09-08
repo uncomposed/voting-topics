@@ -84,4 +84,13 @@ describe('applyStarterPreferences', () => {
     const d = state.topics[0].directions.find(x => x.id === 'dir-f1');
     expect(d?.stars).toBe(2);
   });
+
+  it('clamps out-of-range values', () => {
+    const ti = directionIndex.findIndex(row => row.length >= 1);
+    const payload = { v: 'sp-v1', tip: [[ti, -2]], dsp: [[ti, 0, 7]] } as any;
+    applyStarterPreferences(payload);
+    const t = useStore.getState().topics[0];
+    expect(t.importance).toBe(0);
+    expect(t.directions[0].stars).toBe(5);
+  });
 });

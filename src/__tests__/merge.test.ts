@@ -58,5 +58,47 @@ describe('mergePreferenceSets', () => {
     const climate = merged.topics.find(t => t.title === 'Climate');
     expect(climate).toBeTruthy();
   });
+
+  it('normalizes source URLs to avoid duplicates', () => {
+    const current = {
+      version: 'tsb.v1' as const,
+      title: 'My Set',
+      notes: '',
+      topics: [{
+        id: 't1',
+        title: 'Housing',
+        importance: 3,
+        stance: 'neutral',
+        directions: [],
+        notes: '',
+        sources: [{ label: 'A', url: 'https://Example.com/path/' }],
+        relations: { broader: [], narrower: [], related: [] }
+      }],
+      createdAt: '',
+      updatedAt: '',
+    };
+
+    const incoming = {
+      version: 'tsb.v1' as const,
+      title: 'Incoming',
+      notes: '',
+      topics: [{
+        id: 't1',
+        title: 'Housing',
+        importance: 3,
+        stance: 'neutral',
+        directions: [],
+        notes: '',
+        sources: [{ label: 'A', url: 'https://example.com/path' }],
+        relations: { broader: [], narrower: [], related: [] }
+      }],
+      createdAt: '',
+      updatedAt: '',
+    };
+
+    const merged = mergePreferenceSets(current as any, incoming as any);
+    const sources = merged.topics[0].sources;
+    expect(sources.length).toBe(1);
+  });
 });
 

@@ -1,8 +1,6 @@
 import { useStore } from '../store';
 import type { Topic } from '../schema';
 // Import the current starter pack to derive a stable index
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - JSON import is enabled via Vite
 import starterPack from '../../starter-pack.v1.json';
 
 // Stable pack identifier. Increment when the starter index order changes.
@@ -10,14 +8,16 @@ import starterPack from '../../starter-pack.v1.json';
 export const packId = 'sp-v1';
 const allowedPackIds = new Set<string>(['sp-v1', 'sp-v2.4']);
 
-type StarterPack = { topics: Array<{ id: string; directions?: Array<{ id: string }> }> };
-const sp = (starterPack as StarterPack) || { topics: [] };
+interface StarterPackDirection { id: string; text: string }
+interface StarterPackTopic { id: string; title: string; directions?: StarterPackDirection[] }
+interface StarterPack { topics: StarterPackTopic[] }
+const sp: StarterPack = (starterPack as StarterPack) || { topics: [] };
 
 // Build stable indices (append-only ordering)
 export const topicIndex: string[] = sp.topics.map(t => t.id);
-export const topicTitleIndex: string[] = sp.topics.map(t => (t as any).title?.toLowerCase?.() || '');
+export const topicTitleIndex: string[] = sp.topics.map(t => t.title.toLowerCase());
 export const directionIndex: string[][] = sp.topics.map(t => (t.directions || []).map(d => d.id));
-export const directionTextIndex: string[][] = sp.topics.map(t => (t.directions || []).map(d => (d as any).text?.toLowerCase?.() || ''));
+export const directionTextIndex: string[][] = sp.topics.map(t => (t.directions || []).map(d => d.text.toLowerCase()));
 
 const base64urlEncode = (s: string): string => {
   // Standard btoa expects latin1; payload is ASCII-only JSON of numbers/ids
@@ -181,7 +181,7 @@ export const decodeStarterPreferences = (payload: string): StarterPayload | null
     // Fallback to v1 JSON sparse/dense
     const json = base64urlDecode(payload);
     const obj = JSON.parse(json) as StarterPayload;
-    if (!obj || !allowedPackIds.has((obj as any).v)) return null;
+    if (!obj || !allowedPackIds.has(obj.v)) return null;
     return obj;
   } catch {
     return null;
@@ -201,10 +201,13 @@ export const applyStarterPreferences = (data: StarterPayload) => {
   } else {
     tiArr = new Array(topicIndex.length).fill(0);
     dsArr = directionIndex.map(row => new Array(row.length).fill(0));
-    const sp = data as StarterPayloadSparse;
-    sp.tip.forEach(([i, v]) => { if (i >= 0 && i < tiArr.length) tiArr[i] = v; });
-    sp.dsp.forEach(([ti, di, v]) => { if (dsArr[ti] && di >= 0 && di < dsArr[ti].length) dsArr[ti][di] = v; });
+    const spData = data as StarterPayloadSparse;
+    spData.tip.forEach(([i, v]) => { if (i >= 0 && i < tiArr.length) tiArr[i] = v; });
+    spData.dsp.forEach(([ti, di, v]) => { if (dsArr[ti] && di >= 0 && di < dsArr[ti].length) dsArr[ti][di] = v; });
   }
+  // Clamp all values to [0,5]
+  tiArr = tiArr.map(v => Math.max(0, Math.min(5, Number(v) || 0)));
+  dsArr = dsArr.map(row => row.map(v => Math.max(0, Math.min(5, Number(v) || 0))));
   // First pass: apply updates to existing topics that match starter-pack IDs or titles
   const seenStarterIndices = new Set<number>();
   const nextTopics = prevTopics.map(t => {
@@ -236,9 +239,9 @@ export const applyStarterPreferences = (data: StarterPayload) => {
     const anyDirStar = dirStars.some(v => (v || 0) > 0);
     // Only add topics that the share payload indicates were set (importance or any direction star)
     if (imp === 0 && !anyDirStar) continue;
-    const packTopic: any = (sp.topics[i] || {});
+    const packTopic = sp.topics[i];
     if (!packTopic || !packTopic.id || !packTopic.title) continue;
-    const directions = (packTopic.directions || []).map((d: any, di: number) => ({
+    const directions = (packTopic.directions || []).map((d, di: number) => ({
       id: d.id,
       text: d.text,
       stars: dirStars[di] ?? 0,
@@ -254,7 +257,7 @@ export const applyStarterPreferences = (data: StarterPayload) => {
       notes: '',
       sources: [],
       relations: { broader: [], narrower: [], related: [] },
-    } as Topic;
+    };
     additions.push(toAdd);
   }
   if (additions.length > 0) applied += additions.length;
@@ -262,14 +265,20 @@ export const applyStarterPreferences = (data: StarterPayload) => {
   return { applied };
 };
 
-export const buildShareUrl = (payload: string): string => {
-  const { origin, pathname, search } = window.location;
-  return `${origin}${pathname}${search}#sp=${payload}`;
+export const buildShareUrl = (
+  payload: string,
+  base: string = typeof window !== 'undefined' ? window.location.href : 'http://localhost/'
+): string => {
+  const url = new URL(base);
+  return `${url.origin}${url.pathname}${url.search}#sp=${payload}`;
 };
 
-export const buildShareUrlV2 = (payload: string): string => {
-  const { origin, pathname, search } = window.location;
-  return `${origin}${pathname}${search}#sp2=${payload}`;
+export const buildShareUrlV2 = (
+  payload: string,
+  base: string = typeof window !== 'undefined' ? window.location.href : 'http://localhost/'
+): string => {
+  const url = new URL(base);
+  return `${url.origin}${url.pathname}${url.search}#sp2=${payload}`;
 };
 
 // Extract and decode share payload from a URL string (supports sp2, then sp)
