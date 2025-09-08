@@ -3,12 +3,12 @@ import type { Topic } from '../schema';
 // Import the current starter pack to derive a stable index
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - JSON import is enabled via Vite
-import starterPack from '../../starter-pack.v2.4.json';
+import starterPack from '../../starter-pack.v1.json';
 
 // Stable pack identifier. Increment when the starter index order changes.
 // Keep older IDs decodable for existing links.
-export const packId = 'sp-v2.4';
-const allowedPackIds = new Set<string>(['sp-v2.4', 'sp-v1']);
+export const packId = 'sp-v1';
+const allowedPackIds = new Set<string>(['sp-v1', 'sp-v2.4']);
 
 type StarterPack = { topics: Array<{ id: string; directions?: Array<{ id: string }> }> };
 const sp = (starterPack as StarterPack) || { topics: [] };
