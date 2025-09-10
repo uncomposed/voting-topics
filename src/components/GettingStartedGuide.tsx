@@ -24,9 +24,8 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
               rel="noopener noreferrer"
               style={{ marginLeft: 6, textDecoration: 'underline' }}
             >
-              Open an issue 
-            </a>
-            or 
+              Open an issue </a>
+              or
             <a
               href="https://github.com/uncomposed/voting-topics/pulls"
               target="_blank"
