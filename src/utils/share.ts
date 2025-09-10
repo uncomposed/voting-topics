@@ -1,17 +1,15 @@
 import { useStore } from '../store';
 import type { Topic } from '../schema';
 // Import the current starter pack to derive a stable index
-import starterPack from '../../starter-pack.v1.json';
+import starterPackData from '../../starter-pack.v1.json';
+import type { StarterPackJson } from '../types';
 
 // Stable pack identifier. Increment when the starter index order changes.
 // Keep older IDs decodable for existing links.
 export const packId = 'sp-v1';
 const allowedPackIds = new Set<string>(['sp-v1', 'sp-v2.4']);
 
-interface StarterPackDirection { id: string; text: string }
-interface StarterPackTopic { id: string; title: string; directions?: StarterPackDirection[] }
-interface StarterPack { topics: StarterPackTopic[] }
-const sp: StarterPack = (starterPack as StarterPack) || { topics: [] };
+const sp: StarterPackJson = starterPackData;
 
 // Build stable indices (append-only ordering)
 export const topicIndex: string[] = sp.topics.map(t => t.id);

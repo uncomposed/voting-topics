@@ -1,26 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { toast } from '../utils/toast';
-import starterPack from '../../starter-pack.v2.4.json';
+import starterPackData from '../../starter-pack.v2.4.json';
+import type { StarterPackJson, StarterTopicJson } from '../types';
 
-
-interface StarterTopic { 
-  id: string; 
-  title: string; 
-  directions: Array<{ text: string }>;
-}
+const starterPack: StarterPackJson = starterPackData;
 
 export const StarterPackPicker: React.FC = () => {
   const topics = useStore(state => state.topics);
   const addTopicFromStarter = useStore(state => state.addTopicFromStarter);
   const currentFlowStep = useStore(state => state.currentFlowStep);
   const advanceFlowStep = useStore(state => state.advanceFlowStep);
-  const [pool, setPool] = useState<StarterTopic[]>(() => {
-    const raw = (starterPack as { topics: StarterTopic[] }).topics || [];
+  const [pool, setPool] = useState<StarterTopicJson[]>(() => {
+    const raw = starterPack.topics || [];
     return raw.map((t) => ({
       id: t.id,
       title: t.title,
-      directions: (t.directions || []).map((d) => ({ text: d.text }))
+      directions: (t.directions || []).map((d) => ({ id: d.id, text: d.text }))
     }));
   });
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -36,7 +32,7 @@ export const StarterPackPicker: React.FC = () => {
     }
   }, [topics.length, isCollapsed]);
 
-  const handleAdd = (topic: StarterTopic) => {
+  const handleAdd = (topic: StarterTopicJson) => {
     addTopicFromStarter(topic);
     // Remove from pool so it's not offered again
     setPool(prev => prev.filter(p => p.id !== topic.id));
