@@ -80,9 +80,9 @@ export const NextStepGuidance: React.FC = () => {
     marginRight: 0,
   };
 
-  return (
-    <div className="next-step-guidance" style={containerStyle}>
-      {hintsEnabled && (
+  const renderHintSection = () => {
+    if (hintsEnabled) {
+      return (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span style={{ fontSize: '1.1rem' }}>🎯</span>
@@ -94,7 +94,7 @@ export const NextStepGuidance: React.FC = () => {
             <strong>Next:</strong> {step.next}
           </div>
           {getActionButton()}
-          <div className="muted" style={{ marginTop: 6, display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div className="muted" style={{ marginTop: 6, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <button
               className="btn ghost"
               style={{ padding: '2px 6px' }}
@@ -111,7 +111,43 @@ export const NextStepGuidance: React.FC = () => {
             </button>
           </div>
         </>
-      )}
+      );
+    }
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: '1.1rem' }}>🤖</span>
+          <div>
+            <div style={{ fontWeight: 600, color: 'var(--focus)' }}>Bring your own AI</div>
+            <div className="muted" style={{ fontSize: '0.9rem' }}>
+              Hint mode is off. Use the AI helper to brainstorm topics or draft ballots when you need a boost.
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            className="btn primary"
+            style={{ padding: '4px 10px' }}
+            onClick={() => window.dispatchEvent(new Event('vt-open-llm'))}
+          >
+            Open AI Assistant
+          </button>
+          <button
+            className="btn ghost"
+            style={{ padding: '4px 10px' }}
+            onClick={() => setHintsEnabled(true)}
+          >
+            Re-enable hints
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="next-step-guidance" style={containerStyle}>
+      {renderHintSection()}
 
       {currentFlowStep === 'complete' && (
         <>

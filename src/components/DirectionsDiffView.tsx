@@ -313,7 +313,7 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
 
                     <div className="direction-stars-comparison">
                       <div className="stars-bar">
-                        <div className="stars-label">Left:</div>
+                        <div className="stars-label">Set A:</div>
                         <div className="stars-display">
                           {Array.from({ length: 5 }, (_, i) => (
                             <span 
@@ -328,7 +328,7 @@ export const DirectionsDiffView: React.FC<DirectionsDiffViewProps> = ({
                       </div>
 
                       <div className="stars-bar">
-                        <div className="stars-label">Right:</div>
+                        <div className="stars-label">Set B:</div>
                         <div className="stars-display">
                           {Array.from({ length: 5 }, (_, i) => (
                             <span 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../store';
 
@@ -8,7 +8,26 @@ export const TemplateInfoPanel: React.FC = () => {
   const setTitle = useStore(state => state.setTitle);
   const setNotes = useStore(state => state.setNotes);
 
-  const container = typeof document !== 'undefined' ? document.getElementById('template-info') : null;
+  const [container, setContainer] = useState<HTMLElement | null>(() => (
+    typeof document !== 'undefined' ? document.getElementById('template-info') : null
+  ));
+
+  useEffect(() => {
+    if (container || typeof document === 'undefined') return;
+    let cancelled = false;
+    const lookup = () => {
+      if (cancelled) return;
+      const el = document.getElementById('template-info');
+      if (el) {
+        setContainer(el);
+      } else {
+        requestAnimationFrame(lookup);
+      }
+    };
+    lookup();
+    return () => { cancelled = true; };
+  }, [container]);
+
   if (!container) return null;
 
   return createPortal(
@@ -37,4 +56,3 @@ export const TemplateInfoPanel: React.FC = () => {
     container
   );
 };
-

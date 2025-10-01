@@ -48,6 +48,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const [collapseCompare, setCollapseCompare] = useState(false);
   const [collapseToggle, setCollapseToggle] = useState(false);
   const [starterSelectedCount, setStarterSelectedCount] = useState(0);
+
+  const handleToggleComparison = () => {
+    if (showDiffComparison) {
+      setShowDiffComparison(false);
+      return;
+    }
+    setShowLLMIntegration(false);
+    setBallotMode('preference');
+    setShowDiffComparison(true);
+  };
   const moreRef = useRef<HTMLDivElement>(null);
   const moreBtnRef = useRef<HTMLButtonElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -554,7 +564,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       )}
 
       {hasTopics && !collapseCompare && (
-        <button id="btn-diff-comparison" className="btn" onClick={() => setShowDiffComparison(!showDiffComparison)}
+        <button id="btn-diff-comparison" className="btn" onClick={handleToggleComparison}
           onMouseEnter={() => emitHint('compare', 'btn-diff-comparison', 'Compare two preference sets side by side.')}
         >
           {showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}
@@ -609,7 +619,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               <button id="btn-toggle-view-menu" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); if (isInSpecialView) { setShowDiffComparison(false); setShowLLMIntegration(false); setBallotMode('preference'); } else { setShowCards(!showCards); } }}>{toggleViewLabel}</button>
             )}
             {hasTopics && collapseCompare && (
-              <button id="btn-diff-menu" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowDiffComparison(!showDiffComparison); }}>{showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}</button>
+              <button id="btn-diff-menu" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); handleToggleComparison(); }}>{showDiffComparison ? 'Close Comparison' : 'Compare Preferences'}</button>
             )}
             <button id="btn-import" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import JSON</button>
             <button id="btn-import-from-link" className="btn" role="menuitem" onClick={() => {

@@ -64,7 +64,7 @@ export const DiffComparison: React.FC<DiffComparisonProps> = ({ onClose }) => {
       <div className="diff-comparison-content">
         <div className="upload-section">
           <div className="upload-card">
-            <h3>Left Template</h3>
+            <h3>Template A</h3>
             <div className="upload-area">
               <input
                 type="file"
@@ -95,7 +95,7 @@ export const DiffComparison: React.FC<DiffComparisonProps> = ({ onClose }) => {
           </div>
 
           <div className="upload-card">
-            <h3>Right Template</h3>
+            <h3>Template B</h3>
             <div className="upload-area">
               <input
                 type="file"

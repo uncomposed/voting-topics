@@ -189,7 +189,7 @@ export const HintManager: React.FC = () => {
             )}
             <div className="row" style={{ marginTop: 8 }}>
               <button className="btn small" onClick={() => dismiss(true)}>Got it</button>
-              <button className="btn small ghost" onClick={() => dismiss(false)}>Close</button>
+              <button className="btn small ghost" onClick={() => dismiss(false)} title="Close this hint without marking it as completed">Remind me later</button>
               <button className="btn small ghost" onClick={() => setHintsEnabled(!hintsEnabled)}>{hintsEnabled ? 'Disable Hints' : 'Enable Hints'}</button>
             </div>
           </div>

@@ -29,11 +29,11 @@ export const TemplateDiffView: React.FC<TemplateDiffViewProps> = ({
           <h1>Template Comparison</h1>
           <div className="diff-titles">
             <div className="diff-title">
-              <span className="diff-label">Left:</span>
+              <span className="diff-label">Set A:</span>
               <span className="diff-title-text">{diff.title.left}</span>
             </div>
             <div className="diff-title">
-              <span className="diff-label">Right:</span>
+              <span className="diff-label">Set B:</span>
               <span className="diff-title-text">{diff.title.right}</span>
             </div>
           </div>

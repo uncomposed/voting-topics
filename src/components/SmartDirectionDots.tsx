@@ -15,11 +15,7 @@ export const SmartDirectionDots: React.FC<SmartDirectionDotsProps> = ({
   maxVisible = 7 
 }) => {
   if (directions.length === 0) {
-    return (
-      <div className="direction-dots">
-        <span className="direction-dot no-directions" title="No direction">○</span>
-      </div>
-    );
+    return null;
   }
 
   if (directions.length <= maxVisible) {

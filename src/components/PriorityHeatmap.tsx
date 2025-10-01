@@ -7,6 +7,21 @@ interface PriorityHeatmapProps {
   rightPreferenceSet: PreferenceSet;
 }
 
+const clampImportance = (value: number) => Math.max(0, Math.min(5, value));
+
+const paletteSetA = ['#f1f6ff', '#d6e7ff', '#accdff', '#79adff', '#4f95ff', '#215fce'];
+const paletteSetB = ['#effaf4', '#c8f1dd', '#9ce6c4', '#68d7a3', '#34c182', '#1a8c58'];
+
+const getPaletteColor = (value: number, palette: string[]) => {
+  const normalized = Math.round(clampImportance(value));
+  return palette[normalized];
+};
+
+const formatImportance = (value: number) => {
+  const normalized = clampImportance(value);
+  return Number.isInteger(normalized) ? `${normalized}` : normalized.toFixed(1);
+};
+
 export const PriorityHeatmap: React.FC<PriorityHeatmapProps> = ({ 
   leftPreferenceSet, 
   rightPreferenceSet 
@@ -16,7 +31,6 @@ export const PriorityHeatmap: React.FC<PriorityHeatmapProps> = ({
   
   const priorityComparison = computePriorityComparison(leftPreferenceSet, rightPreferenceSet);
   
-  // Filter and sort the data
   let filteredData = filterChanged 
     ? priorityComparison.filter(p => p.importanceDiff !== 0)
     : priorityComparison;
@@ -30,23 +44,21 @@ export const PriorityHeatmap: React.FC<PriorityHeatmapProps> = ({
       case 'right':
         return b.rightImportance - a.rightImportance;
       case 'diff':
-        return Math.abs(b.importanceDiff) - Math.abs(a.importanceDiff);
       default:
-        return 0;
+        return Math.abs(b.importanceDiff) - Math.abs(a.importanceDiff);
     }
   });
-  
-  const getImportanceColor = (importance: number) => {
-    const intensity = importance / 5;
-    return `rgba(139, 211, 255, ${0.3 + intensity * 0.7})`;
+
+  const renderDiffBadge = (diff: number) => {
+    if (diff === 0) {
+      return <span className="diff-badge neutral">Match</span>;
+    }
+    if (diff > 0) {
+      return <span className="diff-badge positive">Set B +{diff}</span>;
+    }
+    return <span className="diff-badge negative">Set A +{Math.abs(diff)}</span>;
   };
-  
-  const getDiffColor = (diff: number) => {
-    if (diff === 0) return 'var(--muted)';
-    if (diff > 0) return 'var(--accent-2)';
-    return 'var(--danger)';
-  };
-  
+
   return (
     <div className="priority-heatmap">
       <div className="heatmap-header">
@@ -60,9 +72,9 @@ export const PriorityHeatmap: React.FC<PriorityHeatmapProps> = ({
               className="select"
             >
               <option value="diff">Difference</option>
-              <option value="name">Name</option>
-              <option value="left">Left Priority</option>
-              <option value="right">Right Priority</option>
+              <option value="name">Topic name</option>
+              <option value="left">Set A priority</option>
+              <option value="right">Set B priority</option>
             </select>
           </div>
           
@@ -81,90 +93,86 @@ export const PriorityHeatmap: React.FC<PriorityHeatmapProps> = ({
       
       <div className="heatmap-legend">
         <div className="legend-item">
-          <div className="legend-color left"></div>
-          <span>Left Preference Set</span>
+          <div className="legend-color set-a"></div>
+          <span>Set A (reference)</span>
         </div>
         <div className="legend-item">
-          <div className="legend-color right"></div>
-          <span>Right Preference Set</span>
+          <div className="legend-color set-b"></div>
+          <span>Set B (comparison)</span>
         </div>
         <div className="legend-item">
           <div className="legend-color diff"></div>
-          <span>Difference</span>
+          <span>Set B − Set A</span>
         </div>
       </div>
-      
-      <div className="heatmap-grid">
-        {filteredData.map(comparison => (
-          <div key={comparison.topicId} className="heatmap-item">
-            <div className="heatmap-item-header">
-              <h4 className="topic-title">{comparison.topicTitle}</h4>
-              <div className="topic-meta">
-                {comparison.importanceDiff !== 0 && (
-                  <span 
-                    className="diff-badge"
-                    style={{ color: getDiffColor(comparison.importanceDiff) }}
-                  >
-                    {comparison.importanceDiff > 0 ? '+' : ''}{comparison.importanceDiff}
-                  </span>
-                )}
-              </div>
-            </div>
-            
-            <div className="priority-bars">
-              <div className="priority-bar-container">
-                <div className="priority-bar-label">Left</div>
-                <div className="priority-bar left">
-                  <div 
-                    className="bar-fill" 
-                    style={{ 
-                      width: `${(comparison.leftImportance / 5) * 100}%`,
-                      backgroundColor: getImportanceColor(comparison.leftImportance)
-                    }}
-                  />
-                  <span className="bar-value">{comparison.leftImportance}/5</span>
-                </div>
-              </div>
-              
-              <div className="priority-bar-container">
-                <div className="priority-bar-label">Right</div>
-                <div className="priority-bar right">
-                  <div 
-                    className="bar-fill" 
-                    style={{ 
-                      width: `${(comparison.rightImportance / 5) * 100}%`,
-                      backgroundColor: getImportanceColor(comparison.rightImportance)
-                    }}
-                  />
-                  <span className="bar-value">{comparison.rightImportance}/5</span>
-                </div>
-              </div>
-            </div>
-            
-            {comparison.importanceDiff !== 0 && (
-              <div className="diff-summary">
-                <span className="diff-text">
-                  Priority {comparison.importanceDiff > 0 ? 'increased' : 'decreased'} by {Math.abs(comparison.importanceDiff)} point{Math.abs(comparison.importanceDiff) !== 1 ? 's' : ''}
-                </span>
-              </div>
-            )}
-          </div>
-        ))}
+
+      <div className="heatmap-table-wrapper">
+        <table className="heatmap-table">
+          <caption className="sr-only">Topic priority comparison between Set A and Set B</caption>
+          <thead>
+            <tr>
+              <th scope="col" className="topic-column">Topic</th>
+              <th scope="col">Set A</th>
+              <th scope="col">Set B</th>
+              <th scope="col">Δ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map(comparison => {
+              const leftImportance = clampImportance(comparison.leftImportance);
+              const rightImportance = clampImportance(comparison.rightImportance);
+              const diff = comparison.importanceDiff;
+              const colorA = getPaletteColor(leftImportance, paletteSetA);
+              const colorB = getPaletteColor(rightImportance, paletteSetB);
+              const textColorA = leftImportance >= 3 ? '#ffffff' : 'var(--text)';
+              const textColorB = rightImportance >= 3 ? '#ffffff' : 'var(--text)';
+
+              return (
+                <tr key={comparison.topicId}>
+                  <th scope="row" className="heatmap-topic">
+                    <span>{comparison.topicTitle}</span>
+                  </th>
+                  <td className="heatmap-cell set-a">
+                    <div
+                      className="importance-chip"
+                      style={{ backgroundColor: colorA, color: textColorA }}
+                    >
+                      <span aria-hidden="true">{formatImportance(leftImportance)}</span>
+                      <span className="chip-suffix" aria-hidden="true">/5</span>
+                      <span className="sr-only">Set A priority {leftImportance} out of 5</span>
+                    </div>
+                  </td>
+                  <td className="heatmap-cell set-b">
+                    <div
+                      className="importance-chip"
+                      style={{ backgroundColor: colorB, color: textColorB }}
+                    >
+                      <span aria-hidden="true">{formatImportance(rightImportance)}</span>
+                      <span className="chip-suffix" aria-hidden="true">/5</span>
+                      <span className="sr-only">Set B priority {rightImportance} out of 5</span>
+                    </div>
+                  </td>
+                  <td className="heatmap-cell diff">{renderDiffBadge(diff)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-      
+
       {filteredData.length === 0 && (
         <div className="no-data">
           <p>No topics found matching the current filters.</p>
         </div>
       )}
-      
+
       <div className="heatmap-stats">
         <div className="stat">
           <span className="stat-label">Total Topics:</span>
           <span className="stat-value">{priorityComparison.length}</span>
         </div>
         <div className="stat">
-          <span className="stat-label">Priority Changes:</span>
+          <span className="stat-label">Priority changes:</span>
           <span className="stat-value">{priorityComparison.filter(p => p.importanceDiff !== 0).length}</span>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { toast } from '../utils/toast';
 import starterPackData from '../../starter-pack.v2.4.json';
@@ -27,6 +27,11 @@ export const StarterPackPicker: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const autoCollapsed = useRef(false);
 
+  const announceSelection = (count: number) => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('vt-starter-selection-changed', { detail: { count } }));
+  };
+
   // Static import above removes dynamic import warning and is fine for this payload size
 
   // Auto-collapse once when topics first appear
@@ -45,6 +50,7 @@ export const StarterPackPicker: React.FC = () => {
       } else {
         newSet.add(topicId);
       }
+      announceSelection(newSet.size);
       return newSet;
     });
   };
@@ -59,6 +65,7 @@ export const StarterPackPicker: React.FC = () => {
 
     setPool(prev => prev.filter(p => !selectedTopics.has(p.id)));
     setSelectedTopics(() => new Set<string>());
+    announceSelection(0);
 
     toast.show({
       variant: 'success',
@@ -76,8 +83,30 @@ export const StarterPackPicker: React.FC = () => {
     return () => window.removeEventListener('vt-starter-add-selected', handleEvent as EventListener);
   }, [handleAddSelected]);
 
+  useEffect(() => {
+    announceSelection(0);
+  }, []);
+
   // Always show starter pack, but in minimized state when topics exist
   const hasTopics = topics.length > 0;
+
+  const addedFromStarter = useMemo(() => {
+    const packTitles = new Set((starterPack.topics || []).map(t => (t.title || '').trim().toLowerCase()));
+    const seen = new Set<string>();
+    const result: string[] = [];
+    topics.forEach(topic => {
+      const rawTitle = (topic.title || '').trim();
+      if (!rawTitle) return;
+      const normalized = rawTitle.toLowerCase();
+      if (!packTitles.has(normalized) || seen.has(normalized)) return;
+      seen.add(normalized);
+      result.push(topic.title);
+    });
+    return result;
+  }, [topics]);
+
+  const addedPreview = addedFromStarter.slice(0, 6);
+  const addedRemainder = Math.max(0, addedFromStarter.length - addedPreview.length);
 
   // Open/expand when requested from toolbar
   useEffect(() => {
@@ -90,7 +119,25 @@ export const StarterPackPicker: React.FC = () => {
 
   return (
     <div id="starter-pack" className="panel starter-pack-panel" style={{ marginTop: 16 }}>
-      <div className="panel-header-collapsible">
+      <div
+        className="panel-header-collapsible"
+        role="button"
+        tabIndex={0}
+        aria-expanded={!isCollapsed}
+        aria-controls="starter-pack-body"
+        style={{ cursor: 'pointer' }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            setIsCollapsed(prev => !prev);
+          }
+        }}
+        onClick={(event) => {
+          const target = event.target as HTMLElement;
+          if (target.closest('button')) return;
+          setIsCollapsed(prev => !prev);
+        }}
+      >
         <div>
           {hasTopics ? (
             <>
@@ -113,10 +160,21 @@ export const StarterPackPicker: React.FC = () => {
               </p>
             </>
           )}
+          {addedFromStarter.length > 0 && (
+            <div className="muted" style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {addedPreview.map(title => (
+                <span key={title} className="chip" style={{ fontSize: '0.75rem' }}>{title}</span>
+              ))}
+              {addedRemainder > 0 && (
+                <span className="chip" style={{ fontSize: '0.75rem' }}>+{addedRemainder} more</span>
+              )}
+            </div>
+          )}
         </div>
         <button 
           className="btn ghost starter-toggle"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={(event) => { event.stopPropagation(); setIsCollapsed(!isCollapsed); }}
+          onKeyDown={(event) => event.stopPropagation()}
           aria-label={isCollapsed ? 'Expand starter pack' : 'Collapse starter pack'}
         >
           {isCollapsed ? '▶' : '▼'}
@@ -125,7 +183,7 @@ export const StarterPackPicker: React.FC = () => {
       
       {!isCollapsed && (
         <>
-          <div className="starter-pack-list">
+          <div id="starter-pack-body" className="starter-pack-list">
             {pool.map((item) => (
               <label key={item.id} className="starter-pack-item">
                 <input

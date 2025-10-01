@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { App } from './App';
 import { ToastContainer } from './components/ToastContainer';
 import { HintManager } from './components/Hints';
 import { ShortcutHelp } from './components/ShortcutHelp';
+import { PrivacyNotice } from './components/PrivacyNotice';
 
 export const Layout: React.FC = () => {
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
   return (
     <div className="container">
       <header>
@@ -30,7 +33,18 @@ export const Layout: React.FC = () => {
 
       <div className="footer">
         <div>Keyboard: <span className="kbd">Tab</span>/<span className="kbd">Shift+Tab</span>, stars: <span className="kbd">ArrowLeft</span>/<span className="kbd">ArrowRight</span></div>
-        <div><a href="#" id="privacy-link">Privacy & disclaimers</a></div>
+        <div>
+          <a
+            href="#privacy"
+            id="privacy-link"
+            onClick={(event) => {
+              event.preventDefault();
+              setShowPrivacy(true);
+            }}
+          >
+            Privacy & disclaimers
+          </a>
+        </div>
       </div>
 
       {/* Hidden social-card render target for JPEG export */}
@@ -42,6 +56,7 @@ export const Layout: React.FC = () => {
       <HintManager />
       {/* Keyboard shortcuts overlay */}
       <ShortcutHelp />
+      {showPrivacy && <PrivacyNotice onClose={() => setShowPrivacy(false)} />}
     </div>
   );
 };
