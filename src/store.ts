@@ -385,7 +385,13 @@ export const useStore = create<Store>()(
       // Hints
       hintsEnabled: true,
       seenHints: [],
-      setHintsEnabled: (v: boolean) => set({ hintsEnabled: v }),
+      setHintsEnabled: (v: boolean) => set((state) => {
+        if (v === state.hintsEnabled) return {};
+        if (v) {
+          return { hintsEnabled: true, seenHints: [] };
+        }
+        return { hintsEnabled: false };
+      }),
       markHintSeen: (key: string) => set((state) => (
         state.seenHints.includes(key) ? state : { seenHints: [...state.seenHints, key] }
       )),

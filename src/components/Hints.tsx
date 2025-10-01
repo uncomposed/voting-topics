@@ -27,8 +27,8 @@ export const HintManager: React.FC = () => {
   const recent = useRef<Map<string, number>>(new Map());
   const cooldownMs = 1500;
   const canShow = (d: HintEventDetail) => {
+    if (seenHints.includes(d.key)) return false;
     if (hintsEnabled && d.source === 'auto') return false; // in hint mode, ignore auto hints
-    if (!hintsEnabled && seenHints.includes(d.key)) return false;
     const now = Date.now();
     const last = recent.current.get(d.key) || 0;
     if (now - last < cooldownMs) return false;
