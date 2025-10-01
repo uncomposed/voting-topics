@@ -1,4 +1,4 @@
-import { screen, fireEvent, cleanup, waitFor, act } from '@testing-library/react';
+import { screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest';
 import { renderAppWithStore } from './helpers';
 import { useStore } from '../store';

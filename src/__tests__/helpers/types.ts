@@ -1,3 +1,4 @@
-import type { StoreState } from './useStoreTypes';
+import type { StoreState as InternalStoreState } from './useStoreTypes';
 
+export type StoreState = InternalStoreState;
 export type StoreStateSelector = (state: StoreState) => any;
