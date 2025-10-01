@@ -1,80 +1,45 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { App } from '../App';
+import { cleanup, fireEvent, waitFor, act } from '@testing-library/react';
+import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest';
+import { renderAppWithStore } from './helpers';
 import { useStore } from '../store';
 
-vi.mock('../store', () => ({
-  useStore: Object.assign(vi.fn(), { getState: vi.fn() })
-}));
+let initialState: ReturnType<typeof useStore.getState>;
 
-vi.mock('../exporters', () => ({
-  exportJSON: vi.fn(),
-  exportPDF: vi.fn(),
-  exportJPEG: vi.fn()
-}));
-
-describe.skip('MobileActionBar', () => {
-  const mockStore = {
-    title: 'Test Template',
-    notes: 'Test notes',
-    topics: [
-      {
-        id: '1',
-        title: 'Test Topic 1',
-        importance: 3,
-        stance: 'lean_for' as const,
-        directions: [],
-        notes: 'Test topic notes',
-        sources: [],
-        relations: { broader: [], narrower: [], related: [] }
-      }
-    ] as import('../schema').Topic[],
-    setTitle: vi.fn(),
-    setNotes: vi.fn(),
-    addTopic: vi.fn(),
-    removeTopic: vi.fn(),
-    patchTopic: vi.fn(),
-    ballotMode: 'preference' as const,
-    setBallotMode: vi.fn(),
-    clearAll: vi.fn(),
-    clearBallot: vi.fn(),
-    currentBallot: null,
-    setCurrentFlowStep: vi.fn(),
-  } as any;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    (useStore as any).mockImplementation((selector?: any) => selector ? selector(mockStore) : mockStore);
-    (useStore as any).getState.mockReturnValue(mockStore);
-
-    // Minimal DOM structure expected by App
-    const toolbar = document.createElement('div');
-    toolbar.className = 'toolbar';
-    const asideContainer = document.createElement('div');
-    asideContainer.id = 'template-info';
-    document.body.appendChild(toolbar);
-    document.body.appendChild(asideContainer);
-  });
-
-  it('renders sticky bar buttons and toggles view', async () => {
-    render(<App />);
-
-    const toggleBtn = screen.getByRole('button', { name: /toggle view/i });
-    expect(toggleBtn).toBeInTheDocument();
-
-    fireEvent.click(toggleBtn);
-
-    await waitFor(() => {
-      // Card view label exists in card header from TopicCards
-      expect(screen.getByText('Topic Priority View')).toBeInTheDocument();
-    });
-  });
-
-  it('adds a new topic with importance 0', async () => {
-    render(<App />);
-    const newBtn = document.getElementById('btn-new-topic')!;
-    fireEvent.click(newBtn);
-    expect(mockStore.addTopic).toHaveBeenCalledWith(0);
-  });
+beforeAll(() => {
+  initialState = useStore.getState();
 });
 
+afterEach(() => {
+  useStore.setState(initialState, true);
+  cleanup();
+  vi.clearAllMocks();
+});
+
+describe('Mobile action bar behaviour', () => {
+  it('surfaces Add Selected when starter topics are chosen', async () => {
+    const { restoreStore } = renderAppWithStore({
+      topics: [],
+    });
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('vt-starter-selection-changed', { detail: { count: 3 } }));
+    });
+
+    const nextBtn = await waitFor(() => document.getElementById('m-next'));
+    expect(nextBtn).toBeInTheDocument();
+    await waitFor(() => {
+      expect(nextBtn?.textContent).toMatch(/Add Selected/i);
+    });
+
+    const handler = vi.fn();
+    window.addEventListener('vt-starter-add-selected', handler as EventListener);
+    if (nextBtn) {
+      fireEvent.click(nextBtn);
+    }
+    window.removeEventListener('vt-starter-add-selected', handler as EventListener);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+
+    restoreStore();
+  });
+});
