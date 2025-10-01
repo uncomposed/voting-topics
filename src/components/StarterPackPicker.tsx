@@ -1,14 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { toast } from '../utils/toast';
-import starterPack from '../../starter-pack.v2.4.json';
+import starterPackData from '../../starter-pack.v2.4.json';
+import type { StarterPackJson, StarterTopicJson } from '../types';
 
+const starterPack: StarterPackJson = starterPackData;
 
-interface StarterTopic { 
-  id: string; 
-  title: string; 
+type StarterTopic = Pick<StarterTopicJson, 'id' | 'title'> & {
   directions: Array<{ text: string }>;
-}
+};
 
 export const StarterPackPicker: React.FC = () => {
   const topics = useStore(state => state.topics);
@@ -16,14 +16,14 @@ export const StarterPackPicker: React.FC = () => {
   const currentFlowStep = useStore(state => state.currentFlowStep);
   const advanceFlowStep = useStore(state => state.advanceFlowStep);
   const [pool, setPool] = useState<StarterTopic[]>(() => {
-    const raw = (starterPack as { topics: StarterTopic[] }).topics || [];
+    const raw = starterPack.topics || [];
     return raw.map((t) => ({
       id: t.id,
       title: t.title,
       directions: (t.directions || []).map((d) => ({ text: d.text }))
     }));
   });
-  const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set());
+  const [selectedTopics, setSelectedTopics] = useState<Set<string>>(() => new Set<string>());
   const [isCollapsed, setIsCollapsed] = useState(false);
   const autoCollapsed = useRef(false);
 
@@ -49,31 +49,32 @@ export const StarterPackPicker: React.FC = () => {
     });
   };
 
-  const handleAddSelected = () => {
+  const handleAddSelected = useCallback(() => {
     const topicsToAdd = pool.filter(topic => selectedTopics.has(topic.id));
     if (topicsToAdd.length === 0) return;
 
-    // Add all selected topics
     topicsToAdd.forEach(topic => {
       addTopicFromStarter(topic);
     });
 
-    // Remove added topics from pool
     setPool(prev => prev.filter(p => !selectedTopics.has(p.id)));
-    
-    // Clear selection
-    setSelectedTopics(new Set());
-    
-    // Notify user and move them along the flow
-    toast.show({ 
-      variant: 'success', 
-      title: 'Topics added', 
-      message: `${topicsToAdd.length} topic${topicsToAdd.length > 1 ? 's' : ''} added to your list`, 
-      duration: 3000 
+    setSelectedTopics(() => new Set<string>());
+
+    toast.show({
+      variant: 'success',
+      title: 'Topics added',
+      message: `${topicsToAdd.length} topic${topicsToAdd.length > 1 ? 's' : ''} added to your list`,
+      duration: 3000,
     });
-    
+
     if (currentFlowStep === 'starter') advanceFlowStep();
-  };
+  }, [addTopicFromStarter, advanceFlowStep, currentFlowStep, pool, selectedTopics]);
+
+  useEffect(() => {
+    const handleEvent = () => handleAddSelected();
+    window.addEventListener('vt-starter-add-selected', handleEvent as EventListener);
+    return () => window.removeEventListener('vt-starter-add-selected', handleEvent as EventListener);
+  }, [handleAddSelected]);
 
   // Always show starter pack, but in minimized state when topics exist
   const hasTopics = topics.length > 0;
