@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from '../../store';
 import { CandidateCard } from './CandidateCard';
 import { CandidateModal } from './CandidateModal';
@@ -12,14 +12,24 @@ export const OfficeSelector: React.FC = () => {
     removeOffice, 
     addCandidate,
     removeCandidate,
-    selectCandidate
+    setCandidateScore
   } = useStore();
-  
+
   const [showAddOffice, setShowAddOffice] = useState(false);
   const [newOfficeTitle, setNewOfficeTitle] = useState('');
   const [newOfficeDescription, setNewOfficeDescription] = useState('');
   const [editing, setEditing] = useState<{ officeId: string; candidateId: string } | null>(null);
   const [editingOfficeId, setEditingOfficeId] = useState<string | null>(null);
+  const [reasoningFocus, setReasoningFocus] = useState<{ officeId: string; candidateId: string } | null>(null);
+
+  useEffect(() => {
+    if (!currentBallot || !reasoningFocus) return;
+    const office = currentBallot.offices.find(o => o.id === reasoningFocus.officeId);
+    const candidateStillExists = office?.candidates.some(c => c.id === reasoningFocus.candidateId);
+    if (!candidateStillExists) {
+      setReasoningFocus(null);
+    }
+  }, [currentBallot, reasoningFocus]);
 
   if (!currentBallot) {
     return <div>No ballot found</div>;
@@ -56,8 +66,16 @@ export const OfficeSelector: React.FC = () => {
     }, 0);
   };
 
-  const handleSelectCandidate = (officeId: string, candidateId: string) => {
-    selectCandidate(officeId, candidateId);
+  const handleScoreChange = (officeId: string, candidateId: string, value: number) => {
+    setCandidateScore(officeId, candidateId, value);
+  };
+
+  const toggleReasoningPanel = (officeId: string, candidateId: string) => {
+    setReasoningFocus(prev => (
+      prev && prev.officeId === officeId && prev.candidateId === candidateId
+        ? null
+        : { officeId, candidateId }
+    ));
   };
 
   return (
@@ -66,7 +84,7 @@ export const OfficeSelector: React.FC = () => {
         <div className="header-content">
           <div>
             <h2>Offices & Candidates</h2>
-            <p>Add offices and candidates for this election</p>
+            <p>Add offices and score each candidate 0–5 using STAR voting.</p>
           </div>
           <button 
             onClick={() => setShowAddOffice(true)}
@@ -153,23 +171,26 @@ export const OfficeSelector: React.FC = () => {
                 office.candidates.map((candidate) => (
                   <CandidateCard
                     key={candidate.id}
-                    office={office}
                     candidate={candidate}
-                    isSelected={office.selectedCandidateId === candidate.id}
-                    onSelect={() => handleSelectCandidate(office.id, candidate.id)}
+                    score={candidate.score ?? 0}
+                    isTopChoice={office.selectedCandidateId === candidate.id}
+                    onScoreChange={(value) => handleScoreChange(office.id, candidate.id, value)}
                     onRemove={() => removeCandidate(office.id, candidate.id)}
                     onEdit={() => setEditing({ officeId: office.id, candidateId: candidate.id })}
+                    onOpenReasoning={() => toggleReasoningPanel(office.id, candidate.id)}
                   />
                 ))
               )}
             </div>
-
-            {office.selectedCandidateId && (
+            {reasoningFocus?.officeId === office.id && (
               <div className="reasoning-section">
-                <h4>Reasoning for Office</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h4 style={{ margin: 0 }}>Reasoning</h4>
+                  <button className="btn small ghost" onClick={() => setReasoningFocus(null)}>Close</button>
+                </div>
                 <ReasoningLinker 
                   officeId={office.id}
-                  candidateId={office.selectedCandidateId}
+                  candidateId={reasoningFocus.candidateId}
                 />
               </div>
             )}

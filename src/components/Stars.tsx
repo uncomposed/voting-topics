@@ -7,7 +7,7 @@ interface StarsProps {
 }
 
 const starMeanings = [
-  "Not important - Skip this direction",
+  "0 stars – Not rated yet / skip for now",
   "Low importance - Barely relevant",
   "Moderate importance - Somewhat relevant", 
   "High importance - Very relevant",
@@ -31,6 +31,8 @@ export const Stars: React.FC<StarsProps> = ({ value, onChange }) => {
     }
   };
 
+  const meaning = starMeanings[value] ?? '';
+
   return (
     <div className="stars" role="group" aria-label="Importance 0 to 5" onKeyDown={handleKey}>
       {Array.from({ length: 6 }, (_, n) => (
@@ -49,14 +51,14 @@ export const Stars: React.FC<StarsProps> = ({ value, onChange }) => {
           {n === 0 ? '–' : (n <= active ? '★' : '☆')}
         </button>
       ))}
-      {value > 0 && (
+      {meaning && (
         <span className="star-meaning" style={{ 
           marginLeft: '8px', 
           fontSize: '0.85rem', 
           color: 'var(--muted)',
           fontStyle: 'italic'
         }}>
-          {starMeanings[value]}
+          {meaning}
         </span>
       )}
     </div>

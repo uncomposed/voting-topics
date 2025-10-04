@@ -142,6 +142,7 @@ export const MobileMenu: React.FC = () => {
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-diff')); setOpen(false); }}>Compare Preferences</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-llm')); setOpen(false); }}>LLM Integration</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-getting-started')); setOpen(false); }}>Getting Started</button>
+              <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-welcome')); setOpen(false); }}>Show Welcome Tour</button>
               <button className="btn" onClick={() => { useStore.setState(s => ({ hintsEnabled: !s.hintsEnabled })); setOpen(false); }}>{hintsEnabled ? 'Disable Hint Mode' : 'Enable Hint Mode'}</button>
               <button className="btn" onClick={() => {
                 if (ballotMode === 'ballot') { window.dispatchEvent(new Event('vt-back-preferences')); }

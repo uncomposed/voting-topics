@@ -67,7 +67,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           <div>
             <label className="muted">Directions</label>
             <div className="muted" style={{ fontSize: '12px', marginBottom: '8px' }}>
-              Add specific outcomes or changes you want to see within this topic. Each direction gets its own importance rating.
+              “Directions” are the outcomes you want under this topic—add one idea per line and rate how strongly you want it (0–5 stars).
             </div>
             <DirectionsList 
               directions={topic.directions}

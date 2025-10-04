@@ -111,7 +111,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
     nextLabel = 'Ballot';
     nextAction = () => { window.dispatchEvent(new Event('vt-create-ballot')); };
   } else if (ballotMode === 'ballot' && currentBallot) {
-    const allOfficesSelected = currentBallot.offices.length > 0 && currentBallot.offices.every(o => !!o.selectedCandidateId);
+    const allOfficesSelected = currentBallot.offices.length > 0 && currentBallot.offices.every(o => o.candidates.some(c => (c.score ?? 0) > 0));
     const allMeasuresPositioned = currentBallot.measures.every(m => !!m.position);
     const readyToShare = allOfficesSelected && allMeasuresPositioned;
     nextLabel = readyToShare ? 'Share' : 'Preview';

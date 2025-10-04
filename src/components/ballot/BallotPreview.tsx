@@ -4,6 +4,7 @@ import { exportBallotJSON, exportBallotPDF, exportBallotJPEG } from '../../expor
 
 export const BallotPreview: React.FC = () => {
   const currentBallot = useStore(state => state.currentBallot);
+  const topics = useStore(state => state.topics);
 
   if (!currentBallot) {
     return <div>No ballot found</div>;
@@ -12,8 +13,8 @@ export const BallotPreview: React.FC = () => {
   const { election, offices, measures } = currentBallot;
   
   // Check for unselected candidates
-  const unselectedOffices = offices.filter(office => 
-    office.candidates.length > 0 && !office.selectedCandidateId
+  const unscoredOffices = offices.filter(office => 
+    office.candidates.length > 0 && !office.candidates.some(c => (c.score ?? 0) > 0)
   );
 
   return (
@@ -21,10 +22,10 @@ export const BallotPreview: React.FC = () => {
       <div className="ballot-preview-header">
         <h2>Ballot Preview</h2>
         <p>Review your sample ballot before exporting</p>
-        {unselectedOffices.length > 0 && (
+        {unscoredOffices.length > 0 && (
           <div className="ballot-warning">
-            ⚠️ You have {unselectedOffices.length} office{unselectedOffices.length > 1 ? 's' : ''} without selected candidates. 
-            Select candidates to ensure your ballot export is complete.
+            ⚠️ You have {unscoredOffices.length} office{unscoredOffices.length > 1 ? 's' : ''} without STAR scores. 
+            Score each candidate 0–5 so your ballot export reflects your preferences.
           </div>
         )}
       </div>
@@ -57,44 +58,54 @@ export const BallotPreview: React.FC = () => {
                 )}
                 
                 <div className="candidates-preview">
-                  {office.candidates.map((candidate) => {
-                    const isSelected = office.selectedCandidateId === candidate.id;
+                  {(() => {
+                    const scores = office.candidates.map(c => c.score ?? 0);
+                    const topScore = scores.length ? Math.max(...scores) : 0;
+                    const noScores = topScore <= 0;
                     return (
-                      <div 
-                        key={candidate.id} 
-                        className={`candidate-preview ${isSelected ? 'selected' : ''}`}
-                      >
-                        <div className="candidate-top">
-                          <span className="candidate-name">{candidate.name}</span>
-                          {candidate.party && (
-                            <span className="candidate-party">({candidate.party})</span>
-                          )}
-                        </div>
-                        <div className="candidate-bottom">
-                          {isSelected && (
-                            <span className="selected-check" aria-label="Selected" title="Selected">✓</span>
-                          )}
-                          {candidate.description && (
-                            <span className="candidate-description-inline">{candidate.description}</span>
-                          )}
-                        </div>
-                      </div>
+                      <>
+                        {office.candidates.map((candidate) => {
+                          const scoreValue = candidate.score ?? 0;
+                          const isTop = !noScores && scoreValue === topScore;
+                          return (
+                            <div 
+                              key={candidate.id} 
+                              className={`candidate-preview ${isTop ? 'selected' : ''}`}
+                            >
+                              <div className="candidate-top">
+                                <span className="candidate-name">{candidate.name}</span>
+                                {candidate.party && (
+                                  <span className="candidate-party">({candidate.party})</span>
+                                )}
+                                <span className="candidate-score-tag" style={{ marginLeft: 'auto', fontWeight: 600, color: 'var(--accent)' }}>{scoreValue}/5</span>
+                              </div>
+                              <div className="candidate-bottom">
+                                {isTop && (
+                                  <span className="selected-check" aria-label="Highest score" title="Highest score">⭐</span>
+                                )}
+                                {candidate.description && (
+                                  <span className="candidate-description-inline">{candidate.description}</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {noScores && office.candidates.length > 0 && (
+                          <div className="unselected-warning">
+                            ⚠️ Score each candidate 0–5 to finish this office
+                          </div>
+                        )}
+                      </>
                     );
-                  })}
-                  {!office.selectedCandidateId && office.candidates.length > 0 && (
-                    <div className="unselected-warning">
-                      ⚠️ No candidate selected for this office
-                    </div>
-                  )}
+                  })()}
                 </div>
 
-                {office.selectedCandidateId && office.reasoning.length > 0 && (
+                {office.reasoning.length > 0 && (
                   <div className="reasoning-preview">
                     <h4>Reasoning for Office:</h4>
                     <ul>
                       {office.reasoning.map((reasoning, index) => {
-                        // Find the topic for display
-                        const topic = useStore.getState().topics.find(t => t.id === reasoning.topicId);
+                        const topic = topics.find(t => t.id === reasoning.topicId);
                         const topicTitle = topic?.title || 'Unknown Topic';
                         
                         return (

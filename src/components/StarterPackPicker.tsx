@@ -143,20 +143,20 @@ export const StarterPackPicker: React.FC = () => {
             <>
               <h2 className="panel-title">➕ Add More Topics</h2>
               <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>
-                Select topics below and click "Add Selected" to add them to your list
+                Choose more issues that resonate with you and click "Add Selected" to fold them into your preference set.
               </p>
               <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.8rem' }}>
-                When you're ready, try the LLM assistant under More actions to draft a ballot for your election.
+                Need help turning topics into a ballot? Open "Bring Your Own AI" from the toolbar.
               </p>
             </>
           ) : (
             <>
               <h2 className="panel-title">🚀 Get Started with Starter Pack</h2>
               <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>
-                Select at least 3 topics to get started, but feel free to choose more if you'd like
+                Pick the issues that matter most to you to add them to your preference set.
               </p>
               <p className="muted" style={{ margin: '4px 0 0 0', fontSize: '0.8rem' }}>
-                You can later ask the AI helper to build a ballot using the web and our schema.
+                Start with three to five topics—add more anytime or clear the list to begin fresh.
               </p>
             </>
           )}

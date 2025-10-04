@@ -18,6 +18,7 @@ import { toast } from './utils/toast';
 import { extractAndDecodeFromUrl, applyStarterPreferences } from './utils/share';
 import { scrollIntoViewSmart } from './utils/scroll';
 import { useShareUrlSync } from './hooks';
+import { WelcomeModal } from './components/WelcomeModal';
 
 export const App: React.FC = () => {
   // Title/notes managed inside TemplateInfoPanel via store
@@ -38,6 +39,10 @@ export const App: React.FC = () => {
   const [showGettingStarted, setShowGettingStarted] = useState(false);
   const hasSeenOnboarding = useStore(state => state.hasSeenOnboarding);
   const setHasSeenOnboarding = useStore(state => state.setHasSeenOnboarding);
+  const hasSeenIntroModal = useStore(state => state.hasSeenIntroModal);
+  const setHasSeenIntroModal = useStore(state => state.setHasSeenIntroModal);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [isSharedSession, setIsSharedSession] = useState(false);
 
   // Set up expand/collapse button handler (other buttons are wired in main.tsx)
   useEffect(() => {
@@ -81,6 +86,20 @@ export const App: React.FC = () => {
       setShowGettingStarted(true);
     }
   }, [hasSeenOnboarding]);
+
+  useEffect(() => {
+    const shareDetected = /(#sp2=|#sp=|#ballot=|share=)/i.test(window.location.href);
+    setIsSharedSession(shareDetected);
+    if (!hasSeenIntroModal) {
+      setShowWelcomeModal(true);
+    }
+  }, [hasSeenIntroModal]);
+
+  useEffect(() => {
+    const openWelcome = () => setShowWelcomeModal(true);
+    window.addEventListener('vt-open-welcome', openWelcome as EventListener);
+    return () => window.removeEventListener('vt-open-welcome', openWelcome as EventListener);
+  }, []);
 
   // Card view handlers
   const handleTopicReorder = (topicId: string, newImportance: number) => {
@@ -265,14 +284,19 @@ export const App: React.FC = () => {
         showLLMIntegration={showLLMIntegration}
         setShowLLMIntegration={setShowLLMIntegration}
         setShowGettingStarted={setShowGettingStarted}
+        onOpenWelcome={() => setShowWelcomeModal(true)}
       />
       {/* Panel header only for list/cards views */}
       {!specialView && (
         <div className="panel-header-with-controls">
           <div className="panel-header-left">
-            <h2 className="panel-title">Your Topics</h2>
+            <h2 className="panel-title">{isSharedSession ? 'Shared Preference Set' : 'Your Preference Set'}</h2>
             {showCards && (
-              <p className="muted">Drag cards to reorder by importance. Click to edit details.</p>
+              <p className="muted">
+                {isSharedSession
+                  ? 'This set is read-only until you save a copy. Use the toolbar menu to fork it or start from scratch.'
+                  : 'Drag cards to reorder by importance. Click to edit details.'}
+              </p>
             )}
           </div>
           <div className="panel-controls">
@@ -328,6 +352,21 @@ export const App: React.FC = () => {
           setShowGettingStarted(false);
           setHasSeenOnboarding(true);
         }} />
+      )}
+
+      {showWelcomeModal && (
+        <WelcomeModal
+          isSharedView={isSharedSession}
+          onDismiss={() => {
+            setHasSeenIntroModal(true);
+            setShowWelcomeModal(false);
+          }}
+          onOpenGuide={() => {
+            setHasSeenIntroModal(true);
+            setShowWelcomeModal(false);
+            setShowGettingStarted(true);
+          }}
+        />
       )}
 
       {/* Template Info (portaled into aside area) */}

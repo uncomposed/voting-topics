@@ -4,6 +4,23 @@ import { uid } from './utils';
 import type { Topic, Source, Direction, Stance, Ballot, Office, Candidate, Measure, ElectionInfo, ReasoningLink } from './schema';
 import { trackEvent, setAnalyticsEnabled as setAnalyticsFlag } from './utils/analytics';
 
+const clampScore = (score: number) => Math.max(0, Math.min(5, Math.round(score)));
+const findTopCandidateId = (candidates: Candidate[]): string | undefined => {
+  let topScore = -1;
+  let topId: string | undefined;
+  for (const candidate of candidates) {
+    const score = candidate.score ?? 0;
+    if (score > topScore) {
+      topScore = score;
+      topId = score > 0 ? candidate.id : undefined;
+    }
+  }
+  return topId;
+};
+
+type CandidateInput = Omit<Candidate, 'id' | 'score'> & { score?: number; id?: string };
+type OfficeInput = Omit<Office, 'id' | 'candidates'> & { candidates: CandidateInput[] };
+
 interface Store {
   // Preference set state
   title: string;
@@ -18,6 +35,7 @@ interface Store {
   
   // Flow state for guided user experience
   currentFlowStep: 'starter' | 'cards' | 'list' | 'complete';
+  hasSeenIntroModal: boolean;
 
   // Preference set actions
   setTitle: (title: string) => void;
@@ -46,13 +64,14 @@ interface Store {
   createBallot: (electionInfo: ElectionInfo) => void;
   updateBallotTitle: (title: string) => void;
   updateBallotElection: (electionInfo: ElectionInfo) => void;
-  addOffice: (office: Omit<Office, 'id'>) => void;
+  addOffice: (office: OfficeInput) => void;
   removeOffice: (officeId: string) => void;
   updateOffice: (officeId: string, patch: Partial<Office>) => void;
-  addCandidate: (officeId: string, candidate: Omit<Candidate, 'id'>) => void;
+  addCandidate: (officeId: string, candidate: CandidateInput) => void;
   removeCandidate: (officeId: string, candidateId: string) => void;
   updateCandidate: (officeId: string, candidateId: string, patch: Partial<Candidate>) => void;
   selectCandidate: (officeId: string, candidateId: string) => void;
+  setCandidateScore: (officeId: string, candidateId: string, score: number) => void;
   addMeasure: (measure: Omit<Measure, 'id'>) => void;
   removeMeasure: (measureId: string) => void;
   updateMeasure: (measureId: string, patch: Partial<Measure>) => void;
@@ -67,6 +86,7 @@ interface Store {
   markHintSeen: (key: string) => void;
   hasSeenOnboarding: boolean;
   setHasSeenOnboarding: (v: boolean) => void;
+  setHasSeenIntroModal: (v: boolean) => void;
 
   // Analytics state
   analyticsEnabled: boolean;
@@ -89,6 +109,7 @@ export const useStore = create<Store>()(
       
       // Flow state
       currentFlowStep: 'starter' as const,
+      hasSeenIntroModal: false,
       setTitle: (title) => set({ title }),
       setNotes: (notes) => set({ notes }),
       addTopic: (importance?: number) => set((state) => ({
@@ -262,7 +283,20 @@ export const useStore = create<Store>()(
       addOffice: (office) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          offices: [...state.currentBallot.offices, { ...office, id: uid() }],
+          offices: [...state.currentBallot.offices, (() => {
+            const normalizedCandidates = (office.candidates ?? []).map(c => ({
+              ...c,
+              id: c.id ?? uid(),
+              score: clampScore(c.score ?? 0),
+            }));
+            return {
+              ...office,
+              id: uid(),
+              candidates: normalizedCandidates,
+              reasoning: office.reasoning ?? [],
+              selectedCandidateId: findTopCandidateId(normalizedCandidates),
+            };
+          })()],
           updatedAt: new Date().toISOString()
         } : null
       })),
@@ -285,12 +319,16 @@ export const useStore = create<Store>()(
       addCandidate: (officeId, candidate) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          offices: state.currentBallot.offices.map(o => 
-            o.id === officeId ? {
+          offices: state.currentBallot.offices.map(o => {
+            if (o.id !== officeId) return o;
+            const newCandidate = { ...candidate, id: uid(), score: clampScore(candidate.score ?? 0) };
+            const candidates = [...o.candidates, newCandidate];
+            return {
               ...o,
-              candidates: [...o.candidates, { ...candidate, id: uid() }]
-            } : o
-          ),
+              candidates,
+              selectedCandidateId: findTopCandidateId(candidates),
+            };
+          }),
           updatedAt: new Date().toISOString()
         } : null
       })),
@@ -301,7 +339,10 @@ export const useStore = create<Store>()(
             o.id === officeId ? {
               ...o,
               candidates: o.candidates.filter(c => c.id !== candidateId),
-              selectedCandidateId: o.selectedCandidateId === candidateId ? undefined : o.selectedCandidateId
+              selectedCandidateId: (() => {
+                const remaining = o.candidates.filter(c => c.id !== candidateId);
+                return findTopCandidateId(remaining);
+              })()
             } : o
           ),
           updatedAt: new Date().toISOString()
@@ -321,18 +362,44 @@ export const useStore = create<Store>()(
           updatedAt: new Date().toISOString()
         } : null
       })),
-      selectCandidate: (officeId, candidateId) => set((state) => ({
-        currentBallot: state.currentBallot ? {
-          ...state.currentBallot,
-          offices: state.currentBallot.offices.map(o => 
-            o.id === officeId ? {
-              ...o,
-              selectedCandidateId: candidateId
-            } : o
-          ),
-          updatedAt: new Date().toISOString()
-        } : null
-      })),
+      selectCandidate: (officeId, candidateId) => set((state) => {
+        if (!state.currentBallot) return {};
+        const offices = state.currentBallot.offices.map(o => {
+          if (o.id !== officeId) return o;
+          const candidates = o.candidates.map(c => c.id === candidateId ? { ...c, score: 5 } : c);
+          return {
+            ...o,
+            candidates,
+            selectedCandidateId: findTopCandidateId(candidates)
+          };
+        });
+        return {
+          currentBallot: {
+            ...state.currentBallot,
+            offices,
+            updatedAt: new Date().toISOString()
+          }
+        };
+      }),
+      setCandidateScore: (officeId, candidateId, score) => set((state) => {
+        if (!state.currentBallot) return {};
+        const offices = state.currentBallot.offices.map(o => {
+          if (o.id !== officeId) return o;
+          const candidates = o.candidates.map(c => c.id === candidateId ? { ...c, score: clampScore(score) } : c);
+          return {
+            ...o,
+            candidates,
+            selectedCandidateId: findTopCandidateId(candidates)
+          };
+        });
+        return {
+          currentBallot: {
+            ...state.currentBallot,
+            offices,
+            updatedAt: new Date().toISOString()
+          }
+        };
+      }),
       addMeasure: (measure) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
@@ -397,6 +464,7 @@ export const useStore = create<Store>()(
       )),
       hasSeenOnboarding: false,
       setHasSeenOnboarding: (v: boolean) => set({ hasSeenOnboarding: v }),
+      setHasSeenIntroModal: (v: boolean) => set({ hasSeenIntroModal: v }),
       analyticsEnabled: new URLSearchParams(window.location.search).get('telemetry') === '1',
       setAnalyticsEnabled: (v: boolean) => {
         setAnalyticsFlag(v);

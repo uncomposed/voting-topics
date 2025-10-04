@@ -320,14 +320,16 @@ export const exportBallotPDF = async () => {
       }
       
       // Candidates
+      const topScore = office.candidates.reduce((best, c) => Math.max(best, c.score ?? 0), 0);
       office.candidates.forEach((candidate) => {
         if (y > 760) {
           doc.addPage();
           y = margin;
         }
         
-        const isSelected = office.selectedCandidateId === candidate.id;
-        const prefix = isSelected ? '✓ ' : '  ';
+        const score = candidate.score ?? 0;
+        const isTop = topScore > 0 && score === topScore;
+        const prefix = `${isTop ? '★' : ' '} [${score}/5] `;
         
         T(`${prefix}${candidate.name}${candidate.party ? ` (${candidate.party})` : ''}`);
         doc.text(`${prefix}${candidate.name}${candidate.party ? ` (${candidate.party})` : ''}`, margin, y);
@@ -341,7 +343,7 @@ export const exportBallotPDF = async () => {
       });
       
       // Reasoning
-      if (office.selectedCandidateId && office.reasoning.length > 0) {
+      if (office.reasoning.length > 0) {
         y += 6;
         H('Reasoning:', 12);
         doc.text('Reasoning:', margin, y);
@@ -411,7 +413,7 @@ export const renderBallotCard = (ballot: Ballot): HTMLElement => {
   
   root.innerHTML = '';
   
-  const selectedOffices = ballot.offices.filter(o => o.selectedCandidateId);
+  const scoredOffices = ballot.offices.filter(o => o.candidates.some(c => (c.score ?? 0) > 0));
   const selectedMeasures = ballot.measures.filter(m => m.position);
 
   const el = document.createElement('div');
@@ -424,8 +426,8 @@ export const renderBallotCard = (ballot: Ballot): HTMLElement => {
     </div>
     <div class="ballot-summary">
       <div class="summary-item">
-        <span class="summary-label">Selected Candidates:</span>
-        <span class="summary-value">${selectedOffices.length}</span>
+        <span class="summary-label">Scored Candidates:</span>
+        <span class="summary-value">${scoredOffices.length}</span>
       </div>
       <div class="summary-item">
         <span class="summary-label">Ballot Measures:</span>
@@ -433,12 +435,13 @@ export const renderBallotCard = (ballot: Ballot): HTMLElement => {
       </div>
     </div>
     <div class="ballot-selections">
-      ${selectedOffices.map(office => {
-        const candidate = office.candidates.find(c => c.id === office.selectedCandidateId);
+      ${scoredOffices.map(office => {
+        const topScore = office.candidates.reduce((best, c) => Math.max(best, c.score ?? 0), 0);
+        const candidate = office.candidates.find(c => (c.score ?? 0) === topScore);
         return `
           <div class="selection-item">
             <div class="office-name">${office.title}</div>
-            <div class="candidate-name">✓ ${candidate?.name}${candidate?.party ? ` (${candidate.party})` : ''}</div>
+            <div class="candidate-name">${topScore}/5 – ${candidate?.name || 'Unscored'}${candidate?.party ? ` (${candidate.party})` : ''}</div>
           </div>
         `;
       }).join('')}

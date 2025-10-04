@@ -179,6 +179,7 @@ export const Candidate = z.object({
   party: z.string().optional(),
   description: z.string().optional(),
   website: z.string().url().optional(),
+  score: z.number().int().min(0).max(5).default(0),
   sources: z.array(SourceSchema).default([]),
 });
 
@@ -196,7 +197,7 @@ export const Office = z.object({
   title: z.string().min(1, 'Office title required'),
   description: z.string().optional(),
   candidates: z.array(Candidate).min(1, 'At least one candidate required'),
-  selectedCandidateId: z.string().optional(), // The user's choice
+  selectedCandidateId: z.string().optional(), // Highest scored candidate (legacy compatibility)
   reasoning: z.array(ReasoningLink).default([]), // Links to preference set topics/directions
 });
 

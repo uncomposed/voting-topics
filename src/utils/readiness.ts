@@ -9,8 +9,7 @@ export const isPreferenceExportReady = (topics: Topic[]): boolean => {
 
 export const isBallotShareReady = (ballot: Ballot | null | undefined): boolean => {
   if (!ballot) return false;
-  const allOfficesSelected = ballot.offices.length > 0 && ballot.offices.every(o => !!o.selectedCandidateId);
+  const allOfficesRated = ballot.offices.length > 0 && ballot.offices.every(o => o.candidates.some(c => (c.score ?? 0) > 0));
   const allMeasuresPositioned = ballot.measures.every(m => !!m.position);
-  return allOfficesSelected && allMeasuresPositioned;
+  return allOfficesRated && allMeasuresPositioned;
 };
-

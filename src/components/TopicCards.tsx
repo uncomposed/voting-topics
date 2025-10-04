@@ -75,7 +75,7 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
   };
 
   const getImportanceLabel = (importance: number): string => {
-    if (importance === 0) return 'Unrated';
+    if (importance === 0) return '0 Stars — Not rated yet';
     if (importance === 1) return 'Low Priority';
     if (importance === 2) return 'Medium Priority';
     if (importance === 3) return 'High Priority';

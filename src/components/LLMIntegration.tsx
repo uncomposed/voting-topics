@@ -206,6 +206,7 @@ This tool helps voters organize their positions on ballot measures and candidate
           "party": "Democratic",
           "description": "Incumbent mayor with focus on housing",
           "website": "https://johnsmith.com",
+          "score": 4,
           "sources": [
             {
               "label": "Campaign website",
@@ -214,7 +215,6 @@ This tool helps voters organize their positions on ballot measures and candidate
           ]
         }
       ],
-      "selectedCandidateId": "unique-candidate-id",
       "reasoning": [
         {
           "type": "topic",

@@ -19,6 +19,7 @@ interface ToolbarProps {
   showLLMIntegration: boolean;
   setShowLLMIntegration: (v: boolean) => void;
   setShowGettingStarted: (v: boolean) => void;
+  onOpenWelcome: () => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -31,6 +32,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   showLLMIntegration,
   setShowLLMIntegration,
   setShowGettingStarted,
+  onOpenWelcome,
 }) => {
   // Portal target resolution (after mount) so initial render doesn't miss it
   const [toolbarEl, setToolbarEl] = useState<HTMLElement | null>(null);
@@ -337,9 +339,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       onClick: () => { setShowLLMIntegration(false); setShowDiffComparison(false); setBallotMode('ballot'); }
     };
   } else if (ballotMode === 'ballot' && currentBallot) {
-    const allOfficesSelected = currentBallot.offices.length > 0 && currentBallot.offices.every(o => !!o.selectedCandidateId);
+    const allOfficesScored = currentBallot.offices.length > 0 && currentBallot.offices.every(o => o.candidates.some(c => (c.score ?? 0) > 0));
     const allMeasuresPositioned = currentBallot.measures.every(m => !!m.position);
-    const readyToShare = allOfficesSelected && allMeasuresPositioned;
+    const readyToShare = allOfficesScored && allMeasuresPositioned;
     nextAction = readyToShare
       ? { label: 'Preview', onClick: () => window.dispatchEvent(new Event('vt-open-ballot-preview')) }
       : { label: 'Preview Ballot', onClick: () => window.dispatchEvent(new Event('vt-open-ballot-preview')) };
@@ -388,26 +390,29 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   return createPortal(
     <>
       {nextAction && (
-        <button className="btn primary" onClick={nextAction.onClick} id="btn-next-action"
-          onMouseEnter={() => emitHint('next-action', 'btn-next-action', 'Smart next step based on your progress.')}
-          style={{ position: 'relative' }}
-        >
-          {nextAction.label}
-          <span style={{ 
-            position: 'absolute', 
-            top: '1px', 
-            left: '1px', 
-            fontSize: '10px', 
-            background: 'var(--accent)', 
-            color: 'white', 
-            padding: '1px 3px', 
-            borderRadius: '6px',
-            fontWeight: '600',
-            lineHeight: '1'
-          }}>
-            Next
-          </span>
-        </button>
+        <div className="toolbar-next-cta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+          <span className="muted" style={{ fontSize: '0.75rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Next step</span>
+          <button className="btn primary" onClick={nextAction.onClick} id="btn-next-action"
+            onMouseEnter={() => emitHint('next-action', 'btn-next-action', 'Smart next step based on your progress.')}
+            style={{ position: 'relative' }}
+          >
+            {nextAction.label}
+            <span style={{ 
+              position: 'absolute', 
+              top: '1px', 
+              left: '1px', 
+              fontSize: '10px', 
+              background: 'var(--accent)', 
+              color: 'white', 
+              padding: '1px 3px', 
+              borderRadius: '6px',
+              fontWeight: '600',
+              lineHeight: '1'
+            }}>
+              Next
+            </span>
+          </button>
+        </div>
       )}
 
       {/* Desktop: surface Export when preferences are export-ready (parity with mobile) */}
@@ -726,6 +731,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             })()}
             <button id="btn-llm-integration" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowLLMIntegration(!showLLMIntegration); }}>LLM Integration</button>
             <button id="btn-getting-started" className="btn ghost" role="menuitem" onClick={() => { setMoreOpen(false); setShowGettingStarted(true); }}>Getting Started</button>
+            <button id="btn-open-welcome" className="btn ghost" role="menuitem" onClick={() => { setMoreOpen(false); onOpenWelcome(); }}>Show Welcome Tour</button>
             <button
               id="btn-clear"
               className="btn danger"

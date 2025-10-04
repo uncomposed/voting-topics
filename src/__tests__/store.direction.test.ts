@@ -24,6 +24,7 @@ describe('store direction actions', () => {
       currentFlowStep: 'starter',
       hintsEnabled: false,
       seenHints: [],
+      hasSeenIntroModal: true,
     } as any);
   });
 
