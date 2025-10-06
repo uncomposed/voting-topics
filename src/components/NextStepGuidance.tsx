@@ -84,32 +84,53 @@ export const NextStepGuidance: React.FC = () => {
     if (hintsEnabled) {
       return (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{ fontSize: '1.1rem' }}>🎯</span>
-            <span style={{ fontWeight: '600', color: 'var(--accent)' }}>
-              {step.current}
-            </span>
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <strong>Next:</strong> {step.next}
-          </div>
-          {getActionButton()}
-          <div className="muted" style={{ marginTop: 6, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <button
-              className="btn ghost"
-              style={{ padding: '2px 6px' }}
-              onClick={() => setHintsEnabled(false)}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 16,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, minWidth: 0 }}>
+              <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>🎯</span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: '600', color: 'var(--accent)', lineHeight: 1.3 }}>
+                  {step.current}
+                </div>
+                <div className="muted" style={{ fontSize: '0.9rem', marginTop: 2 }}>
+                  <strong style={{ fontWeight: 600 }}>Next:</strong> {step.next}
+                </div>
+              </div>
+            </div>
+            <div
+              className="muted"
+              style={{
+                display: 'flex',
+                gap: 8,
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+              }}
             >
-              Disable Hint Mode
-            </button>
-            <button
-              className="btn ghost"
-              style={{ padding: '2px 6px' }}
-              onClick={() => window.dispatchEvent(new Event('vt-open-getting-started'))}
-            >
-              Open Getting Started Guide
-            </button>
+              <button
+                className="btn ghost"
+                style={{ padding: '2px 6px', whiteSpace: 'nowrap' }}
+                onClick={() => setHintsEnabled(false)}
+              >
+                Disable Hint Mode
+              </button>
+              <button
+                className="btn ghost"
+                style={{ padding: '2px 6px', whiteSpace: 'nowrap' }}
+                onClick={() => window.dispatchEvent(new Event('vt-open-getting-started'))}
+              >
+                Open Getting Started Guide
+              </button>
+            </div>
           </div>
+          <div style={{ marginTop: 8 }}>{getActionButton()}</div>
         </>
       );
     }
