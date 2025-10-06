@@ -1,12 +1,12 @@
 import { useStore } from '../store';
 import type { Topic } from '../schema';
 // Import the current starter pack to derive a stable index
-import starterPackData from '../../starter-pack.v1.json';
+import starterPackData from '../../starter-pack.v2.4.json';
 import type { StarterPackJson } from '../types';
 
 // Stable pack identifier. Increment when the starter index order changes.
 // Keep older IDs decodable for existing links.
-export const packId = 'sp-v1';
+export const packId = 'sp-v2.4';
 const allowedPackIds = new Set<string>(['sp-v1', 'sp-v2.4']);
 
 const sp: StarterPackJson = starterPackData;
@@ -58,7 +58,7 @@ const b64urlToBytes = (s: string): Uint8Array => {
 };
 
 export interface StarterPayloadDense {
-  v: string;      // pack version, e.g. sp-v1
+  v: string;      // pack version, e.g. sp-v2.4
   ti: number[];   // topic importance per topicIndex
   ds: number[][]; // direction stars per directionIndex row
 }

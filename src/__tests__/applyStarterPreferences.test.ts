@@ -81,13 +81,13 @@ describe('applyStarterPreferences', () => {
     const state = useStore.getState();
     expect(state.topics.length).toBe(1); // no duplicates
     expect(state.topics[0].importance).toBe(5);
-    const d = state.topics[0].directions.find(x => x.id === 'dir-f1');
+    const d = state.topics[0].directions.find(x => x.id === d0);
     expect(d?.stars).toBe(2);
   });
 
   it('clamps out-of-range values', () => {
     const ti = directionIndex.findIndex(row => row.length >= 1);
-    const payload = { v: 'sp-v1', tip: [[ti, -2]], dsp: [[ti, 0, 7]] } as any;
+    const payload = { v: 'sp-v2.4', tip: [[ti, -2]], dsp: [[ti, 0, 7]] } as any;
     applyStarterPreferences(payload);
     const t = useStore.getState().topics[0];
     expect(t.importance).toBe(0);
