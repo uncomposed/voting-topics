@@ -87,7 +87,7 @@ export const NextStepGuidance: React.FC = () => {
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               justifyContent: 'space-between',
               gap: 16,
               flexWrap: 'wrap',
