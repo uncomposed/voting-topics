@@ -351,15 +351,16 @@ textarea {
 }
 
 .topic {
-  display: grid; 
-  gap: 10px; 
-  background: #0f1430; 
-  border: 1px solid var(--border); 
-  border-radius: 14px; 
+  display: grid;
+  gap: 10px;
+  background: #0f1430;
+  border: 1px solid var(--border);
+  border-radius: 14px;
   padding: 14px;
   transition: all 0.2s ease;
   position: relative;
   width: 100%;
+  min-width: 0; /* prevent overflow on narrow viewports */
 }
 
 .topic:nth-child(even) {
@@ -399,6 +400,7 @@ textarea {
   display: flex;
   gap: 12px;
   align-items: center;
+  min-width: 0; /* allow title input to shrink beside the toggle */
 }
 
 .topic-header-main .input {
