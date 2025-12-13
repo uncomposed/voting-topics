@@ -47,8 +47,12 @@ export const Layout: React.FC = () => {
         </div>
       </div>
 
-      {/* Hidden social-card render target for JPEG export */}
-      <div id="social-card" style={{ position:'absolute', left:-99999, top:-99999 }} aria-hidden="true"></div>
+      {/* Hidden social-card render target for JPEG export. Keep it fixed off-screen so it doesn't create horizontal overflow on mobile. */}
+      <div
+        id="social-card"
+        style={{ position: 'fixed', left: '-2000px', top: '-2000px' }}
+        aria-hidden="true"
+      ></div>
 
       {/* Global toasts */}
       <ToastContainer />
