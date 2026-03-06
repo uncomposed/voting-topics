@@ -1,271 +1,264 @@
 import { useStore } from '../store';
-import type { Topic } from '../schema';
-// Import the current starter pack to derive a stable index
+import type { Item, Topic } from '../schema';
+import { coerceItems } from './items';
+import { hydrateTopicsWithItems } from '../schema';
 import starterPackData from '../../starter-pack.v2.4.json';
 import type { StarterPackJson } from '../types';
 
-// Stable pack identifier. Increment when the starter index order changes.
-// Keep older IDs decodable for existing links.
-export const packId = 'sp-v2.4';
-const allowedPackIds = new Set<string>(['sp-v1', 'sp-v2.4']);
-
 const sp: StarterPackJson = starterPackData;
 
-// Build stable indices (append-only ordering)
-export const topicIndex: string[] = sp.topics.map(t => t.id);
-export const topicTitleIndex: string[] = sp.topics.map(t => t.title.toLowerCase());
-export const directionIndex: string[][] = sp.topics.map(t => (t.directions || []).map(d => d.id));
-export const directionTextIndex: string[][] = sp.topics.map(t => (t.directions || []).map(d => d.text.toLowerCase()));
+const starterItems = sp.items ?? (sp.topics || []).flatMap((topic) =>
+  (topic.directions || []).map((direction) => ({
+    id: direction.id,
+    text: direction.text,
+    topicIds: direction.topicIds?.length ? direction.topicIds : [topic.id],
+  })),
+);
 
-const base64urlEncode = (s: string): string => {
-  // Standard btoa expects latin1; payload is ASCII-only JSON of numbers/ids
-  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-};
+export const packId = 'sp-v3';
+const allowedPackIds = new Set<string>(['sp-v1', 'sp-v2.4', 'sp-v3']);
+
+export const topicIndex: string[] = (sp.topics || []).map((topic) => topic.id);
+export const topicTitleIndex: string[] = (sp.topics || []).map((topic) => topic.title.toLowerCase());
+export const itemIndex: string[] = starterItems.map((item) => item.id);
+export const itemTextIndex: string[] = starterItems.map((item) => item.text.toLowerCase());
+export const itemTopicIndex: string[][] = starterItems.map((item) => item.topicIds || []);
+export const directionIndex: string[][] = topicIndex.map((topicId) =>
+  starterItems.filter((item) => (item.topicIds || []).includes(topicId)).map((item) => item.id),
+);
+export const directionTextIndex: string[][] = topicIndex.map((topicId) =>
+  starterItems.filter((item) => (item.topicIds || []).includes(topicId)).map((item) => item.text.toLowerCase()),
+);
+
+const base64urlEncode = (s: string): string => Buffer.from(s, 'utf8').toString('base64')
+  .replace(/\+/g, '-')
+  .replace(/\//g, '_')
+  .replace(/=+$/g, '');
+
 const base64urlDecode = (s: string): string => {
   const pad = s.length % 4 === 0 ? '' : '='.repeat(4 - (s.length % 4));
-  const b64 = s.replace(/-/g, '+').replace(/_/g, '/') + pad;
-  return atob(b64);
+  return Buffer.from(s.replace(/-/g, '+').replace(/_/g, '/') + pad, 'base64').toString('utf8');
 };
 
-// --- sp2 binary encoding helpers ---
-const varintEncode = (n: number, out: number[] = []): number[] => {
-  let v = Math.max(0, Math.floor(n));
-  while (v >= 0x80) { out.push((v & 0x7f) | 0x80); v >>>= 7; }
-  out.push(v & 0x7f);
-  return out;
-};
-const varintDecode = (bytes: Uint8Array, offset: number): { value: number; next: number } => {
-  let shift = 0, res = 0, i = offset;
-  while (i < bytes.length) {
-    const b = bytes[i++];
-    res |= (b & 0x7f) << shift;
-    if ((b & 0x80) === 0) break;
-    shift += 7;
-  }
-  return { value: res >>> 0, next: i };
-};
-const bytesToB64url = (arr: number[] | Uint8Array): string => {
-  const u8 = arr instanceof Uint8Array ? arr : new Uint8Array(arr);
-  let s = '';
-  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
-  return base64urlEncode(s);
-};
-const b64urlToBytes = (s: string): Uint8Array => {
-  const bin = base64urlDecode(s);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i) & 0xff;
-  return out;
-};
-
-export interface StarterPayloadDense {
-  v: string;      // pack version, e.g. sp-v2.4
-  ti: number[];   // topic importance per topicIndex
-  ds: number[][]; // direction stars per directionIndex row
-}
 export interface StarterPayloadSparse {
   v: string;
-  tip: Array<[number, number]>;      // pairs: [topicIdx, importance]
-  dsp: Array<[number, number, number]>; // triples: [topicIdx, dirIdx, stars]
+  tip: Array<[number, number]>;
+  isp: Array<[number, number]>;
+  itr: Array<[number, number]>;
+  dsp?: Array<[number, number, number]>;
 }
-export type StarterPayload = StarterPayloadDense | StarterPayloadSparse;
 
-// --- v2: binary compact encoding ---
-// Format: [0x02, packCode]
-//         varint Nti, then Nti * (varint topicIdx, u8 importance)
-//         varint Ndsp, then Ndsp * (varint topicIdx, varint dirIdx, u8 stars)
-const PACK_CODES: Record<string, number> = { 'sp-v1': 1, 'sp-v2.4': 2 };
-const packCode = (id: string): number => PACK_CODES[id] ?? 0;
-const packFromCode = (code: number): string => {
-  const entry = Object.entries(PACK_CODES).find(([, v]) => v === code);
-  return entry ? entry[0] : 'sp-v1';
+export interface LegacyStarterPayloadDense {
+  v: string;
+  ti: number[];
+  ds: number[][];
+}
+
+export interface LegacyStarterPayloadSparse {
+  v: string;
+  tip: Array<[number, number]>;
+  dsp: Array<[number, number, number]>;
+}
+
+export type StarterPayload = StarterPayloadSparse | LegacyStarterPayloadDense | LegacyStarterPayloadSparse;
+
+const clamp = (value: number) => Math.max(0, Math.min(5, Number(value) || 0));
+
+const normalizeTopicMatch = (topics: Topic[], idx: number): Topic | undefined => {
+  const id = topicIndex[idx];
+  const title = topicTitleIndex[idx];
+  return topics.find((topic) => topic.id === id) || topics.find((topic) => topic.title.toLowerCase() === title);
 };
 
-export const encodeStarterPreferencesV2 = (topics: Topic[]): string => {
-  // Build sparse like v1, then pack
-  const tiDense: number[] = topicIndex.map((tid, i) => {
-    const byId = topics.find(x => x.id === tid);
-    const lc = topicTitleIndex[i];
-    const byTitle = topics.find(x => (x.title || '').toLowerCase() === lc);
-    const t = byId || byTitle;
-    return t ? Math.max(0, Math.min(5, Number(t.importance || 0))) : 0;
-  });
-  const dsDense: number[][] = directionIndex.map((row, i) => {
-    const tid = topicIndex[i];
-    const lc = topicTitleIndex[i];
-    const t = topics.find(x => x.id === tid) || topics.find(x => (x.title || '').toLowerCase() === lc);
-    return row.map((did, j) => {
-      const textLc = directionTextIndex[i][j] || '';
-      const d = t?.directions?.find(dd => dd.id === did) || t?.directions?.find(dd => (dd.text || '').toLowerCase() === textLc);
-      const v = d ? Number(d.stars || 0) : 0;
-      return Math.max(0, Math.min(5, v));
-    });
-  });
-  const tip: Array<[number, number]> = [];
-  tiDense.forEach((v, i) => { if (v > 0) tip.push([i, v]); });
-  const dsp: Array<[number, number, number]> = [];
-  dsDense.forEach((row, ti) => row.forEach((v, di) => { if (v > 0) dsp.push([ti, di, v]); }));
+const normalizeItemMatch = (items: Item[], idx: number): Item | undefined => {
+  const id = itemIndex[idx];
+  const text = itemTextIndex[idx];
+  return items.find((item) => item.id === id) || items.find((item) => item.text.toLowerCase() === text);
+};
 
-  const bytes: number[] = [];
-  bytes.push(0x02, packCode(packId));
-  varintEncode(tip.length, bytes);
-  for (const [ti, imp] of tip) { varintEncode(ti, bytes); bytes.push(imp & 0xff); }
-  varintEncode(dsp.length, bytes);
-  for (const [ti, di, stars] of dsp) { varintEncode(ti, bytes); varintEncode(di, bytes); bytes.push(stars & 0xff); }
-  return bytesToB64url(bytes);
+export const encodeStarterPreferencesV2 = (
+  topics: Topic[],
+  items?: Item[],
+): string => {
+  const normalizedItems = coerceItems(items, topics);
+  const tip: Array<[number, number]> = [];
+  topicIndex.forEach((_, idx) => {
+    const topic = normalizeTopicMatch(topics, idx);
+    const importance = topic ? clamp(topic.importance) : 0;
+    if (importance > 0) tip.push([idx, importance]);
+  });
+
+  const isp: Array<[number, number]> = [];
+  const itr: Array<[number, number]> = [];
+  itemIndex.forEach((_, idx) => {
+    const item = normalizeItemMatch(normalizedItems, idx);
+    const stars = item ? clamp(item.stars) : 0;
+    if (stars > 0) isp.push([idx, stars]);
+    const defaultTopicIds = itemTopicIndex[idx] || [];
+    if (item) {
+      for (const topicId of defaultTopicIds) {
+        if (!item.topicIds.includes(topicId)) {
+          const topicIdx = topicIndex.indexOf(topicId);
+          if (topicIdx >= 0) itr.push([idx, topicIdx]);
+        }
+      }
+    }
+  });
+
+  return base64urlEncode(JSON.stringify({ v: packId, tip, isp, itr }));
 };
 
 export const decodeStarterPreferencesV2 = (payload: string): StarterPayloadSparse | null => {
   try {
-    const bytes = b64urlToBytes(payload);
-    if (bytes.length < 2 || bytes[0] !== 0x02) return null;
-    const pack = packFromCode(bytes[1]);
-    let off = 2;
-    const nti = varintDecode(bytes, off); off = nti.next;
-    const tip: Array<[number, number]> = [];
-    for (let i = 0; i < nti.value; i++) {
-      const ti = varintDecode(bytes, off); off = ti.next;
-      const imp = bytes[off++] | 0;
-      tip.push([ti.value, imp]);
+    const parsed = JSON.parse(base64urlDecode(payload)) as StarterPayload;
+    if (!parsed || !allowedPackIds.has(parsed.v)) return null;
+
+    if ('isp' in parsed) {
+      return {
+        v: parsed.v,
+        tip: parsed.tip || [],
+        isp: parsed.isp || [],
+        itr: parsed.itr || [],
+        dsp: parsed.dsp || (parsed.isp || []).map(([itemIdx, stars]) => {
+          const topicId = itemTopicIndex[itemIdx]?.[0];
+          const topicIdx = topicId ? topicIndex.indexOf(topicId) : -1;
+          const directionIdx = topicIdx >= 0 ? directionIndex[topicIdx]?.indexOf(itemIndex[itemIdx]) ?? -1 : -1;
+          return [topicIdx, directionIdx, stars] as [number, number, number];
+        }).filter(([topicIdx, directionIdx]) => topicIdx >= 0 && directionIdx >= 0),
+      };
     }
-    const ndsp = varintDecode(bytes, off); off = ndsp.next;
-    const dsp: Array<[number, number, number]> = [];
-    for (let i = 0; i < ndsp.value; i++) {
-      const ti = varintDecode(bytes, off); off = ti.next;
-      const di = varintDecode(bytes, off); off = di.next;
-      const stars = bytes[off++] | 0;
-      dsp.push([ti.value, di.value, stars]);
+
+    if ('ti' in parsed && 'ds' in parsed) {
+      const tip: Array<[number, number]> = [];
+      const isp: Array<[number, number]> = [];
+      parsed.ti.forEach((value, idx) => {
+        const clamped = clamp(value);
+        if (clamped > 0) tip.push([idx, clamped]);
+      });
+      parsed.ds.forEach((row, topicIdx) => {
+        row.forEach((value, itemIdxWithinTopic) => {
+          const starterTopicId = topicIndex[topicIdx];
+          const rowItems = starterItems
+            .map((item, idx) => ({ item, idx }))
+            .filter(({ item }) => (item.topicIds || []).includes(starterTopicId));
+          const target = rowItems[itemIdxWithinTopic];
+          if (!target) return;
+          const clamped = clamp(value);
+          if (clamped > 0) isp.push([target.idx, clamped]);
+        });
+      });
+      const dsp = isp.map(([itemIdx, stars]) => {
+        const topicId = itemTopicIndex[itemIdx]?.[0];
+        const topicIdx = topicId ? topicIndex.indexOf(topicId) : -1;
+        const directionIdx = topicIdx >= 0 ? directionIndex[topicIdx]?.indexOf(itemIndex[itemIdx]) ?? -1 : -1;
+        return [topicIdx, directionIdx, stars] as [number, number, number];
+      }).filter(([topicIdx, directionIdx]) => topicIdx >= 0 && directionIdx >= 0);
+      return { v: parsed.v, tip, isp, itr: [], dsp };
     }
-    return { v: pack, tip, dsp } as StarterPayloadSparse;
+
+    const legacy = parsed as LegacyStarterPayloadSparse;
+    const isp = (legacy.dsp || []).map(([topicIdx, directionIdx, stars]) => {
+      const itemId = directionIndex[topicIdx]?.[directionIdx];
+      const idx = itemId ? itemIndex.indexOf(itemId) : -1;
+      return [idx, clamp(stars)] as [number, number];
+    }).filter(([idx]) => idx >= 0);
+    return {
+      v: legacy.v,
+      tip: legacy.tip || [],
+      isp,
+      itr: [],
+      dsp: (legacy.dsp || []).map(([topicIdx, directionIdx, stars]) => [topicIdx, directionIdx, clamp(stars)]),
+    };
   } catch {
     return null;
   }
 };
 
-export const encodeStarterPreferences = (topics: Topic[]): string => {
-  const tiDense: number[] = topicIndex.map((tid, i) => {
-    const byId = topics.find(x => x.id === tid);
-    const lc = topicTitleIndex[i];
-    const byTitle = topics.find(x => (x.title || '').toLowerCase() === lc);
-    const t = byId || byTitle;
-    return t ? Math.max(0, Math.min(5, Number(t.importance || 0))) : 0;
-  });
-  const dsDense: number[][] = directionIndex.map((row, i) => {
-    const tid = topicIndex[i];
-    const lc = topicTitleIndex[i];
-    const t = topics.find(x => x.id === tid) || topics.find(x => (x.title || '').toLowerCase() === lc);
-    return row.map(did => {
-      const dtextLcArr = directionTextIndex[i];
-      const j = directionIndex[i].indexOf(did);
-      const textLc = j >= 0 ? (dtextLcArr[j] || '') : '';
-      const d = t?.directions?.find(dd => dd.id === did) || t?.directions?.find(dd => (dd.text || '').toLowerCase() === textLc);
-      const v = d ? Number(d.stars || 0) : 0;
-      return Math.max(0, Math.min(5, v));
-    });
-  });
-  // Build sparse payload with only non-zero entries
-  const tip: Array<[number, number]> = [];
-  tiDense.forEach((v, i) => { if (v > 0) tip.push([i, v]); });
-  const dsp: Array<[number, number, number]> = [];
-  dsDense.forEach((row, ti) => row.forEach((v, di) => { if (v > 0) dsp.push([ti, di, v]); }));
-  const sparse: StarterPayloadSparse = { v: packId, tip, dsp };
-  return base64urlEncode(JSON.stringify(sparse));
-};
+export const encodeStarterPreferences = encodeStarterPreferencesV2;
 
-export const decodeStarterPreferences = (payload: string): StarterPayload | null => {
-  try {
-    // Try v2 first (binary)
-    const v2 = decodeStarterPreferencesV2(payload);
-    if (v2) return v2;
-    // Fallback to v1 JSON sparse/dense
-    const json = base64urlDecode(payload);
-    const obj = JSON.parse(json) as StarterPayload;
-    if (!obj || !allowedPackIds.has(obj.v)) return null;
-    return obj;
-  } catch {
-    return null;
-  }
-};
+export const decodeStarterPreferences = (payload: string): StarterPayload | null => decodeStarterPreferencesV2(payload);
+
+const starterTopicTemplate = (idx: number): Topic => ({
+  id: topicIndex[idx],
+  title: sp.topics[idx]?.title || topicIndex[idx],
+  importance: 0,
+  stance: 'neutral',
+  notes: '',
+  sources: [],
+  relations: { broader: [], narrower: [], related: [] },
+});
+
+const starterItemTemplate = (idx: number): Item => ({
+  id: itemIndex[idx],
+  text: starterItems[idx]?.text || itemIndex[idx],
+  stars: 0,
+  notes: '',
+  sources: [],
+  topicIds: [...(starterItems[idx]?.topicIds || [])],
+  tags: [],
+});
 
 export const applyStarterPreferences = (data: StarterPayload) => {
+  const normalized = 'isp' in data
+    ? data as StarterPayloadSparse
+    : decodeStarterPreferencesV2(base64urlEncode(JSON.stringify(data)));
+
+  if (!normalized) return { applied: 0 };
+
   const before = useStore.getState();
-  const prevTopics = before.topics;
+  const nextTopics = [...before.topics];
+  const nextItems = [...coerceItems(before.items, before.topics)];
   let applied = 0;
-  // Normalize to dense arrays for application
-  let tiArr: number[];
-  let dsArr: number[][];
-  if ('ti' in data && 'ds' in data) {
-    tiArr = data.ti;
-    dsArr = data.ds;
-  } else {
-    tiArr = new Array(topicIndex.length).fill(0);
-    dsArr = directionIndex.map(row => new Array(row.length).fill(0));
-    const spData = data as StarterPayloadSparse;
-    spData.tip.forEach(([i, v]) => { if (i >= 0 && i < tiArr.length) tiArr[i] = v; });
-    spData.dsp.forEach(([ti, di, v]) => { if (dsArr[ti] && di >= 0 && di < dsArr[ti].length) dsArr[ti][di] = v; });
+
+  for (const [topicIdx, importance] of normalized.tip) {
+    const clampedImportance = clamp(importance);
+    const existing = normalizeTopicMatch(nextTopics, topicIdx);
+    if (existing) {
+      if (existing.importance !== clampedImportance) applied++;
+      existing.importance = clampedImportance;
+    } else if (clampedImportance > 0 || topicIdx >= 0) {
+      nextTopics.push({ ...starterTopicTemplate(topicIdx), importance: clampedImportance });
+      applied++;
+    }
   }
-  // Clamp all values to [0,5]
-  tiArr = tiArr.map(v => Math.max(0, Math.min(5, Number(v) || 0)));
-  dsArr = dsArr.map(row => row.map(v => Math.max(0, Math.min(5, Number(v) || 0))));
-  // First pass: apply updates to existing topics that match starter-pack IDs or titles
-  const seenStarterIndices = new Set<number>();
-  const nextTopics = prevTopics.map(t => {
-    const idx = topicIndex.indexOf(t.id);
-    // Also attempt loose match by title when IDs differ
-    const titleIdx = idx === -1 ? topicTitleIndex.indexOf((t.title || '').toLowerCase()) : idx;
-    if (titleIdx === -1) return t; // not in starter pack
-    seenStarterIndices.add(titleIdx);
-    let changed = false;
-    const imp = tiArr[titleIdx] ?? 0;
-    if ((t.importance || 0) !== imp) { changed = true; }
-    const dirRow = directionIndex[titleIdx] || [];
-    const nextDirs = t.directions.map(d => {
-      const didx = dirRow.indexOf(d.id);
-      if (didx === -1) return d;
-      const stars = dsArr[titleIdx]?.[didx] ?? 0;
-      if ((d.stars || 0) !== stars) { changed = true; }
-      return { ...d, stars };
-    });
-    if (changed) applied++;
-    return { ...t, importance: imp, directions: nextDirs };
+
+  for (let idx = 0; idx < itemIndex.length; idx++) {
+    const encoded = normalized.isp.find(([itemIdx]) => itemIdx === idx);
+    const removals = normalized.itr.filter(([itemIdx]) => itemIdx === idx).map(([, topicIdx]) => topicIndex[topicIdx]);
+    const defaultItem = starterItemTemplate(idx);
+    const existing = normalizeItemMatch(nextItems, idx);
+    const nextTopicIds = defaultItem.topicIds.filter((topicId) => !removals.includes(topicId));
+    const topicPresent = nextTopicIds.some((topicId) => nextTopics.some((topic) => topic.id === topicId));
+    if (existing) {
+      const stars = encoded ? clamp(encoded[1]) : existing.stars;
+      const topicIds = Array.from(new Set([
+        ...existing.topicIds.filter((topicId) => !defaultItem.topicIds.includes(topicId)),
+        ...nextTopicIds,
+      ]));
+      if (existing.stars !== stars || existing.topicIds.join('|') !== topicIds.join('|')) applied++;
+      existing.stars = stars;
+      existing.topicIds = topicIds;
+    } else if ((encoded && encoded[1] > 0) || topicPresent) {
+      nextItems.push({
+        ...defaultItem,
+        stars: encoded ? clamp(encoded[1]) : 0,
+        topicIds: nextTopicIds,
+      });
+      applied++;
+    }
+  }
+
+  useStore.setState({
+    topics: hydrateTopicsWithItems(nextTopics, nextItems),
+    items: nextItems,
   });
-  // Second pass: append any referenced starter topics that are missing but have non-zero data
-  const additions: Topic[] = [];
-  for (let i = 0; i < topicIndex.length; i++) {
-    if (seenStarterIndices.has(i)) continue;
-    const imp = tiArr[i] ?? 0;
-    const dirStars = (dsArr[i] || []);
-    const anyDirStar = dirStars.some(v => (v || 0) > 0);
-    // Only add topics that the share payload indicates were set (importance or any direction star)
-    if (imp === 0 && !anyDirStar) continue;
-    const packTopic = sp.topics[i];
-    if (!packTopic || !packTopic.id || !packTopic.title) continue;
-    const directions = (packTopic.directions || []).map((d, di: number) => ({
-      id: d.id,
-      text: d.text,
-      stars: dirStars[di] ?? 0,
-      sources: [],
-      tags: [] as string[],
-    }));
-    const toAdd: Topic = {
-      id: packTopic.id,
-      title: packTopic.title,
-      importance: imp,
-      stance: 'neutral',
-      directions,
-      notes: '',
-      sources: [],
-      relations: { broader: [], narrower: [], related: [] },
-    };
-    additions.push(toAdd);
-  }
-  if (additions.length > 0) applied += additions.length;
-  useStore.setState({ topics: [...nextTopics, ...additions] });
+
   return { applied };
 };
 
 export const buildShareUrl = (
   payload: string,
-  base: string = typeof window !== 'undefined' ? window.location.href : 'http://localhost/'
+  base: string = typeof window !== 'undefined' ? window.location.href : 'http://localhost/',
 ): string => {
   const url = new URL(base);
   return `${url.origin}${url.pathname}${url.search}#sp=${payload}`;
@@ -273,13 +266,12 @@ export const buildShareUrl = (
 
 export const buildShareUrlV2 = (
   payload: string,
-  base: string = typeof window !== 'undefined' ? window.location.href : 'http://localhost/'
+  base: string = typeof window !== 'undefined' ? window.location.href : 'http://localhost/',
 ): string => {
   const url = new URL(base);
   return `${url.origin}${url.pathname}${url.search}#sp2=${payload}`;
 };
 
-// Extract and decode share payload from a URL string (supports sp2, then sp)
 export const extractAndDecodeFromUrl = (url: string): StarterPayload | null => {
   try {
     const m2 = url.match(/[#&]sp2=([^&]+)/);
@@ -290,5 +282,7 @@ export const extractAndDecodeFromUrl = (url: string): StarterPayload | null => {
     const m1 = url.match(/[#&]sp=([^&]+)/);
     if (m1) return decodeStarterPreferences(m1[1]);
     return null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };

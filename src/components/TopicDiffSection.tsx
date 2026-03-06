@@ -102,11 +102,11 @@ export const TopicDiffSection: React.FC<TopicDiffSectionProps> = ({ diff }) => {
                     <div className="topic-diff-content">
                       <h5>New Topic</h5>
                       <p className="topic-notes">{topic.notes || 'No notes'}</p>
-                      {topic.directions.length > 0 && (
+                      {(topic.directions || []).length > 0 && (
                         <div className="directions-preview">
-                          <h6>Directions:</h6>
+                          <h6>Items:</h6>
                           <ul>
-                            {topic.directions.map(dir => (
+                            {(topic.directions || []).map(dir => (
                               <li key={dir.id}>
                                 {dir.text} ({dir.stars}/5 stars)
                               </li>
@@ -121,11 +121,11 @@ export const TopicDiffSection: React.FC<TopicDiffSectionProps> = ({ diff }) => {
                     <div className="topic-diff-content">
                       <h5>Removed Topic</h5>
                       <p className="topic-notes">{topic.notes || 'No notes'}</p>
-                      {topic.directions.length > 0 && (
+                      {(topic.directions || []).length > 0 && (
                         <div className="directions-preview">
-                          <h6>Directions:</h6>
+                          <h6>Items:</h6>
                           <ul>
-                            {topic.directions.map(dir => (
+                            {(topic.directions || []).map(dir => (
                               <li key={dir.id}>
                                 {dir.text} ({dir.stars}/5 stars)
                               </li>

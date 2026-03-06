@@ -16,7 +16,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isSharedView, onDism
     {
       emoji: '📝',
       title: '1. Capture your priorities',
-      body: 'Add topics that matter, then write “directions” — specific outcomes you want under each topic.'
+      body: 'Add topics that matter, then add items — specific outcomes you want, which can belong to more than one topic.'
     },
     {
       emoji: '⭐',

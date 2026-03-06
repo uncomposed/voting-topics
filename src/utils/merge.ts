@@ -1,124 +1,85 @@
-import type { PreferenceSet, Topic, Direction } from '../schema';
+import type { PreferenceSet, Topic, Item } from '../schema';
+import { coerceItems } from './items';
 
-const normalize = (s: string) => s.trim().toLowerCase();
-
-const byId = <T extends { id: string }>(arr: T[]) => {
-  const map = new Map<string, T>();
-  for (const item of arr) map.set(item.id, item);
-  return map;
-};
-
-const mergeDirections = (current: Direction[], incoming: Direction[]): Direction[] => {
-  const currentById = byId(current);
-  const incomingById = byId(incoming);
-
-  // Index by normalized text for fallback match when ids differ/missing
-  const currentByText = new Map<string, Direction>();
-  for (const d of current) currentByText.set(normalize(d.text), d);
-
-  const merged: Direction[] = [];
-
-  // Prefer keeping existing directions (preserve stars/notes), enrich with incoming matches
-  for (const d of current) {
-    let match = incomingById.get(d.id);
-    if (!match) match = incoming.find(x => normalize(x.text) === normalize(d.text));
-    if (match) {
-      merged.push({
-        id: d.id, // keep current id for stability
-        text: match.text || d.text,
-        stars: typeof match.stars === 'number' ? match.stars : d.stars,
-        notes: match.notes ?? d.notes,
-        sources: match.sources?.length ? match.sources : d.sources,
-        tags: match.tags?.length ? match.tags : d.tags,
-      });
-    } else {
-      merged.push(d);
-    }
-  }
-
-  // Add truly new incoming directions
-  for (const inc of incoming) {
-    const existsById = currentById.has(inc.id);
-    const existsByText = currentByText.has(normalize(inc.text));
-    if (!existsById && !existsByText) merged.push(inc);
-  }
-
-  return merged;
-};
+const normalize = (value: string) => value.trim().toLowerCase();
 
 const normalizeUrl = (url: string): string => {
   try {
-    const u = new URL(url);
-    u.hostname = u.hostname.toLowerCase();
-    // trim trailing slashes from pathname
-    u.pathname = u.pathname.replace(/\/+$/, '');
-    return u.toString();
+    const parsed = new URL(url);
+    parsed.hostname = parsed.hostname.toLowerCase();
+    parsed.pathname = parsed.pathname.replace(/\/+$/, '');
+    return parsed.toString();
   } catch {
     return url.trim().replace(/\/+$/, '');
   }
 };
 
-const mergeTopic = (current: Topic, incoming: Topic): Topic => {
-  return {
-    id: current.id,
-    title: current.title, // prefer current title
-    importance: current.importance, // keep user’s current ordering/priority
-    stance: current.stance, // keep user stance
-    directions: mergeDirections(current.directions || [], incoming.directions || []),
-    // Append notes if both exist
-    notes: current.notes && incoming.notes && normalize(incoming.notes) !== normalize(current.notes)
-      ? `${current.notes}\n\n— Imported —\n${incoming.notes}`
-      : (current.notes ?? incoming.notes),
-    // Prefer non-empty sources; simple union when both exist
-    sources: (() => {
-      const a = current.sources || [];
-      const b = incoming.sources || [];
-      if (!a.length) return b;
-      if (!b.length) return a;
-      const seen = new Set<string>();
-      const merged = [...a, ...b].filter(s => {
-        const key = `${s.label}|${normalizeUrl(s.url || '')}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-      return merged;
-    })(),
-    relations: current.relations || incoming.relations || { broader: [], narrower: [], related: [] },
-  };
-};
+const mergeTopic = (current: Topic, incoming: Topic): Topic => ({
+  ...current,
+  title: current.title || incoming.title,
+  notes: current.notes && incoming.notes && normalize(current.notes) !== normalize(incoming.notes)
+    ? `${current.notes}\n\n— Imported —\n${incoming.notes}`
+    : (current.notes ?? incoming.notes),
+  sources: (() => {
+    const seen = new Set<string>();
+    return [...(current.sources || []), ...(incoming.sources || [])].filter((source) => {
+      const key = `${source.label}|${normalizeUrl(source.url || '')}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  })(),
+});
+
+const mergeItem = (current: Item, incoming: Item): Item => ({
+  ...current,
+  text: incoming.text || current.text,
+  stars: typeof incoming.stars === 'number' ? incoming.stars : current.stars,
+  notes: incoming.notes ?? current.notes,
+  sources: incoming.sources?.length ? incoming.sources : current.sources,
+  topicIds: Array.from(new Set([...(current.topicIds || []), ...(incoming.topicIds || [])])),
+  tags: Array.from(new Set([...(current.tags || []), ...(incoming.tags || [])])),
+});
 
 export const mergePreferenceSets = (current: PreferenceSet, incoming: PreferenceSet): PreferenceSet => {
-  // Index current and incoming topics
-  const currentById = byId(current.topics);
-  const currentByTitle = new Map<string, Topic>();
-  for (const t of current.topics) currentByTitle.set(normalize(t.title), t);
-
-  const mergedTopics: Topic[] = [];
-
-  // Keep all current topics, merging with incoming if matched
-  for (const t of current.topics) {
-    let match = incoming.topics.find(x => x.id === t.id);
-    if (!match) match = incoming.topics.find(x => normalize(x.title) === normalize(t.title));
+  const currentItems = coerceItems(current.items, current.topics);
+  const incomingItems = coerceItems(incoming.items, incoming.topics);
+  const currentTopicsById = new Map(current.topics.map((topic) => [topic.id, topic]));
+  const currentTopicsByTitle = new Map(current.topics.map((topic) => [normalize(topic.title), topic]));
+  const mergedTopics = [...current.topics];
+  const topicIdRemap = new Map<string, string>();
+  for (const incomingTopic of incoming.topics) {
+    const match = currentTopicsById.get(incomingTopic.id) || currentTopicsByTitle.get(normalize(incomingTopic.title));
     if (match) {
-      mergedTopics.push(mergeTopic(t, match));
+      const idx = mergedTopics.findIndex((topic) => topic.id === match.id);
+      mergedTopics[idx] = mergeTopic(match, incomingTopic);
+      topicIdRemap.set(incomingTopic.id, match.id);
     } else {
-      mergedTopics.push(t);
+      mergedTopics.push(incomingTopic);
+      topicIdRemap.set(incomingTopic.id, incomingTopic.id);
     }
   }
 
-  // Add any truly new incoming topics
-  for (const inc of incoming.topics) {
-    const existsById = currentById.has(inc.id);
-    const existsByTitle = currentByTitle.has(normalize(inc.title));
-    if (!existsById && !existsByTitle) mergedTopics.push(inc);
+  const mergedItems = [...currentItems];
+  for (const incomingItem of incomingItems) {
+    const remappedItem: Item = {
+      ...incomingItem,
+      topicIds: (incomingItem.topicIds || []).map((topicId) => topicIdRemap.get(topicId) || topicId),
+    };
+    const idx = mergedItems.findIndex((item) => item.id === remappedItem.id || normalize(item.text) === normalize(remappedItem.text));
+    if (idx >= 0) mergedItems[idx] = mergeItem(mergedItems[idx], remappedItem);
+    else mergedItems.push(remappedItem);
   }
 
   return {
-    version: 'tsb.v1',
-    title: current.title, // keep user title
-    notes: current.notes, // keep user notes (we appended within topics already)
-    topics: mergedTopics,
+    version: 'tsb.v2',
+    title: current.title,
+    notes: current.notes,
+    topics: mergedTopics.map((topic) => ({
+      ...topic,
+      directions: mergedItems.filter((item) => item.topicIds.includes(topic.id)),
+    })),
+    items: mergedItems,
     createdAt: current.createdAt,
     updatedAt: incoming.updatedAt || new Date().toISOString(),
   };
@@ -127,40 +88,17 @@ export const mergePreferenceSets = (current: PreferenceSet, incoming: Preference
 export const mergePreferenceSetsSelective = (
   current: PreferenceSet,
   incoming: PreferenceSet,
-  acceptTitles: Set<string>
+  acceptTitles: Set<string>,
 ): PreferenceSet => {
-  const acc = new Set<string>(Array.from(acceptTitles).map(normalize));
-  const currentById = byId(current.topics);
-  const currentByTitle = new Map<string, Topic>();
-  for (const t of current.topics) currentByTitle.set(normalize(t.title), t);
-
-  const mergedTopics: Topic[] = [];
-
-  // Keep all current topics; if accepted and we have an incoming match, merge
-  for (const t of current.topics) {
-    const match = incoming.topics.find(x => x.id === t.id) || incoming.topics.find(x => normalize(x.title) === normalize(t.title));
-    if (match && acc.has(normalize(match.title))) {
-      mergedTopics.push(mergeTopic(t, match));
-    } else {
-      mergedTopics.push(t);
-    }
-  }
-
-  // Add accepted truly-new incoming topics
-  for (const inc of incoming.topics) {
-    const existsById = currentById.has(inc.id);
-    const existsByTitle = currentByTitle.has(normalize(inc.title));
-    if (!existsById && !existsByTitle && acc.has(normalize(inc.title))) {
-      mergedTopics.push(inc);
-    }
-  }
-
-  return {
-    version: 'tsb.v1',
-    title: current.title,
-    notes: current.notes,
-    topics: mergedTopics,
-    createdAt: current.createdAt,
-    updatedAt: incoming.updatedAt || new Date().toISOString(),
-  };
+  const accepted = new Set(Array.from(acceptTitles).map(normalize));
+  const filteredIncomingTopics = incoming.topics.filter((topic) => accepted.has(normalize(topic.title)));
+  const filteredIncomingTopicIds = new Set(filteredIncomingTopics.map((topic) => topic.id));
+  const filteredIncomingItems = coerceItems(incoming.items, incoming.topics).filter((item) =>
+    item.topicIds.some((topicId) => filteredIncomingTopicIds.has(topicId)),
+  );
+  return mergePreferenceSets(current, {
+    ...incoming,
+    topics: filteredIncomingTopics,
+    items: filteredIncomingItems,
+  });
 };

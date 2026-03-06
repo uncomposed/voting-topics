@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../store';
-import { exportJSON, exportPDF, exportJPEG } from '../exporters';
+import { exportJSON, exportPDF } from '../exporters';
 import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { toast } from '../utils/toast';
 import { scrollIntoViewSmart } from '../utils/scroll';
-import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, extractAndDecodeFromUrl, applyStarterPreferences } from '../utils/share';
+import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, itemIndex, extractAndDecodeFromUrl, applyStarterPreferences } from '../utils/share';
 import { emitHint } from '../utils/hints';
+import { coerceItems, getItemsForTopic } from '../utils/items';
 
 interface ToolbarProps {
   showCards: boolean;
@@ -45,6 +46,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const fileRef = useRef<HTMLInputElement>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [exportMode, setExportMode] = useState<'choice' | 'full'>('choice');
   const [importInlineOpen, setImportInlineOpen] = useState(false);
   const [menuExportOpen, setMenuExportOpen] = useState(false);
   const [collapseCompare, setCollapseCompare] = useState(false);
@@ -132,6 +134,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       document.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKey);
     };
+  }, [exportOpen]);
+
+  useEffect(() => {
+    if (!exportOpen) setExportMode('choice');
   }, [exportOpen]);
 
   // Close Import dropdown on outside click / ESC (inline import button in empty state)
@@ -238,6 +244,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             title: preferenceSet.title,
             notes: preferenceSet.notes || '',
             topics: preferenceSet.topics,
+            items: preferenceSet.items,
           });
           toast.show({
             variant: 'success',
@@ -265,19 +272,23 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
   // Derive a suggested Next action based on current app state
   const topics = useStore(s => s.topics);
+  const items = useStore(s => s.items);
   const currentBallot = useStore(s => s.currentBallot);
+  const effectiveItems = coerceItems(items, topics);
   const hasTopics = topics.length > 0;
   const anyUnratedTopic = topics.some(t => t.importance === 0);
-  const hasEmptyDirections = topics.some(t => t.directions.length === 0);
-  const anyUnratedDirections = topics.some(t => t.directions.some(d => d.stars === 0));
+  const hasEmptyDirections = topics.some(t => getItemsForTopic(effectiveItems, t.id).length === 0);
+  const anyUnratedDirections = topics.some(t => getItemsForTopic(effectiveItems, t.id).some(d => d.stars === 0));
   const allTopicsRated = hasTopics && topics.every(t => t.importance > 0);
   const hasSufficientPrefs = allTopicsRated; // lenient: directions may be intentionally left 0
   const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
 
   // Export availability (mirror mobile logic)
-  const exportReady = isPreferenceExportReady(topics);
+  const exportReady = isPreferenceExportReady(topics, effectiveItems);
   const ballotReadyToShare = isBallotShareReady(currentBallot);
   const hasStarterTopics = topics.some(t => topicIndex.includes(t.id) || topicTitleIndex.includes((t.title || '').toLowerCase()));
+  const hasStarterItems = effectiveItems.some(item => itemIndex.includes(item.id));
+  const quickShareReady = hasStarterTopics || hasStarterItems;
 
   const jumpToTopicId = (id: string | undefined) => {
     if (!id) return;
@@ -288,7 +299,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   };
 
   const firstUnratedTopicId = topics.find(t => t.importance === 0)?.id;
-  const firstNeedsDirectionsId = topics.find(t => t.directions.length === 0 || t.directions.some(d => d.stars === 0))?.id;
+  const firstNeedsDirectionsId = topics.find(t => {
+    const topicItems = getItemsForTopic(effectiveItems, t.id);
+    return topicItems.length === 0 || topicItems.some(d => d.stars === 0);
+  })?.id;
 
   type NextAction = { label: string; onClick: () => void } | null;
   let nextAction: NextAction = null;
@@ -421,24 +435,36 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <button id="btn-export-inline" ref={exportBtnRef} className="btn" aria-haspopup="true" aria-expanded={exportOpen} aria-label="Share or Export" onClick={(e) => { e.stopPropagation(); setExportOpen(v => !v); }}
             onMouseEnter={() => emitHint('export', 'btn-export-inline', 'Export or share your work once you’ve rated items.')}
           >
-            Share / Export
+            Share
           </button>
           {exportOpen && (
             <div className="toolbar-menu" role="menu" onClick={(e) => e.stopPropagation()}>
-              <div className="muted" style={{ padding: '4px 6px' }}>Export</div>
-              <button id="btn-export-json-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
-              <button id="btn-export-pdf-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
-              <button id="btn-export-jpeg-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
-              {hasStarterTopics && (
-                <button id="btn-export-copy-share-inline" className="btn" role="menuitem" onClick={async () => {
-                  try {
-                    const payload = encodeStarterPreferencesV2(useStore.getState().topics);
-                    const url = buildShareUrlV2(payload);
-                    await navigator.clipboard.writeText(url);
-                    toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
-                  } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
-                  finally { setExportOpen(false); }
-                }}>Copy Share Link</button>
+              {exportMode === 'choice' ? (
+                <>
+                  <div className="muted" style={{ padding: '4px 6px' }}>Choose a share mode</div>
+                  {quickShareReady && (
+                    <button id="btn-export-copy-share-inline" className="btn" role="menuitem" onClick={async () => {
+                      try {
+                        const payload = encodeStarterPreferencesV2(useStore.getState().topics, useStore.getState().items);
+                        const url = buildShareUrlV2(payload);
+                        await navigator.clipboard.writeText(url);
+                        toast.show({ variant: 'success', title: 'Quick share copied', message: 'Only starter-backed topics and items are included in quick share links.', duration: 5000 });
+                      } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                      finally { setExportOpen(false); }
+                    }}>Quick Share</button>
+                  )}
+                  <button id="btn-export-full-inline" className="btn" role="menuitem" onClick={() => setExportMode('full')}>Full Share</button>
+                  <div className="muted" style={{ padding: '4px 6px', maxWidth: 240 }}>
+                    Quick Share stays local-first and compact. Custom topics and items are excluded.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="muted" style={{ padding: '4px 6px' }}>Full Share format</div>
+                  <button id="btn-export-json-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>JSON</button>
+                  <button id="btn-export-pdf-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>PDF</button>
+                  <button className="btn ghost" role="menuitem" onClick={() => setExportMode('choice')}>Back</button>
+                </>
               )}
             </div>
           )}
@@ -449,25 +475,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {ballotMode === 'ballot' && ballotReadyToShare && (
         <div className="toolbar-more" ref={exportRef}>
           <button ref={exportBtnRef} className="btn" aria-label="Share or Export" aria-haspopup="true" aria-expanded={exportOpen} onClick={(e) => { e.stopPropagation(); setExportOpen(v => !v); }}>
-            Share / Export
+            Full Share
           </button>
           {exportOpen && (
             <div className="toolbar-menu" role="menu" onClick={(e) => e.stopPropagation()}>
-              <div className="muted" style={{ padding: '4px 6px' }}>Export</div>
+              <div className="muted" style={{ padding: '4px 6px' }}>Ballot export format</div>
               <button id="btn-export-json-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
               <button id="btn-export-pdf-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
-              <button id="btn-export-jpeg-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
-              {hasStarterTopics && (
-              <button id="btn-export-copy-share-inline-ballot" className="btn" role="menuitem" onClick={async () => {
-                  try {
-                    const payload = encodeStarterPreferencesV2(useStore.getState().topics);
-                    const url = buildShareUrlV2(payload);
-                    await navigator.clipboard.writeText(url);
-                    toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
-                  } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
-                  finally { setExportOpen(false); }
-                }}>Copy Share Link</button>
-              )}
             </div>
           )}
         </div>
@@ -639,17 +653,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 window.dispatchEvent(new Event('vt-open-card-view'));
               } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
             }}>Apply from Link…</button>
-            {hasStarterTopics && (
+            {quickShareReady && (
               <button
                 id="btn-copy-share"
                 className="btn"
                 role="menuitem"
                 onClick={async () => {
                   try {
-                    const payload = encodeStarterPreferencesV2(useStore.getState().topics);
+                    const payload = encodeStarterPreferencesV2(useStore.getState().topics, useStore.getState().items);
                     const url = buildShareUrlV2(payload);
                     await navigator.clipboard.writeText(url);
-                    toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied to clipboard', duration: 4000 });
+                    toast.show({ variant: 'success', title: 'Quick share copied', message: 'Custom topics and items are not included in quick share links.', duration: 5000 });
                   } catch (e) {
                     alert('Copy failed: ' + (e instanceof Error ? e.message : String(e)));
                   } finally {
@@ -672,9 +686,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     title: state.title,
                     notes: state.notes,
                     topics: state.topics,
+                    items: state.items,
                     __createdAt: state.__createdAt,
                   } as const;
-                  useStore.setState({ title: '', notes: '', topics: [], __createdAt: undefined });
+                  useStore.setState({ title: '', notes: '', topics: [], items: [], __createdAt: undefined });
                   toast.show({
                     variant: 'danger',
                     title: 'Preferences cleared',
@@ -711,25 +726,34 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               </button>
             )}
             {(() => {
-              const hasAnyDirection = topics.some(t => t.directions.length > 0);
-              const hasAnyRatedDirection = topics.some(t => t.directions.some(d => d.stars > 0));
-              const exportReadyMenu = hasTopics && hasAnyDirection && hasAnyRatedDirection;
+              const exportReadyMenu = isPreferenceExportReady(topics, items);
               const inlineExportVisible = ballotMode !== 'ballot' && exportReady;
               // Avoid redundancy: only show Export submenu in More when inline Share/Export is not visible
               return exportReadyMenu && !inlineExportVisible ? (
                 <div className="toolbar-submenu">
-                  <button className="btn" role="menuitem" onClick={() => setMenuExportOpen(v => !v)} aria-expanded={menuExportOpen}>Export…</button>
+                  <button className="btn" role="menuitem" onClick={() => setMenuExportOpen(v => !v)} aria-expanded={menuExportOpen}>Share…</button>
                   {menuExportOpen && (
                     <div className="toolbar-menu" role="menu" style={{ position: 'static', marginTop: 6 }}>
-                      <button id="btn-export-json" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setMenuExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
-                      <button id="btn-export-pdf" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setMenuExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
-                      <button id="btn-export-jpeg" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setMenuExportOpen(false); exportJPEG().catch(e => alert(String(e))); }}>Export JPEG</button>
+                      {quickShareReady && (
+                        <button className="btn" role="menuitem" onClick={async () => {
+                          try {
+                            const payload = encodeStarterPreferencesV2(useStore.getState().topics, useStore.getState().items);
+                            const url = buildShareUrlV2(payload);
+                            await navigator.clipboard.writeText(url);
+                            toast.show({ variant: 'success', title: 'Quick share copied', message: 'Custom topics and items are not included in quick share links.', duration: 5000 });
+                          } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                          finally { setMoreOpen(false); setMenuExportOpen(false); }
+                        }}>Quick Share</button>
+                      )}
+                      <button id="btn-export-json" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setMenuExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Full Share: JSON</button>
+                      <button id="btn-export-pdf" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setMenuExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Full Share: PDF</button>
                     </div>
                   )}
                 </div>
               ) : null;
             })()}
             <button id="btn-llm-integration" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setShowLLMIntegration(!showLLMIntegration); }}>LLM Integration</button>
+            <button id="btn-faq" className="btn ghost" role="menuitem" onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event('vt-open-faq')); }}>FAQ</button>
             <button id="btn-getting-started" className="btn ghost" role="menuitem" onClick={() => { setMoreOpen(false); setShowGettingStarted(true); }}>Getting Started</button>
             <button id="btn-open-welcome" className="btn ghost" role="menuitem" onClick={() => { setMoreOpen(false); onOpenWelcome(); }}>Show Welcome Tour</button>
             <button
@@ -743,6 +767,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   title: state.title,
                   notes: state.notes,
                   topics: state.topics,
+                  items: state.items,
                   __createdAt: state.__createdAt,
                   ballotMode: state.ballotMode,
                   currentBallot: state.currentBallot,

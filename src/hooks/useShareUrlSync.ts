@@ -7,19 +7,20 @@ import { encodeStarterPreferencesV2, buildShareUrlV2 } from '../utils/share';
 // - Clears the hash when there are no topics
 export const useShareUrlSync = (enabled: boolean = true, debounceMs: number = 400) => {
   const topics = useStore(s => s.topics);
+  const items = useStore(s => s.items);
   const lastPayloadRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
     const timer = setTimeout(() => {
       try {
-        if (!topics || topics.length === 0) {
+        if ((!topics || topics.length === 0) && (!items || items.length === 0)) {
           // Clear hash when nothing to share
           history.replaceState(null, '', window.location.pathname + window.location.search);
           lastPayloadRef.current = null;
           return;
         }
-        const payload = encodeStarterPreferencesV2(topics);
+        const payload = encodeStarterPreferencesV2(topics, items);
         if (payload && payload !== lastPayloadRef.current) {
           const url = buildShareUrlV2(payload);
           history.replaceState(null, '', url);
@@ -30,5 +31,5 @@ export const useShareUrlSync = (enabled: boolean = true, debounceMs: number = 40
       }
     }, debounceMs);
     return () => clearTimeout(timer);
-  }, [enabled, debounceMs, topics]);
+  }, [enabled, debounceMs, items, topics]);
 };

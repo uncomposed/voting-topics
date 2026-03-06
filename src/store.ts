@@ -1,10 +1,24 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { uid } from './utils';
-import type { Topic, Source, Direction, Stance, Ballot, Office, Candidate, Measure, ElectionInfo, ReasoningLink } from './schema';
+import type {
+  Topic,
+  Source,
+  Item,
+  Direction,
+  Stance,
+  Ballot,
+  Office,
+  Candidate,
+  Measure,
+  ElectionInfo,
+  ReasoningLink,
+} from './schema';
+import { hydrateTopicsWithItems } from './schema';
 import { trackEvent, setAnalyticsEnabled as setAnalyticsFlag } from './utils/analytics';
 
 const clampScore = (score: number) => Math.max(0, Math.min(5, Math.round(score)));
+
 const findTopCandidateId = (candidates: Candidate[]): string | undefined => {
   let topScore = -1;
   let topId: string | undefined;
@@ -21,45 +35,51 @@ const findTopCandidateId = (candidates: Candidate[]): string | undefined => {
 type CandidateInput = Omit<Candidate, 'id' | 'score'> & { score?: number; id?: string };
 type OfficeInput = Omit<Office, 'id' | 'candidates'> & { candidates: CandidateInput[] };
 
+interface StarterTopicInput {
+  id?: string;
+  title: string;
+  items?: Array<{ id?: string; text: string }>;
+  directions?: Array<{ id?: string; text: string }>;
+}
+
 interface Store {
-  // Preference set state
   title: string;
   notes: string;
   topics: Topic[];
+  items: Item[];
   __createdAt?: string;
-  
-  // Ballot state
+
   ballotMode: 'preference' | 'ballot';
   currentBallot: Ballot | null;
   ballotHistory: Ballot[];
-  
-  // Flow state for guided user experience
+
   currentFlowStep: 'starter' | 'cards' | 'list' | 'complete';
   hasSeenIntroModal: boolean;
 
-  // Preference set actions
   setTitle: (title: string) => void;
   setNotes: (notes: string) => void;
   addTopic: (importance?: number) => void;
   addTopicByTitle: (title: string) => void;
-  addTopicFromStarter: (starterTopic: { title: string; directions: Array<{ text: string }> }) => void;
+  addTopicFromStarter: (starterTopic: StarterTopicInput) => void;
   removeTopic: (id: string) => void;
   patchTopic: (id: string, patch: Partial<Topic>) => void;
   patchSource: (id: string, idx: number, patch: Partial<Source>) => void;
   addSource: (id: string) => void;
   removeSource: (id: string, idx: number) => void;
-  // New methods for directions
+  addItem: (topicId: string, text?: string) => void;
+  removeItem: (itemId: string) => void;
+  patchItem: (itemId: string, patch: Partial<Item>) => void;
+  tagItemToTopic: (itemId: string, topicId: string) => void;
+  untagItemFromTopic: (itemId: string, topicId: string) => void;
   addDirection: (topicId: string) => void;
   removeDirection: (topicId: string, directionId: string) => void;
   patchDirection: (topicId: string, directionId: string, patch: Partial<Direction>) => void;
   clearAll: () => void;
-  importData: (data: { title: string; notes: string; topics: Topic[] }) => void;
-  
-  // Flow actions
+  importData: (data: { title: string; notes: string; topics: Topic[]; items?: Item[] }) => void;
+
   setCurrentFlowStep: (step: 'starter' | 'cards' | 'list' | 'complete') => void;
   advanceFlowStep: () => void;
-  
-  // Ballot actions
+
   setBallotMode: (mode: 'preference' | 'ballot') => void;
   createBallot: (electionInfo: ElectionInfo) => void;
   updateBallotTitle: (title: string) => void;
@@ -79,7 +99,6 @@ interface Store {
   removeReasoningLink: (officeId: string, candidateId: string, reasoningId: string) => void;
   clearBallot: () => void;
 
-  // Hint mode state
   hintsEnabled: boolean;
   seenHints: string[];
   setHintsEnabled: (v: boolean) => void;
@@ -88,149 +107,186 @@ interface Store {
   setHasSeenOnboarding: (v: boolean) => void;
   setHasSeenIntroModal: (v: boolean) => void;
 
-  // Analytics state
   analyticsEnabled: boolean;
   setAnalyticsEnabled: (v: boolean) => void;
   recordExport: (type: string) => void;
 }
 
+const removeDirectionsFromTopicPatch = (patch: Partial<Topic>): Partial<Topic> => {
+  const { directions: _directions, ...rest } = patch as Partial<Topic> & { directions?: Item[] };
+  return rest;
+};
+
+const syncTopics = (topics: Topic[], items: Item[]): Topic[] => hydrateTopicsWithItems(
+  topics.map(({ directions: _directions, ...topic }) => topic),
+  items,
+);
+
 export const useStore = create<Store>()(
   persist(
     (set) => ({
-      // Preference set state
       title: '',
       notes: '',
       topics: [],
-      
-      // Ballot state
+      items: [],
+
       ballotMode: 'preference' as const,
       currentBallot: null,
       ballotHistory: [],
-      
-      // Flow state
+
       currentFlowStep: 'starter' as const,
       hasSeenIntroModal: false,
+
       setTitle: (title) => set({ title }),
       setNotes: (notes) => set({ notes }),
-      addTopic: (importance?: number) => set((state) => ({
-        topics: [
-          {
-            id: uid(),
-            title: '',
-            importance: importance || 0,
-            stance: 'neutral' as Stance,
-            directions: [],
+      addTopic: (importance = 0) => set((state) => ({
+        topics: syncTopics([{
+          id: uid(),
+          title: '',
+          importance,
+          stance: 'neutral' as Stance,
+          notes: '',
+          sources: [],
+          relations: { broader: [], narrower: [], related: [] },
+        }, ...state.topics], state.items),
+      })),
+      addTopicByTitle: (title) => set((state) => ({
+        topics: syncTopics([{
+          id: uid(),
+          title,
+          importance: 0,
+          stance: 'neutral' as Stance,
+          notes: '',
+          sources: [],
+          relations: { broader: [], narrower: [], related: [] },
+        }, ...state.topics], state.items),
+      })),
+      addTopicFromStarter: (starterTopic) => set((state) => {
+        const topicId = starterTopic.id ?? uid();
+        const sourceItems = starterTopic.items ?? starterTopic.directions ?? [];
+        const items = [
+          ...sourceItems.map((item) => ({
+            id: item.id ?? uid(),
+            text: item.text,
+            stars: 0,
             notes: '',
             sources: [],
-            relations: { broader: [], narrower: [], related: [] }
-          },
-          ...state.topics,
-        ]
-      })),
-      addTopicByTitle: (title: string) => set((state) => ({
-        topics: [
-          {
-            id: uid(),
-            title,
-            importance: 0,
-            stance: 'neutral' as Stance,
-            directions: [],
-            notes: '',
-            sources: [],
-            relations: { broader: [], narrower: [], related: [] }
-          },
-          ...state.topics,
-        ]
-      })),
-      addTopicFromStarter: (starterTopic: { title: string; directions: Array<{ text: string }> }) => set((state) => ({
-        topics: [
-          {
-            id: uid(),
-            title: starterTopic.title,
-            importance: 0,
-            stance: 'neutral' as Stance,
-            directions: starterTopic.directions.map(d => ({
-              id: uid(),
-              text: d.text,
-              stars: 0, // Unrated until user decides
-              sources: [],
-              tags: []
-            })),
-            notes: '',
-            sources: [],
-            relations: { broader: [], narrower: [], related: [] }
-          },
-          ...state.topics,
-        ]
-      })),
-      removeTopic: (id) => set((state) => ({ 
-        topics: state.topics.filter(t => t.id !== id) 
-      })),
+            topicIds: [topicId],
+            tags: [],
+          })),
+          ...state.items,
+        ];
+        const topics = syncTopics([{
+          id: topicId,
+          title: starterTopic.title,
+          importance: 0,
+          stance: 'neutral' as Stance,
+          notes: '',
+          sources: [],
+          relations: { broader: [], narrower: [], related: [] },
+        }, ...state.topics], items);
+        return {
+          topics,
+          items,
+        };
+      }),
+      removeTopic: (id) => set((state) => {
+        const items = state.items.map((item) => ({
+          ...item,
+          topicIds: item.topicIds.filter((topicId) => topicId !== id),
+        }));
+        const topics = syncTopics(state.topics.filter((topic) => topic.id !== id), items);
+        return { topics, items };
+      }),
       patchTopic: (id, patch) => set((state) => ({
-        topics: state.topics.map(t => (t.id === id ? { ...t, ...patch } : t))
+        topics: syncTopics(state.topics.map((topic) => topic.id === id ? { ...topic, ...removeDirectionsFromTopicPatch(patch) } : topic), state.items),
       })),
-      patchSource: (id, idx, patch) => set((state) => ({
-        topics: state.topics.map(t => {
-          if (t.id !== id) return t;
-          const next = [...t.sources];
+      patchSource: (id, idx, patch) => set((state) => {
+        const topics = state.topics.map((topic) => {
+          if (topic.id !== id) return topic;
+          const next = [...topic.sources];
           next[idx] = { ...next[idx], ...patch };
-          return { ...t, sources: next };
-        })
-      })),
+          return { ...topic, sources: next };
+        });
+        return { topics: syncTopics(topics, state.items) };
+      }),
       addSource: (id) => set((state) => ({
-        topics: state.topics.map(t => (t.id === id ? { ...t, sources: [...t.sources, { label: '', url: '' }] } : t))
+        topics: syncTopics(state.topics.map((topic) => topic.id === id ? { ...topic, sources: [...topic.sources, { label: '', url: '' }] } : topic), state.items),
       })),
       removeSource: (id, idx) => set((state) => ({
-        topics: state.topics.map(t => (t.id === id ? { ...t, sources: t.sources.filter((_, i) => idx !== i) } : t))
+        topics: syncTopics(state.topics.map((topic) => topic.id === id ? { ...topic, sources: topic.sources.filter((_, i) => idx !== i) } : topic), state.items),
       })),
-      // New methods for managing directions
-      addDirection: (topicId: string) => set((state) => ({
-        topics: state.topics.map(t => {
-          if (t.id !== topicId) return t;
-          const newDirection: Direction = {
-            id: uid(),
-            text: '',
-            stars: 0,
-            sources: [],
-            tags: []
-          };
-          return { ...t, directions: [...t.directions, newDirection] };
-        })
-      })),
-      removeDirection: (topicId: string, directionId: string) => set((state) => ({
-        topics: state.topics.map(t => {
-          if (t.id !== topicId) return t;
-          return { ...t, directions: t.directions.filter(d => d.id !== directionId) };
-        })
-      })),
-      patchDirection: (topicId: string, directionId: string, patch: Partial<Direction>) => set((state) => ({
-        topics: state.topics.map(t => {
-          if (t.id !== topicId) return t;
-          return {
-            ...t,
-            directions: t.directions.map(d => 
-              d.id === directionId ? { ...d, ...patch } : d
-            )
-          };
-        })
-      })),
-      clearAll: () => set({ 
-        title: '', 
-        notes: '', 
-        topics: [], 
+      addItem: (topicId, text = '') => set((state) => {
+        const items = [{
+          id: uid(),
+          text,
+          stars: 0,
+          notes: '',
+          sources: [],
+          topicIds: [topicId],
+          tags: [],
+        }, ...state.items];
+        return { items, topics: syncTopics(state.topics, items) };
+      }),
+      removeItem: (itemId) => set((state) => {
+        const items = state.items.filter((item) => item.id !== itemId);
+        return { items, topics: syncTopics(state.topics, items) };
+      }),
+      patchItem: (itemId, patch) => set((state) => {
+        const items = state.items.map((item) => item.id === itemId ? { ...item, ...patch } : item);
+        return { items, topics: syncTopics(state.topics, items) };
+      }),
+      tagItemToTopic: (itemId, topicId) => set((state) => {
+        const items = state.items.map((item) => item.id === itemId
+          ? { ...item, topicIds: item.topicIds.includes(topicId) ? item.topicIds : [...item.topicIds, topicId] }
+          : item);
+        return { items, topics: syncTopics(state.topics, items) };
+      }),
+      untagItemFromTopic: (itemId, topicId) => set((state) => {
+        const items = state.items.map((item) => item.id === itemId
+          ? { ...item, topicIds: item.topicIds.filter((id) => id !== topicId) }
+          : item);
+        return { items, topics: syncTopics(state.topics, items) };
+      }),
+      // Backward-compatible aliases while the UI finishes moving to item terminology.
+      addDirection: (topicId) => set((state) => {
+        const items = [{
+          id: uid(),
+          text: '',
+          stars: 0,
+          notes: '',
+          sources: [],
+          topicIds: [topicId],
+          tags: [],
+        }, ...state.items];
+        return { items, topics: syncTopics(state.topics, items) };
+      }),
+      removeDirection: (_topicId, directionId) => set((state) => {
+        const items = state.items.filter((item) => item.id !== directionId);
+        return { items, topics: syncTopics(state.topics, items) };
+      }),
+      patchDirection: (_topicId, directionId, patch) => set((state) => {
+        const items = state.items.map((item) => item.id === directionId ? { ...item, ...patch } : item);
+        return { items, topics: syncTopics(state.topics, items) };
+      }),
+      clearAll: () => set({
+        title: '',
+        notes: '',
+        topics: [],
+        items: [],
         __createdAt: undefined,
         ballotMode: 'preference',
         currentBallot: null,
-        ballotHistory: []
+        ballotHistory: [],
       }),
-      importData: (data) => set({ 
-        title: data.title, 
-        notes: data.notes, 
-        topics: data.topics,
-        __createdAt: new Date().toISOString()
+      importData: (data) => set({
+        title: data.title,
+        notes: data.notes,
+        topics: syncTopics(data.topics, data.items ?? []),
+        items: data.items ?? [],
+        __createdAt: new Date().toISOString(),
       }),
-      
-      // Flow actions
+
       setCurrentFlowStep: (step) => {
         trackEvent('flow_step', { step });
         set({ currentFlowStep: step });
@@ -243,51 +299,51 @@ export const useStore = create<Store>()(
         trackEvent('flow_step', { step });
         return { currentFlowStep: step };
       }),
-      
-      // Ballot actions
+
       setBallotMode: (mode) => set({ ballotMode: mode }),
       createBallot: (electionInfo) => set(() => {
         trackEvent('ballot_created', { election: electionInfo.name });
         const now = new Date().toISOString();
-        const newBallot: Ballot = {
-          version: 'tsb.ballot.v1',
-          title: `${electionInfo.name} - ${electionInfo.location}`,
-          election: electionInfo,
-          offices: [],
-          measures: [],
-          metadata: {
-            preferenceSetId: undefined,
-            notes: '',
-            sources: [],
-            tags: []
+        return {
+          currentBallot: {
+            version: 'tsb.ballot.v1',
+            title: `${electionInfo.name} - ${electionInfo.location}`,
+            election: electionInfo,
+            offices: [],
+            measures: [],
+            metadata: {
+              preferenceSetId: undefined,
+              notes: '',
+              sources: [],
+              tags: [],
+            },
+            createdAt: now,
+            updatedAt: now,
           },
-          createdAt: now,
-          updatedAt: now
         };
-        return { currentBallot: newBallot };
       }),
       updateBallotTitle: (title) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
           title,
-          updatedAt: new Date().toISOString()
-        } : null
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       updateBallotElection: (electionInfo) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
           election: electionInfo,
-          updatedAt: new Date().toISOString()
-        } : null
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       addOffice: (office) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
           offices: [...state.currentBallot.offices, (() => {
-            const normalizedCandidates = (office.candidates ?? []).map(c => ({
-              ...c,
-              id: c.id ?? uid(),
-              score: clampScore(c.score ?? 0),
+            const normalizedCandidates = (office.candidates ?? []).map((candidate) => ({
+              ...candidate,
+              id: candidate.id ?? uid(),
+              score: clampScore(candidate.score ?? 0),
             }));
             return {
               ...office,
@@ -297,185 +353,139 @@ export const useStore = create<Store>()(
               selectedCandidateId: findTopCandidateId(normalizedCandidates),
             };
           })()],
-          updatedAt: new Date().toISOString()
-        } : null
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       removeOffice: (officeId) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          offices: state.currentBallot.offices.filter(o => o.id !== officeId),
-          updatedAt: new Date().toISOString()
-        } : null
+          offices: state.currentBallot.offices.filter((office) => office.id !== officeId),
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       updateOffice: (officeId, patch) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          offices: state.currentBallot.offices.map(o => 
-            o.id === officeId ? { ...o, ...patch } : o
-          ),
-          updatedAt: new Date().toISOString()
-        } : null
+          offices: state.currentBallot.offices.map((office) => office.id === officeId ? { ...office, ...patch } : office),
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       addCandidate: (officeId, candidate) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          offices: state.currentBallot.offices.map(o => {
-            if (o.id !== officeId) return o;
+          offices: state.currentBallot.offices.map((office) => {
+            if (office.id !== officeId) return office;
             const newCandidate = { ...candidate, id: uid(), score: clampScore(candidate.score ?? 0) };
-            const candidates = [...o.candidates, newCandidate];
-            return {
-              ...o,
-              candidates,
-              selectedCandidateId: findTopCandidateId(candidates),
-            };
+            const candidates = [...office.candidates, newCandidate];
+            return { ...office, candidates, selectedCandidateId: findTopCandidateId(candidates) };
           }),
-          updatedAt: new Date().toISOString()
-        } : null
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       removeCandidate: (officeId, candidateId) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          offices: state.currentBallot.offices.map(o => 
-            o.id === officeId ? {
-              ...o,
-              candidates: o.candidates.filter(c => c.id !== candidateId),
-              selectedCandidateId: (() => {
-                const remaining = o.candidates.filter(c => c.id !== candidateId);
-                return findTopCandidateId(remaining);
-              })()
-            } : o
-          ),
-          updatedAt: new Date().toISOString()
-        } : null
+          offices: state.currentBallot.offices.map((office) => {
+            if (office.id !== officeId) return office;
+            const candidates = office.candidates.filter((candidate) => candidate.id !== candidateId);
+            return { ...office, candidates, selectedCandidateId: findTopCandidateId(candidates) };
+          }),
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       updateCandidate: (officeId, candidateId, patch) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          offices: state.currentBallot.offices.map(o => 
-            o.id === officeId ? {
-              ...o,
-              candidates: o.candidates.map(c => 
-                c.id === candidateId ? { ...c, ...patch } : c
-              )
-            } : o
-          ),
-          updatedAt: new Date().toISOString()
-        } : null
+          offices: state.currentBallot.offices.map((office) => office.id === officeId
+            ? { ...office, candidates: office.candidates.map((candidate) => candidate.id === candidateId ? { ...candidate, ...patch } : candidate) }
+            : office),
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       selectCandidate: (officeId, candidateId) => set((state) => {
         if (!state.currentBallot) return {};
-        const offices = state.currentBallot.offices.map(o => {
-          if (o.id !== officeId) return o;
-          const candidates = o.candidates.map(c => c.id === candidateId ? { ...c, score: 5 } : c);
-          return {
-            ...o,
-            candidates,
-            selectedCandidateId: findTopCandidateId(candidates)
-          };
+        const offices = state.currentBallot.offices.map((office) => {
+          if (office.id !== officeId) return office;
+          const candidates = office.candidates.map((candidate) => candidate.id === candidateId ? { ...candidate, score: 5 } : candidate);
+          return { ...office, candidates, selectedCandidateId: findTopCandidateId(candidates) };
         });
-        return {
-          currentBallot: {
-            ...state.currentBallot,
-            offices,
-            updatedAt: new Date().toISOString()
-          }
-        };
+        return { currentBallot: { ...state.currentBallot, offices, updatedAt: new Date().toISOString() } };
       }),
       setCandidateScore: (officeId, candidateId, score) => set((state) => {
         if (!state.currentBallot) return {};
-        const offices = state.currentBallot.offices.map(o => {
-          if (o.id !== officeId) return o;
-          const candidates = o.candidates.map(c => c.id === candidateId ? { ...c, score: clampScore(score) } : c);
-          return {
-            ...o,
-            candidates,
-            selectedCandidateId: findTopCandidateId(candidates)
-          };
+        const offices = state.currentBallot.offices.map((office) => {
+          if (office.id !== officeId) return office;
+          const candidates = office.candidates.map((candidate) => candidate.id === candidateId ? { ...candidate, score: clampScore(score) } : candidate);
+          return { ...office, candidates, selectedCandidateId: findTopCandidateId(candidates) };
         });
-        return {
-          currentBallot: {
-            ...state.currentBallot,
-            offices,
-            updatedAt: new Date().toISOString()
-          }
-        };
+        return { currentBallot: { ...state.currentBallot, offices, updatedAt: new Date().toISOString() } };
       }),
       addMeasure: (measure) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
           measures: [...state.currentBallot.measures, { ...measure, id: uid() }],
-          updatedAt: new Date().toISOString()
-        } : null
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       removeMeasure: (measureId) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          measures: state.currentBallot.measures.filter(m => m.id !== measureId),
-          updatedAt: new Date().toISOString()
-        } : null
+          measures: state.currentBallot.measures.filter((measure) => measure.id !== measureId),
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       updateMeasure: (measureId, patch) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          measures: state.currentBallot.measures.map(m => 
-            m.id === measureId ? { ...m, ...patch } : m
-          ),
-          updatedAt: new Date().toISOString()
-        } : null
+          measures: state.currentBallot.measures.map((measure) => measure.id === measureId ? { ...measure, ...patch } : measure),
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       addReasoningLink: (officeId, _candidateId, reasoning) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          offices: state.currentBallot.offices.map(o => 
-            o.id === officeId ? {
-              ...o,
-              reasoning: [...o.reasoning, reasoning]
-            } : o
-          ),
-          updatedAt: new Date().toISOString()
-        } : null
+          offices: state.currentBallot.offices.map((office) => office.id === officeId ? { ...office, reasoning: [...office.reasoning, reasoning] } : office),
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       removeReasoningLink: (officeId, _candidateId, reasoningId) => set((state) => ({
         currentBallot: state.currentBallot ? {
           ...state.currentBallot,
-          offices: state.currentBallot.offices.map(o => 
-            o.id === officeId ? {
-              ...o,
-              reasoning: o.reasoning.filter(r => r.topicId !== reasoningId)
-            } : o
-          ),
-          updatedAt: new Date().toISOString()
-        } : null
+          offices: state.currentBallot.offices.map((office) => office.id === officeId
+            ? {
+                ...office,
+                reasoning: office.reasoning.filter((reasoning) =>
+                  reasoning.itemId !== reasoningId &&
+                  reasoning.topicId !== reasoningId &&
+                  reasoning.directionId !== reasoningId),
+              }
+            : office),
+          updatedAt: new Date().toISOString(),
+        } : null,
       })),
       clearBallot: () => set({ currentBallot: null }),
 
-      // Hints
       hintsEnabled: true,
       seenHints: [],
-      setHintsEnabled: (v: boolean) => set((state) => {
+      setHintsEnabled: (v) => set((state) => {
         if (v === state.hintsEnabled) return {};
-        if (v) {
-          return { hintsEnabled: true, seenHints: [] };
-        }
+        if (v) return { hintsEnabled: true, seenHints: [] };
         return { hintsEnabled: false };
       }),
-      markHintSeen: (key: string) => set((state) => (
-        state.seenHints.includes(key) ? state : { seenHints: [...state.seenHints, key] }
-      )),
+      markHintSeen: (key) => set((state) => state.seenHints.includes(key) ? state : { seenHints: [...state.seenHints, key] }),
       hasSeenOnboarding: false,
-      setHasSeenOnboarding: (v: boolean) => set({ hasSeenOnboarding: v }),
-      setHasSeenIntroModal: (v: boolean) => set({ hasSeenIntroModal: v }),
-      analyticsEnabled: new URLSearchParams(window.location.search).get('telemetry') === '1',
-      setAnalyticsEnabled: (v: boolean) => {
+      setHasSeenOnboarding: (v) => set({ hasSeenOnboarding: v }),
+      setHasSeenIntroModal: (v) => set({ hasSeenIntroModal: v }),
+
+      analyticsEnabled: typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('telemetry') === '1',
+      setAnalyticsEnabled: (v) => {
         setAnalyticsFlag(v);
         set({ analyticsEnabled: v });
       },
-      recordExport: (type: string) => {
-        trackEvent('export', { type });
-      },
+      recordExport: (type) => trackEvent('export', { type }),
     }),
-    { name: 'vt.m1' }
-  )
+    { name: 'vt.m2' },
+  ),
 );
 
 setAnalyticsFlag(useStore.getState().analyticsEnabled);

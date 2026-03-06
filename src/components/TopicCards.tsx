@@ -3,6 +3,7 @@ import { Topic } from '../schema';
 import { SmartDirectionDots } from './SmartDirectionDots';
 import { Stars } from './Stars';
 import { useStore } from '../store';
+import { getItemsForTopic } from '../utils/items';
 
 interface TopicCardsProps {
   topics: Topic[];
@@ -19,6 +20,7 @@ interface DragState {
 export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonText: () => void }, TopicCardsProps>(({ topics, onReorder, onTopicClick }, ref) => {
   const currentFlowStep = useStore(state => state.currentFlowStep);
   const advanceFlowStep = useStore(state => state.advanceFlowStep);
+  const items = useStore(state => state.items);
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     draggedTopic: null,
@@ -134,6 +136,9 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
             
             <div className="topic-cards-container">
               {topics.map((topic) => (
+                (() => {
+                  const topicItems = getItemsForTopic(items, topic.id);
+                  return (
                 <div
                   key={topic.id}
                   className={`topic-card ${dragState.draggedTopic?.id === topic.id ? 'dragging' : ''}`}
@@ -146,7 +151,7 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
                   <div className="card-header">
                     <h4 className="card-title">{topic.title || 'Untitled Topic'}</h4>
                     <div className="card-directions">
-                      <SmartDirectionDots directions={topic.directions} maxVisible={7} />
+                      <SmartDirectionDots directions={topicItems} maxVisible={7} />
                     </div>
                   </div>
                   
@@ -154,10 +159,10 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
                     <p className="card-notes">{topic.notes}</p>
                   )}
                   
-                  {isExpanded && topic.directions && topic.directions.length > 0 && (
+                  {isExpanded && topicItems.length > 0 && (
                     <div className="card-directions">
                       <small className="muted">
-                        Top direction: {topic.directions[0]?.text}
+                        Top item: {topicItems[0]?.text}
                       </small>
                     </div>
                   )}
@@ -174,6 +179,8 @@ export const TopicCards = forwardRef<{ toggleExpanded: () => void; updateButtonT
                     <span className="drag-hint">Click to edit</span>
                   </div>
                 </div>
+                  );
+                })()
               ))}
               
               {topics.length === 0 && (

@@ -1,15 +1,17 @@
 import { useStore } from './store';
-import { TemplateSchema, BallotSchema } from './schema';
+import { TemplateSchema, BallotSchema, serializePreferenceSet } from './schema';
 import { nowISO, sanitize, downloadFile } from './utils';
-import type { Template, Topic, Direction, Source, Ballot } from './schema';
+import type { Template, Topic, Item, Source, Ballot } from './schema';
+import { getItemsForTopic } from './utils/items';
 
 export const buildTemplate = (): Template => {
   const state = useStore.getState();
   const tpl = {
-    version: 'tsb.v1' as const,
+    version: 'tsb.v2' as const,
     title: state.title || 'Untitled Template',
     notes: state.notes || '',
-    topics: state.topics,
+    topics: state.topics.map(({ directions: _directions, ...topic }) => topic),
+    items: state.items,
     createdAt: state.__createdAt || nowISO(),
     updatedAt: nowISO(),
   };
@@ -22,7 +24,7 @@ export const buildTemplate = (): Template => {
   
   // remember first creation time
   if (!state.__createdAt) useStore.setState({ __createdAt: tpl.createdAt });
-  return parsed.data;
+  return serializePreferenceSet(parsed.data);
 };
 
 export const exportJSON = () => {
@@ -77,6 +79,7 @@ export const exportPDF = async () => {
   y += 12; // Add extra space after the line to prevent overlap with first topic
 
   tpl.topics.forEach((t: Topic, idx: number) => {
+    const topicItems = getItemsForTopic(tpl.items, t.id);
     if (y > 760) { 
       doc.addPage(); 
       y = margin; 
@@ -101,14 +104,14 @@ export const exportPDF = async () => {
     y += 14;
     
     // Display directions if they exist
-    if (t.directions && t.directions.length > 0) {
+    if (topicItems.length > 0) {
       y += 6;
-      H('Directions', 12);
-      doc.text('Directions', margin, y);
+      H('Items', 12);
+      doc.text('Items', margin, y);
       y += 14;
       T('');
-      t.directions.forEach((d: Direction, i: number) => {
-        doc.text(`${i + 1}. ${d.text} (${d.stars}/5 stars)`, margin, y);
+      topicItems.forEach((item: Item, i: number) => {
+        doc.text(`${i + 1}. ${item.text} (${item.stars}/5 stars)`, margin, y);
         y += 14;
         if (y > 760) {
           doc.addPage();
@@ -176,14 +179,14 @@ export const renderSocialCard = (tpl: Template): HTMLElement => {
         };
         
         const stance = stanceLabels[t.stance] || 'Neutral';
-        const directionCount = t.directions ? t.directions.length : 0;
+        const itemCount = getItemsForTopic(tpl.items, t.id).length;
         
         return `
           <div class="row">
             <div style="font-weight:700">${i + 1}</div>
             <div>
               <div style="font-weight:600">${t.title}</div>
-              <div style="font-size: 14px; color: var(--muted); margin: 4px 0;">${stance}${directionCount > 0 ? ` • ${directionCount} direction${directionCount !== 1 ? 's' : ''}` : ''}</div>
+              <div style="font-size: 14px; color: var(--muted); margin: 4px 0;">${stance}${itemCount > 0 ? ` • ${itemCount} item${itemCount !== 1 ? 's' : ''}` : ''}</div>
               <div class="bar"><span style="width:${(t.importance / 5) * 100}%"></span></div>
             </div>
             <div style="text-align:right">${t.importance}/5</div>

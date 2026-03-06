@@ -35,6 +35,17 @@ export const Layout: React.FC = () => {
         <div>Keyboard: <span className="kbd">Tab</span>/<span className="kbd">Shift+Tab</span>, stars: <span className="kbd">ArrowLeft</span>/<span className="kbd">ArrowRight</span></div>
         <div>
           <a
+            href="#faq"
+            id="faq-link"
+            onClick={(event) => {
+              event.preventDefault();
+              window.dispatchEvent(new Event('vt-open-faq'));
+            }}
+            style={{ marginRight: 12 }}
+          >
+            FAQ
+          </a>
+          <a
             href="#privacy"
             id="privacy-link"
             onClick={(event) => {

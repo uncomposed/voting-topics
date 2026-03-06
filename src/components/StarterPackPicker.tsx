@@ -121,24 +121,10 @@ export const StarterPackPicker: React.FC = () => {
     <div id="starter-pack" className="panel starter-pack-panel" style={{ marginTop: 16 }}>
       <div
         className="panel-header-collapsible"
-        role="button"
-        tabIndex={0}
-        aria-expanded={!isCollapsed}
-        aria-controls="starter-pack-body"
-        style={{ cursor: 'pointer' }}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            setIsCollapsed(prev => !prev);
-          }
-        }}
-        onClick={(event) => {
-          const target = event.target as HTMLElement;
-          if (target.closest('button')) return;
-          setIsCollapsed(prev => !prev);
-        }}
+        style={{ cursor: 'default' }}
       >
-        <div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, width: '100%' }}>
+          <div>
           {hasTopics ? (
             <>
               <h2 className="panel-title">➕ Add More Topics</h2>
@@ -170,15 +156,18 @@ export const StarterPackPicker: React.FC = () => {
               )}
             </div>
           )}
+          </div>
+          <button
+            type="button"
+            className="btn ghost starter-toggle"
+            aria-expanded={!isCollapsed}
+            aria-controls="starter-pack-body"
+            aria-label={isCollapsed ? 'Expand starter pack' : 'Collapse starter pack'}
+            onClick={() => setIsCollapsed(prev => !prev)}
+          >
+            {isCollapsed ? '▶' : '▼'}
+          </button>
         </div>
-        <button 
-          className="btn ghost starter-toggle"
-          onClick={(event) => { event.stopPropagation(); setIsCollapsed(!isCollapsed); }}
-          onKeyDown={(event) => event.stopPropagation()}
-          aria-label={isCollapsed ? 'Expand starter pack' : 'Collapse starter pack'}
-        >
-          {isCollapsed ? '▶' : '▼'}
-        </button>
       </div>
       
       {!isCollapsed && (

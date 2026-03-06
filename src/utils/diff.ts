@@ -1,186 +1,156 @@
-import type { PreferenceSet, Topic, Direction } from '../schema';
+import type { PreferenceSet, Topic, Item } from '../schema';
 import type { PreferenceSetDiff, TopicDiff, DirectionDiff, PriorityComparison } from '../types/diff';
+import { coerceItems, getItemsForTopic } from './items';
 
-// Helper function to find topics by title (since IDs might differ)
-const findTopicByTitle = (topics: Topic[], title: string): Topic | undefined => {
-  return topics.find(t => t.title.toLowerCase().trim() === title.toLowerCase().trim());
-};
+const normalize = (value: string) => value.toLowerCase().trim();
 
-// Helper function to find directions by text
-const findDirectionByText = (directions: Direction[], text: string): Direction | undefined => {
-  return directions.find(d => d.text.toLowerCase().trim() === text.toLowerCase().trim());
-};
+const findTopicByTitle = (topics: Topic[], title: string): Topic | undefined =>
+  topics.find((topic) => normalize(topic.title) === normalize(title));
 
-// Helper function to find directions by id
-const findDirectionById = (directions: Direction[], id?: string): Direction | undefined => {
-  if (!id) return undefined;
-  return directions.find(d => d.id === id);
-};
+const findItemByText = (items: Item[], text: string): Item | undefined =>
+  items.find((item) => normalize(item.text) === normalize(text));
 
-// Check if two topics are identical
-// NOTE: stance is deprecated and intentionally excluded from comparisons
-const topicsEqual = (left: Topic, right: Topic): boolean => {
+const findItemById = (items: Item[], id?: string): Item | undefined =>
+  id ? items.find((item) => item.id === id) : undefined;
+
+const itemsEqual = (left: Item, right: Item): boolean =>
+  left.text === right.text &&
+  left.stars === right.stars &&
+  left.notes === right.notes;
+
+const topicsEqual = (left: Topic, right: Topic, leftItems: Item[], rightItems: Item[]): boolean => {
   if (left.title !== right.title) return false;
   if (left.importance !== right.importance) return false;
-  if (left.notes !== right.notes) return false;
-  if (left.directions.length !== right.directions.length) return false;
-  
-  // Check directions
-  for (const leftDir of left.directions) {
-    const rightDir = findDirectionById(right.directions, leftDir.id) || findDirectionByText(right.directions, leftDir.text);
-    if (!rightDir) return false;
-    if (leftDir.stars !== rightDir.stars) return false;
-    if (leftDir.notes !== rightDir.notes) return false;
+  if ((left.notes || '') !== (right.notes || '')) return false;
+
+  const leftTopicItems = getItemsForTopic(leftItems, left.id);
+  const rightTopicItems = getItemsForTopic(rightItems, right.id);
+  if (leftTopicItems.length !== rightTopicItems.length) return false;
+
+  for (const leftItem of leftTopicItems) {
+    const rightItem = findItemById(rightTopicItems, leftItem.id) || findItemByText(rightTopicItems, leftItem.text);
+    if (!rightItem || !itemsEqual(leftItem, rightItem)) return false;
   }
-  
+
   return true;
 };
 
-// Check if two directions are identical
-const directionsEqual = (left: Direction, right: Direction): boolean => {
-  return left.text === right.text && 
-         left.stars === right.stars && 
-         left.notes === right.notes;
-};
+const computeTopicDiff = (left: Topic, right: Topic, leftItems: Item[], rightItems: Item[]): TopicDiff => {
+  const leftTopicItems = getItemsForTopic(leftItems, left.id);
+  const rightTopicItems = getItemsForTopic(rightItems, right.id);
+  const itemDiffs: DirectionDiff[] = [];
+  const added: Item[] = [];
+  const removed: Item[] = [];
+  const unchanged: Item[] = [];
 
-// Compute topic diff
-const computeTopicDiff = (left: Topic, right: Topic): TopicDiff => {
-  const directionDiffs: DirectionDiff[] = [];
-  const addedDirections: Direction[] = [];
-  const removedDirections: Direction[] = [];
-  const unchangedDirections: Direction[] = [];
-  
-  // Find modified and unchanged directions
-  for (const leftDir of left.directions) {
-    const rightDir = findDirectionById(right.directions, leftDir.id) || findDirectionByText(right.directions, leftDir.text);
-    if (rightDir) {
-      if (directionsEqual(leftDir, rightDir)) {
-        unchangedDirections.push(leftDir);
-      } else {
-        directionDiffs.push({
-          direction: rightDir,
-          changes: {
-            text: { left: leftDir.text, right: rightDir.text },
-            stars: { left: leftDir.stars, right: rightDir.stars },
-            notes: { left: leftDir.notes || '', right: rightDir.notes || '' }
-          },
-          hasChanges: true
-        });
-      }
+  for (const leftItem of leftTopicItems) {
+    const rightItem = findItemById(rightTopicItems, leftItem.id) || findItemByText(rightTopicItems, leftItem.text);
+    if (!rightItem) {
+      removed.push(leftItem);
+    } else if (itemsEqual(leftItem, rightItem)) {
+      unchanged.push(leftItem);
     } else {
-      removedDirections.push(leftDir);
+      itemDiffs.push({
+        direction: rightItem,
+        changes: {
+          text: { left: leftItem.text, right: rightItem.text },
+          stars: { left: leftItem.stars, right: rightItem.stars },
+          notes: { left: leftItem.notes || '', right: rightItem.notes || '' },
+        },
+        hasChanges: true,
+      });
     }
   }
-  
-  // Find added directions
-  for (const rightDir of right.directions) {
-    const leftDir = findDirectionById(left.directions, rightDir.id) || findDirectionByText(left.directions, rightDir.text);
-    if (!leftDir) {
-      addedDirections.push(rightDir);
-    }
+
+  for (const rightItem of rightTopicItems) {
+    const leftItem = findItemById(leftTopicItems, rightItem.id) || findItemByText(leftTopicItems, rightItem.text);
+    if (!leftItem) added.push(rightItem);
   }
-  
-  const hasChanges =
-    left.importance !== right.importance ||
-    left.notes !== right.notes ||
-    directionDiffs.length > 0 ||
-    addedDirections.length > 0 ||
-    removedDirections.length > 0;
-  
+
   return {
-    topic: right,
+    topic: { ...right, directions: rightTopicItems },
     changes: {
       importance: { left: left.importance, right: right.importance },
       directions: {
-        added: addedDirections,
-        removed: removedDirections,
-        modified: directionDiffs,
-        unchanged: unchangedDirections
+        added,
+        removed,
+        modified: itemDiffs,
+        unchanged,
       },
-      notes: { left: left.notes || '', right: right.notes || '' }
+      notes: { left: left.notes || '', right: right.notes || '' },
     },
-    hasChanges
+    hasChanges:
+      left.importance !== right.importance ||
+      (left.notes || '') !== (right.notes || '') ||
+      itemDiffs.length > 0 ||
+      added.length > 0 ||
+      removed.length > 0,
   };
 };
 
-// Main diff computation function
 export const computePreferenceSetDiff = (leftPreferenceSet: PreferenceSet, rightPreferenceSet: PreferenceSet): PreferenceSetDiff => {
+  const leftItems = coerceItems(leftPreferenceSet.items, leftPreferenceSet.topics);
+  const rightItems = coerceItems(rightPreferenceSet.items, rightPreferenceSet.topics);
   const addedTopics: Topic[] = [];
   const removedTopics: Topic[] = [];
   const modifiedTopics: TopicDiff[] = [];
   const unchangedTopics: Topic[] = [];
-  
-  // Find added and modified topics
+
   for (const rightTopic of rightPreferenceSet.topics) {
     const leftTopic = findTopicByTitle(leftPreferenceSet.topics, rightTopic.title);
     if (leftTopic) {
-      if (topicsEqual(leftTopic, rightTopic)) {
-        unchangedTopics.push(rightTopic);
+      if (topicsEqual(leftTopic, rightTopic, leftItems, rightItems)) {
+        unchangedTopics.push({ ...rightTopic, directions: getItemsForTopic(rightItems, rightTopic.id) });
       } else {
-        modifiedTopics.push(computeTopicDiff(leftTopic, rightTopic));
+        modifiedTopics.push(computeTopicDiff(leftTopic, rightTopic, leftItems, rightItems));
       }
     } else {
-      addedTopics.push(rightTopic);
+      addedTopics.push({ ...rightTopic, directions: getItemsForTopic(rightItems, rightTopic.id) });
     }
   }
-  
-  // Find removed topics
+
   for (const leftTopic of leftPreferenceSet.topics) {
     const rightTopic = findTopicByTitle(rightPreferenceSet.topics, leftTopic.title);
-    if (!rightTopic) {
-      removedTopics.push(leftTopic);
-    }
+    if (!rightTopic) removedTopics.push({ ...leftTopic, directions: getItemsForTopic(leftItems, leftTopic.id) });
   }
-  
-  const totalTopics = Math.max(leftPreferenceSet.topics.length, rightPreferenceSet.topics.length);
-  
+
   return {
     title: {
       left: leftPreferenceSet.title,
-      right: rightPreferenceSet.title
+      right: rightPreferenceSet.title,
     },
     topics: {
       added: addedTopics,
       removed: removedTopics,
       modified: modifiedTopics,
-      unchanged: unchangedTopics
+      unchanged: unchangedTopics,
     },
     summary: {
-      totalTopics,
+      totalTopics: Math.max(leftPreferenceSet.topics.length, rightPreferenceSet.topics.length),
       addedCount: addedTopics.length,
       removedCount: removedTopics.length,
       modifiedCount: modifiedTopics.length,
-      unchangedCount: unchangedTopics.length
-    }
+      unchangedCount: unchangedTopics.length,
+    },
   };
 };
 
-// Compute priority comparison for heatmap
 export const computePriorityComparison = (leftPreferenceSet: PreferenceSet, rightPreferenceSet: PreferenceSet): PriorityComparison[] => {
   const allTopics = new Map<string, { title: string; left?: Topic; right?: Topic }>();
-  
-  // Collect all unique topics
-  for (const topic of leftPreferenceSet.topics) {
-    allTopics.set(topic.title, { title: topic.title, left: topic });
-  }
-  
+  for (const topic of leftPreferenceSet.topics) allTopics.set(topic.title, { title: topic.title, left: topic });
   for (const topic of rightPreferenceSet.topics) {
     const existing = allTopics.get(topic.title);
-    if (existing) {
-      existing.right = topic;
-    } else {
-      allTopics.set(topic.title, { title: topic.title, right: topic });
-    }
+    if (existing) existing.right = topic;
+    else allTopics.set(topic.title, { title: topic.title, right: topic });
   }
-  
+
   return Array.from(allTopics.values()).map(({ title, left, right }) => ({
     topicId: left?.id || right?.id || title,
     topicTitle: title,
     leftImportance: left?.importance || 0,
     rightImportance: right?.importance || 0,
-    importanceDiff: (right?.importance || 0) - (left?.importance || 0)
+    importanceDiff: (right?.importance || 0) - (left?.importance || 0),
   }));
 };
 
-// Backward compatibility aliases
 export const computeTemplateDiff = computePreferenceSetDiff;

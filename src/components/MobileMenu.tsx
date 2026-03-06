@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
-import { exportJSON, exportPDF, exportJPEG } from '../exporters';
+import { exportJSON, exportPDF } from '../exporters';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
-import { encodeStarterPreferencesV2, buildShareUrlV2, extractAndDecodeFromUrl, applyStarterPreferences, topicIndex, topicTitleIndex } from '../utils/share';
-import { IconShare, IconBraces, IconFile, IconImage, IconLink } from './icons';
+import { encodeStarterPreferencesV2, buildShareUrlV2, extractAndDecodeFromUrl, applyStarterPreferences, topicIndex, topicTitleIndex, itemIndex } from '../utils/share';
+import { IconShare, IconBraces, IconFile, IconLink } from './icons';
 import { toast } from '../utils/toast';
 
 export const MobileMenu: React.FC = () => {
@@ -12,6 +12,7 @@ export const MobileMenu: React.FC = () => {
   const ballotMode = useStore(s => s.ballotMode);
   const currentBallot = useStore(s => s.currentBallot);
   const topics = useStore(s => s.topics);
+  const items = useStore(s => s.items);
   const hintsEnabled = useStore(s => s.hintsEnabled);
   const [open, setOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
@@ -61,6 +62,7 @@ export const MobileMenu: React.FC = () => {
             title: preferenceSet.title,
             notes: preferenceSet.notes || '',
             topics: preferenceSet.topics,
+            items: preferenceSet.items,
           });
           toast.show({
             variant: 'success',
@@ -84,10 +86,9 @@ export const MobileMenu: React.FC = () => {
 
   // Export readiness + share gating
   const hasTopics = topics.length > 0;
-  const hasAnyDirection = topics.some(t => t.directions.length > 0);
-  const hasAnyRatedDirection = topics.some(t => t.directions.some(d => d.stars > 0));
-  const exportReady = hasTopics && hasAnyDirection && hasAnyRatedDirection;
+  const exportReady = hasTopics && items.some(item => item.topicIds.length > 0) && items.some(item => item.stars > 0);
   const hasStarterTopics = topics.some(t => topicIndex.includes(t.id) || topicTitleIndex.includes((t.title || '').toLowerCase()));
+  const hasStarterItems = items.some(item => itemIndex.includes(item.id));
 
   // Determine if comparison view is currently active (DOM check is fine for SPA)
   const isComparing = typeof document !== 'undefined' && !!document.querySelector('.diff-container');
@@ -108,20 +109,19 @@ export const MobileMenu: React.FC = () => {
                   <button className="btn" onClick={() => setExportOpen(v => !v)} aria-expanded={exportOpen} aria-label="Export options" title="Export"><IconShare /></button>
                   {exportOpen && (
                     <div className="mobile-export-menu" role="menu" style={{ right: 0, position: 'absolute' }}>
-                      <button className="btn" aria-label="Export JSON" title="Export JSON" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
-                      <button className="btn" aria-label="Export PDF" title="Export PDF" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
-                      <button className="btn" aria-label="Export JPEG" title="Export JPEG" onClick={() => { setExportOpen(false); exportJPEG().catch(e => alert(String(e))); }} role="menuitem"><IconImage /></button>
-                      {hasStarterTopics && (
+                      {hasStarterTopics || hasStarterItems ? (
                         <button className="btn" aria-label="Copy Share Link" title="Copy Share Link" onClick={async () => {
                           try {
-                            const payload = encodeStarterPreferencesV2(useStore.getState().topics);
+                            const payload = encodeStarterPreferencesV2(useStore.getState().topics, useStore.getState().items);
                             const url = buildShareUrlV2(payload);
                             await navigator.clipboard.writeText(url);
-                            toast.show({ variant: 'success', title: 'Link copied', message: 'Starter preferences link copied', duration: 4000 });
+                            toast.show({ variant: 'success', title: 'Quick share copied', message: 'Custom topics and items are not included.', duration: 5000 });
                           } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
                           finally { setExportOpen(false); setOpen(false); }
                         }} role="menuitem"><IconLink /></button>
-                      )}
+                      ) : null}
+                      <button className="btn" aria-label="Full Share JSON" title="Full Share JSON" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
+                      <button className="btn" aria-label="Full Share PDF" title="Full Share PDF" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
                     </div>
                   )}
                 </div>
@@ -141,6 +141,7 @@ export const MobileMenu: React.FC = () => {
             }}>Apply from Link…</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-diff')); setOpen(false); }}>Compare Preferences</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-llm')); setOpen(false); }}>LLM Integration</button>
+              <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-faq')); setOpen(false); }}>FAQ</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-getting-started')); setOpen(false); }}>Getting Started</button>
               <button className="btn" onClick={() => { window.dispatchEvent(new Event('vt-open-welcome')); setOpen(false); }}>Show Welcome Tour</button>
               <button className="btn" onClick={() => { useStore.setState(s => ({ hintsEnabled: !s.hintsEnabled })); setOpen(false); }}>{hintsEnabled ? 'Disable Hint Mode' : 'Enable Hint Mode'}</button>

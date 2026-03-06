@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
-import { exportJSON, exportPDF, exportJPEG } from '../exporters';
+import { exportJSON, exportPDF } from '../exporters';
 import { scrollIntoViewSmart } from '../utils/scroll';
 import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness';
-import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, extractAndDecodeFromUrl, applyStarterPreferences } from '../utils/share';
+import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, itemIndex, extractAndDecodeFromUrl, applyStarterPreferences } from '../utils/share';
 import { emitHint } from '../utils/hints';
-import { IconShare, IconBraces, IconFile, IconImage, IconLink } from './icons';
+import { IconShare, IconBraces, IconFile, IconLink } from './icons';
 import { parseIncomingBallot, parseIncomingPreferenceSet } from '../schema';
 import { toast } from '../utils/toast';
+import { getItemsForTopic } from '../utils/items';
 
 interface Props {
   showCards: boolean;
@@ -19,6 +20,7 @@ interface Props {
 export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, showDiffComparison, showLLMIntegration }) => {
   const addTopic = useStore(state => state.addTopic);
   const topics = useStore(state => state.topics);
+  const items = useStore(state => state.items);
   const ballotMode = useStore(state => state.ballotMode);
   const currentBallot = useStore(state => state.currentBallot);
   const [open, setOpen] = useState(false);
@@ -57,12 +59,15 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
 
   const hasTopics = topics.length > 0;
   const anyUnratedTopic = topics.some(t => t.importance === 0);
-  const hasEmptyDirections = topics.some(t => t.directions.length === 0);
-  const anyUnratedDirections = topics.some(t => t.directions.some(d => d.stars === 0));
+  const hasEmptyDirections = topics.some(t => getItemsForTopic(items, t.id).length === 0);
+  const anyUnratedDirections = topics.some(t => getItemsForTopic(items, t.id).some(d => d.stars === 0));
   const allTopicsRated = hasTopics && topics.every(t => t.importance > 0);
 
   const firstUnratedTopicId = topics.find(t => t.importance === 0)?.id;
-  const firstNeedsDirectionsId = topics.find(t => t.directions.length === 0 || t.directions.some(d => d.stars === 0))?.id;
+  const firstNeedsDirectionsId = topics.find(t => {
+    const topicItems = getItemsForTopic(items, t.id);
+    return topicItems.length === 0 || topicItems.some(d => d.stars === 0);
+  })?.id;
 
   const jumpToTopicId = (id?: string) => {
     if (!id) return;
@@ -119,9 +124,10 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
   }
 
   // Export gating: only show when there is at least one topic with at least one rated direction
-  const exportReady = isPreferenceExportReady(topics);
+  const exportReady = isPreferenceExportReady(topics, items);
   const ballotReadyToShare = isBallotShareReady(currentBallot);
   const hasStarterTopics = topics.some(t => topicIndex.includes(t.id) || topicTitleIndex.includes((t.title || '').toLowerCase()));
+  const hasStarterItems = items.some(item => itemIndex.includes(item.id));
 
   // Dispatch hint availability for mobile (no hover). Trigger when state changes.
   useEffect(() => {
@@ -221,19 +227,18 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
             </button>
             {open && (
               <div ref={exportMenuRef} className="mobile-export-menu" role="menu">
-                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Export JSON" title="Export JSON" onClick={() => { setOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
-                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Export PDF" title="Export PDF" onClick={() => { setOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
-                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Export JPEG" title="Export JPEG" onClick={() => { setOpen(false); exportJPEG().catch(e => alert(String(e))); }} role="menuitem"><IconImage /></button>
-                {hasStarterTopics && (
+                {hasStarterTopics || hasStarterItems ? (
                   <button className="btn" style={{ width: 44, height: 44 }} aria-label="Copy Share Link" title="Copy Share Link" onClick={async () => {
                     try {
-                      const payload = encodeStarterPreferencesV2(useStore.getState().topics);
+                      const payload = encodeStarterPreferencesV2(useStore.getState().topics, useStore.getState().items);
                       const url = buildShareUrlV2(payload);
                       await navigator.clipboard.writeText(url);
-                      alert('Link copied to clipboard');
+                      alert('Quick share copied. Custom topics and items are not included.');
                     } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } finally { setOpen(false); }
                   }} role="menuitem"><IconLink /></button>
-                )}
+                ) : null}
+                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Full Share JSON" title="Full Share JSON" onClick={() => { setOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
+                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Full Share PDF" title="Full Share PDF" onClick={() => { setOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
               </div>
             )}
           </>
@@ -257,7 +262,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
                       useStore.setState({ currentBallot: parseIncomingBallot(obj) });
                     } else {
                       const pref = parseIncomingPreferenceSet(obj);
-                      useStore.getState().importData({ title: pref.title, notes: pref.notes || '', topics: pref.topics });
+                      useStore.getState().importData({ title: pref.title, notes: pref.notes || '', topics: pref.topics, items: pref.items });
                       window.dispatchEvent(new Event('vt-back-preferences'));
                       window.dispatchEvent(new Event('vt-open-card-view'));
                     }
@@ -313,7 +318,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
                   window.dispatchEvent(new Event('vt-create-ballot'));
                 } else {
                   const preferenceSet = parseIncomingPreferenceSet(obj);
-                  useStore.getState().importData({ title: preferenceSet.title, notes: preferenceSet.notes || '', topics: preferenceSet.topics });
+                  useStore.getState().importData({ title: preferenceSet.title, notes: preferenceSet.notes || '', topics: preferenceSet.topics, items: preferenceSet.items });
                   window.dispatchEvent(new Event('vt-open-card-view'));
                 }
               } catch (e) {

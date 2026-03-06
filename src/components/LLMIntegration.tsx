@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../store';
-import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
+import { parseIncomingPreferenceSet, parseIncomingBallot, type PreferenceSet } from '../schema';
 import { buildTemplate, buildBallot } from '../exporters';
 import { ImportPreview } from './ImportPreview';
 import { mergePreferenceSets, mergePreferenceSetsSelective } from '../utils/merge';
@@ -8,13 +8,68 @@ import type { PromptPack, PromptItem } from '../utils/prompt';
 import { renderTemplate } from '../utils/prompt';
 import { toast } from '../utils/toast';
 
+const formatErrorBlock = (summary: string, issues: Array<{ path: string; message: string }> | null = null) => {
+  const lines = [
+    'Fix this JSON to satisfy the schema and return only corrected JSON.',
+    '',
+    summary,
+  ];
+  if (issues?.length) {
+    lines.push('', ...issues.map((issue) => `- ${issue.path || '(root)'}: ${issue.message}`));
+  }
+  return lines.join('\n');
+};
+
+const schemaDocs = `# Voting Topics Builder - Schema Documentation
+
+## Preference Set Schema (tsb.v2)
+
+\`\`\`json
+{
+  "version": "tsb.v2",
+  "title": "My Voting Preferences",
+  "notes": "Optional notes",
+  "topics": [
+    {
+      "id": "topic-housing",
+      "title": "Housing",
+      "importance": 4,
+      "stance": "neutral",
+      "notes": "",
+      "sources": [],
+      "relations": { "broader": [], "narrower": [], "related": [] }
+    }
+  ],
+  "items": [
+    {
+      "id": "item-housing-1",
+      "text": "Housing costs take a smaller share of income",
+      "stars": 5,
+      "notes": "",
+      "sources": [],
+      "topicIds": ["topic-housing"],
+      "tags": []
+    }
+  ],
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+\`\`\`
+
+Topics are the priority buckets. Items are the specific outcomes and can belong to multiple topics through \`topicIds\`.
+
+## Ballot Schema (tsb.ballot.v1)
+
+The ballot schema is unchanged, but reasoning links can reference either a topic or an item.
+`;
+
 export const LLMIntegration: React.FC = () => {
-  const ballotMode = useStore(state => state.ballotMode);
-  const setBallotMode = useStore(state => state.setBallotMode);
-  const clearAll = useStore(state => state.clearAll);
-  const clearBallot = useStore(state => state.clearBallot);
-  const currentBallot = useStore(state => state.currentBallot);
-  
+  const ballotMode = useStore((state) => state.ballotMode);
+  const setBallotMode = useStore((state) => state.setBallotMode);
+  const clearAll = useStore((state) => state.clearAll);
+  const clearBallot = useStore((state) => state.clearBallot);
+  const currentBallot = useStore((state) => state.currentBallot);
+
   const [activeTab, setActiveTab] = useState<'export' | 'import'>('export');
   const [importJson, setImportJson] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
@@ -23,26 +78,39 @@ export const LLMIntegration: React.FC = () => {
   const [promptPack, setPromptPack] = useState<PromptPack | null>(null);
   const [activePrompt, setActivePrompt] = useState<PromptItem | null>(null);
   const [promptVars, setPromptVars] = useState<Record<string, string | number>>({});
-  const [previewData, setPreviewData] = useState<{ current: any; incoming: any } | null>(null);
+  const [previewData, setPreviewData] = useState<{ current: PreferenceSet; incoming: PreferenceSet } | null>(null);
 
   const currentPreferenceSet = useMemo(() => {
-    const s = useStore.getState();
+    const state = useStore.getState();
     return {
-      version: 'tsb.v1' as const,
-      title: s.title || 'Untitled',
-      notes: s.notes || '',
-      topics: s.topics || [],
-      createdAt: s.__createdAt || new Date().toISOString(),
+      version: 'tsb.v2' as const,
+      title: state.title || 'Untitled',
+      notes: state.notes || '',
+      topics: state.topics || [],
+      items: state.items || [],
+      createdAt: state.__createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
   }, [ballotMode, currentBallot]);
 
-  // Load prompt pack lazily
   useEffect(() => {
     import('../prompt-packs/core.en.json')
-      .then((m) => setPromptPack((m as any).default as PromptPack))
+      .then((module) => setPromptPack((module as any).default as PromptPack))
       .catch(() => setPromptPack(null));
   }, []);
+
+  const exportState = useMemo(() => {
+    try {
+      if (ballotMode === 'ballot' && currentBallot) {
+        return { json: JSON.stringify(buildBallot(), null, 2), error: null as string | null };
+      }
+      return { json: JSON.stringify(buildTemplate(), null, 2), error: null as string | null };
+    } catch (error) {
+      return { json: '', error: error instanceof Error ? error.message : String(error) };
+    }
+  }, [ballotMode, currentBallot, currentPreferenceSet]);
+
+  const exportErrorBlock = exportState.error ? formatErrorBlock(`Export validation failed: ${exportState.error}`) : null;
 
   const handleImport = () => {
     if (!importJson.trim()) {
@@ -52,12 +120,9 @@ export const LLMIntegration: React.FC = () => {
 
     try {
       const data = JSON.parse(importJson);
-      
-      // Try to determine if it's a preference set or ballot
-      if (data.version === 'tsb.v1' || data.version === 'tsb.v0') {
-        // It's a preference set
+      if (data.version === 'tsb.v2' || data.version === 'tsb.v1' || data.version === 'tsb.v0') {
         const preferenceSet = parseIncomingPreferenceSet(data);
-        if ((currentPreferenceSet.topics?.length || 0) > 0) {
+        if (currentPreferenceSet.topics.length > 0 || currentPreferenceSet.items.length > 0) {
           setPreviewData({ current: currentPreferenceSet, incoming: preferenceSet });
           setImportError(null);
           setImportSuccess(null);
@@ -67,19 +132,19 @@ export const LLMIntegration: React.FC = () => {
             title: preferenceSet.title,
             notes: preferenceSet.notes || '',
             topics: preferenceSet.topics,
-            __createdAt: preferenceSet.createdAt
+            items: preferenceSet.items,
+            __createdAt: preferenceSet.createdAt,
           });
-          setImportSuccess('Preference set imported successfully!');
+          setImportSuccess('Preference set imported successfully.');
           setBallotMode('preference');
           setImportJson('');
         }
       } else if (data.version === 'tsb.ballot.v1') {
-        // It's a ballot
         const ballot = parseIncomingBallot(data);
-        const prev = useStore.getState().currentBallot;
+        const previous = useStore.getState().currentBallot;
         clearBallot();
         useStore.setState({ currentBallot: ballot });
-        setImportSuccess('Ballot imported successfully!');
+        setImportSuccess('Ballot imported successfully.');
         toast.show({
           variant: 'success',
           title: 'Ballot imported',
@@ -88,25 +153,24 @@ export const LLMIntegration: React.FC = () => {
           onAction: () => setBallotMode('ballot'),
           duration: 7000,
         });
-        if (prev) {
+        if (previous) {
           toast.show({
             variant: 'info',
             message: 'Previous ballot can be restored',
             actionLabel: 'Undo Replace',
-            onAction: () => { useStore.setState({ currentBallot: prev }); },
+            onAction: () => { useStore.setState({ currentBallot: previous }); },
             duration: 7000,
           });
         }
       } else {
-        setImportError('Unknown data format. Expected tsb.v1, tsb.v0, or tsb.ballot.v1');
+        setImportError('Unknown data format. Expected tsb.v2, tsb.v1, tsb.v0, or tsb.ballot.v1');
       }
-      
-      if (!previewData) setImportJson('');
+
       setImportIssues(null);
     } catch (error: any) {
-      // Capture Zod issues when available
       if (error && Array.isArray(error.issues)) {
-        setImportIssues(error.issues.map((i: any) => ({ path: (i.path || []).join('.'), message: i.message })));
+        const issues = error.issues.map((issue: any) => ({ path: (issue.path || []).join('.'), message: issue.message }));
+        setImportIssues(issues);
         setImportError('Validation failed. See details below.');
       } else {
         setImportIssues(null);
@@ -115,241 +179,67 @@ export const LLMIntegration: React.FC = () => {
     }
   };
 
-  // (Duplicate lazy load removed; prompt pack is already loaded above)
-
-  const getSchemaDocumentation = () => {
-    return `# Voting Topics Builder - Schema Documentation
-
-## Purpose
-This tool helps voters organize their positions on ballot measures and candidate races with a collaborative, nuance-focused approach. It separates stance (topic-level position) from directions (specific outcomes with individual importance ratings).
-
-## Preference Set Schema (tsb.v1)
-
-\`\`\`json
-{
-  "version": "tsb.v1",
-  "title": "My Voting Preferences",
-  "notes": "Optional notes about this preference set",
-  "topics": [
-    {
-      "id": "unique-topic-id",
-      "title": "Topic Name",
-      "importance": 4,
-      "stance": "lean_for",
-      "directions": [
-        {
-          "id": "unique-direction-id",
-          "text": "Specific desired outcome",
-          "stars": 5,
-          "notes": "Optional notes",
-          "sources": [
-            {
-              "label": "Source name",
-              "url": "https://example.com"
-            }
-          ],
-          "tags": ["tag1", "tag2"]
-        }
-      ],
-      "notes": "Optional topic notes",
-      "sources": [
-        {
-          "label": "Source name",
-          "url": "https://example.com"
-        }
-      ],
-      "relations": {
-        "broader": ["broader-topic-id"],
-        "narrower": ["narrower-topic-id"],
-        "related": ["related-topic-id"]
-      }
-    }
-  ],
-  "createdAt": "2024-01-01T00:00:00.000Z",
-  "updatedAt": "2024-01-01T00:00:00.000Z"
-}
-\`\`\`
-
-### Stance Values
-- "against": Strongly Against
-- "lean_against": Lean Against
-- "neutral": Neutral
-- "lean_for": Lean For
-- "for": Strongly For
-
-### Importance & Stars
-- Both topic importance and direction stars use 0-5 scale
-- 0 = Not important, 5 = Very important
-
-## Ballot Schema (tsb.ballot.v1)
-
-\`\`\`json
-{
-  "version": "tsb.ballot.v1",
-  "title": "2024 General Election Ballot",
-  "election": {
-    "name": "2024 General Election",
-    "date": "2024-11-05",
-    "location": "Portland, OR",
-    "type": "general",
-    "jurisdiction": "City of Portland, Multnomah County, Oregon"
-  },
-  "offices": [
-    {
-      "id": "unique-office-id",
-      "title": "Mayor",
-      "description": "Chief executive of the city",
-      "candidates": [
-        {
-          "id": "unique-candidate-id",
-          "name": "John Smith",
-          "party": "Democratic",
-          "description": "Incumbent mayor with focus on housing",
-          "website": "https://johnsmith.com",
-          "score": 4,
-          "sources": [
-            {
-              "label": "Campaign website",
-              "url": "https://johnsmith.com"
-            }
-          ]
-        }
-      ],
-      "reasoning": [
-        {
-          "type": "topic",
-          "topicId": "housing-topic-id",
-          "relevance": "Candidate's housing policy aligns with my priorities",
-          "weight": 4
-        }
-      ]
-    }
-  ],
-  "measures": [
-    {
-      "id": "unique-measure-id",
-      "title": "Measure 110",
-      "description": "Housing bond measure",
-      "position": "yes",
-      "reasoning": [],
-      "sources": []
-    }
-  ],
-  "metadata": {
-    "preferenceSetId": "optional-reference-to-preference-set",
-    "notes": "Optional ballot notes",
-    "sources": [],
-    "tags": []
-  },
-  "createdAt": "2024-01-01T00:00:00.000Z",
-  "updatedAt": "2024-01-01T00:00:00.000Z"
-}
-\`\`\`
-
-### Election Types
-- "primary": Primary election
-- "general": General election
-- "special": Special election
-- "runoff": Runoff election
-
-### Measure Positions
-- "yes": Support the measure
-- "no": Oppose the measure
-- "abstain": No position
-
-### Reasoning Types
-- "topic": Links to entire topic
-- "direction": Links to specific direction within topic
-
-## Usage Instructions
-
-1. **Export Current Data**: Copy the JSON from the export section
-2. **Share with LLM**: Provide this schema documentation and your JSON data to your LLM
-3. **LLM Generates**: Ask the LLM to create or modify preference sets/ballots
-4. **Import Results**: Paste the LLM-generated JSON into the import section
-
-## Example Prompts for LLM
-
-### For Preference Sets:
-"Based on this preference set schema, create a preference set for someone who prioritizes environmental protection, affordable housing, and public transportation. Include 5-7 topics with multiple directions each."
-
-### For Ballots:
-"Based on this ballot schema and the provided preference set, create a sample ballot for the 2024 Portland mayoral election. Link candidate choices to relevant preference topics with reasoning."
-
-## Security Note
-This tool validates all imported JSON against the schema. Invalid data will be rejected with error messages.`;
-  };
-
-  const getCurrentDataJson = () => {
-    try {
-      if (ballotMode === 'ballot' && currentBallot) {
-        return JSON.stringify(buildBallot(), null, 2);
-      } else {
-        return JSON.stringify(buildTemplate(), null, 2);
-      }
-    } catch (error) {
-      return `Error generating JSON: ${error instanceof Error ? error.message : String(error)}`;
-    }
-  };
+  const importErrorBlock = importError ? formatErrorBlock(importError, importIssues) : null;
 
   return (
     <div className="llm-integration">
-      <div className="llm-header" style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+      <div className="llm-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button className="btn ghost" onClick={() => window.dispatchEvent(new Event('vt-close-llm'))}>
           ← Back to Preferences
         </button>
       </div>
+
       <div className="llm-header">
-        <h1>🤖 LLM Integration</h1>
-        <p>Export your data for AI analysis or import AI-generated content. Perfect for getting help with topic generation, direction refinement, and ballot creation.</p>
+        <h1>LLM Integration</h1>
+        <p>Export valid JSON for AI workflows, or import model-generated JSON and repair validation issues quickly.</p>
       </div>
 
       <div className="llm-tabs">
-        <button 
-          className={`tab ${activeTab === 'export' ? 'active' : ''}`}
-          onClick={() => setActiveTab('export')}
-        >
+        <button className={`tab ${activeTab === 'export' ? 'active' : ''}`} onClick={() => setActiveTab('export')}>
           Export & Schema
         </button>
-        <button
-          className={`tab ${activeTab === 'import' ? 'active' : ''}`}
-          onClick={() => setActiveTab('import')}
-          aria-hidden={activeTab === 'import'}
-        >
-          Import JSON
+        <button className={`tab ${activeTab === 'import' ? 'active' : ''}`} onClick={() => setActiveTab('import')}>
+          {activeTab === 'import' ? 'Import' : 'Import JSON'}
         </button>
       </div>
 
       <div className="llm-content">
         {activeTab === 'export' && (
           <div className="export-section">
-            {/* Quick Start */}
             <div className="export-header" style={{ marginBottom: 16 }}>
-              <h2>🚀 Quick Start with AI</h2>
-              <p>Copy your current data and ask your LLM to help. Prompts below assume it has your data and can request the schema if needed.</p>
+              <h2>Quick Start with AI</h2>
+              <p>Copy your current data, copy the schema, or copy validation errors if your current state is incomplete.</p>
               <div className="row" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button className="btn primary" onClick={() => navigator.clipboard.writeText(getCurrentDataJson())}>Copy My Data (JSON)</button>
-                <button className="btn" onClick={() => navigator.clipboard.writeText(getSchemaDocumentation())}>Copy Schema Docs</button>
+                <button className="btn primary" disabled={!!exportState.error} onClick={() => navigator.clipboard.writeText(exportState.json)}>
+                  Copy My Data (JSON)
+                </button>
+                <button className="btn" onClick={() => navigator.clipboard.writeText(schemaDocs)}>
+                  Copy Schema Docs
+                </button>
+                {exportErrorBlock && (
+                  <button className="btn warn" onClick={() => navigator.clipboard.writeText(exportErrorBlock)}>
+                    Copy Errors
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Prompt Packs */}
             {promptPack && (
               <div style={{ marginBottom: 24 }}>
                 <div className="row" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  {promptPack.prompts.map((p) => (
+                  {promptPack.prompts.map((prompt) => (
                     <button
-                      key={p.id}
-                      className={`btn ${activePrompt?.id === p.id ? 'primary' : ''}`}
+                      key={prompt.id}
+                      className={`btn ${activePrompt?.id === prompt.id ? 'primary' : ''}`}
                       onClick={() => {
-                        setActivePrompt(p);
+                        setActivePrompt(prompt);
                         const defaults = Object.fromEntries(
-                          Object.entries(p.variables || {}).map(([k, v]: any) => [k, v.default ?? (v.type === 'number' ? 0 : '')])
+                          Object.entries(prompt.variables || {}).map(([key, spec]: any) => [key, spec.default ?? (spec.type === 'number' ? 0 : '')]),
                         );
                         setPromptVars(defaults);
                       }}
                     >
-                      {p.title}
+                      {prompt.title}
                     </button>
                   ))}
                 </div>
@@ -361,98 +251,9 @@ This tool validates all imported JSON against the schema. Invalid data will be r
                         {Object.entries(activePrompt.variables).map(([name, spec]: any) => (
                           <label key={name}>{name}
                             {spec.type === 'number' ? (
-                              <input
-                                type="number"
-                                className="input"
-                                min={spec.min}
-                                max={spec.max}
-                                value={Number(promptVars[name] ?? spec.default ?? 0)}
-                                onChange={(e) => setPromptVars({ ...promptVars, [name]: Number(e.target.value) })}
-                              />
+                              <input type="number" className="input" min={spec.min} max={spec.max} value={Number(promptVars[name] ?? spec.default ?? 0)} onChange={(event) => setPromptVars({ ...promptVars, [name]: Number(event.target.value) })} />
                             ) : (
-                              <input
-                                type="text"
-                                className="input"
-                                placeholder={spec.placeholder}
-                                value={String(promptVars[name] ?? spec.default ?? '')}
-                                onChange={(e) => setPromptVars({ ...promptVars, [name]: e.target.value })}
-                              />
-                            )}
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                    <div className="prompt-text" style={{ marginBottom: 12 }}>
-                      {renderTemplate(activePrompt.text, promptVars)}
-                    </div>
-                    <button
-                      className="btn primary"
-                      onClick={() => navigator.clipboard.writeText(renderTemplate(activePrompt.text, promptVars))}
-                    >
-                      Copy Prompt
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="export-header">
-              <h2>📋 Copy to Chat</h2>
-              <p>Copy this JSON to share with your language model:</p>
-            </div>
-            
-            <div className="json-export">
-              <textarea
-                value={getCurrentDataJson()}
-                readOnly
-                className="json-textarea"
-                rows={20}
-              />
-              <button 
-                onClick={() => navigator.clipboard.writeText(getCurrentDataJson())}
-                className="btn primary"
-              >
-                Copy to Clipboard
-              </button>
-            </div>
-
-            <div className="schema-documentation">
-              <h2>Schema Documentation</h2>
-              <p>Share this documentation with your LLM so it understands the data format:</p>
-              
-              <textarea
-                value={getSchemaDocumentation()}
-                readOnly
-                className="schema-textarea"
-                rows={30}
-              />
-              <button 
-                onClick={() => navigator.clipboard.writeText(getSchemaDocumentation())}
-                className="btn primary"
-              >
-                Copy Schema to Clipboard
-              </button>
-            </div>
-
-            {promptPack && (
-              <div style={{ marginBottom: 24 }}>
-                <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-                  {promptPack.prompts.map(p => (
-                    <button key={p.id} className={`btn ${activePrompt?.id === p.id ? "primary" : ""}`} onClick={() => { setActivePrompt(p); setPromptVars(Object.fromEntries(Object.entries(p.variables || {}).map(([k,v]) => [k, (v as any).default ?? ((v as any).type==="number"?0: "")]))); }}>
-                      {p.title}
-                    </button>
-                  ))}
-                </div>
-                {activePrompt && (
-                  <div className="panel" style={{ marginTop: 12 }}>
-                    <h3 className="panel-title">{activePrompt.title}</h3>
-                    {activePrompt.variables && (
-                      <div className="grid" style={{ marginBottom: 12 }}>
-                        {Object.entries(activePrompt.variables).map(([name, spec]) => (
-                          <label key={name}>{name}
-                            {(spec as any).type === "number" ? (
-                              <input type="number" className="input" min={(spec as any).min} max={(spec as any).max} value={Number(promptVars[name] ?? (spec as any).default ?? 0)} onChange={(e) => setPromptVars({ ...promptVars, [name]: Number(e.target.value) })} />
-                            ) : (
-                              <input type="text" className="input" placeholder={(spec as any).placeholder} value={String(promptVars[name] ?? (spec as any).default ?? "")} onChange={(e) => setPromptVars({ ...promptVars, [name]: e.target.value })} />
+                              <input type="text" className="input" placeholder={spec.placeholder} value={String(promptVars[name] ?? spec.default ?? '')} onChange={(event) => setPromptVars({ ...promptVars, [name]: event.target.value })} />
                             )}
                           </label>
                         ))}
@@ -465,53 +266,23 @@ This tool validates all imported JSON against the schema. Invalid data will be r
               </div>
             )}
 
-            <div className="example-prompts">
-              <h2>💡 Example Prompts for Your AI</h2>
-              <p>Try these prompts with your language model:</p>
-              
-              <div className="prompt-examples">
-                <div className="prompt-example">
-                  <h3>Generate Topics:</h3>
-                  <div className="prompt-text">
-                    "Based on this preference set schema, create a preference set for someone who prioritizes environmental protection, affordable housing, and public transportation. Include 5-7 topics with multiple directions each."
-                  </div>
-                  <button 
-                    onClick={() => navigator.clipboard.writeText('Based on this preference set schema, create a preference set for someone who prioritizes environmental protection, affordable housing, and public transportation. Include 5-7 topics with multiple directions each.')}
-                    className="btn ghost"
-                    style={{ fontSize: '0.8rem', padding: '4px 8px' }}
-                  >
-                    Copy Prompt
-                  </button>
-                </div>
-
-                <div className="prompt-example">
-                  <h3>Refine Directions:</h3>
-                  <div className="prompt-text">
-                    "Review this preference set and suggest more specific, actionable directions for each topic. Make them more concrete and measurable."
-                  </div>
-                  <button 
-                    onClick={() => navigator.clipboard.writeText('Review this preference set and suggest more specific, actionable directions for each topic. Make them more concrete and measurable.')}
-                    className="btn ghost"
-                    style={{ fontSize: '0.8rem', padding: '4px 8px' }}
-                  >
-                    Copy Prompt
-                  </button>
-                </div>
-
-                <div className="prompt-example">
-                  <h3>Create Ballot:</h3>
-                  <div className="prompt-text">
-                    "Based on this ballot schema and the provided preference set, create a sample ballot for the 2024 Portland mayoral election. Link candidate choices to relevant preference topics with reasoning."
-                  </div>
-                  <button 
-                    onClick={() => navigator.clipboard.writeText('Based on this ballot schema and the provided preference set, create a sample ballot for the 2024 Portland mayoral election. Link candidate choices to relevant preference topics with reasoning.')}
-                    className="btn ghost"
-                    style={{ fontSize: '0.8rem', padding: '4px 8px' }}
-                  >
-                    Copy Prompt
-                  </button>
-                </div>
+            {exportState.error ? (
+              <div className="panel" style={{ marginBottom: 16 }}>
+                <h3 className="panel-title">Export Validation</h3>
+                <p className="muted">Your current state is not valid export JSON yet. You can still copy the full raw error block back into your LLM.</p>
+                <textarea value={exportErrorBlock || ''} readOnly className="json-textarea" rows={10} />
               </div>
+            ) : (
+              <div className="json-export">
+                <textarea value={exportState.json} readOnly className="json-textarea" rows={20} />
+                <button onClick={() => navigator.clipboard.writeText(exportState.json)} className="btn primary">Copy to Clipboard</button>
+              </div>
+            )}
+
+            <div className="schema-documentation">
+              <h2>Schema Documentation</h2>
+              <textarea value={schemaDocs} readOnly className="schema-textarea" rows={22} />
+              <button onClick={() => navigator.clipboard.writeText(schemaDocs)} className="btn primary">Copy Schema to Clipboard</button>
             </div>
           </div>
         )}
@@ -533,12 +304,14 @@ This tool validates all imported JSON against the schema. Invalid data will be r
               <div className="panel" style={{ margin: '12px 0' }}>
                 <h3 className="panel-title">Validation Details</h3>
                 <ul className="muted" style={{ margin: 0, paddingLeft: 16 }}>
-                  {importIssues.map((iss, idx) => (
-                    <li key={idx}><code>{iss.path || '(root)'}</code>: {iss.message}</li>
+                  {importIssues.map((issue, idx) => (
+                    <li key={idx}><code>{issue.path || '(root)'}</code>: {issue.message}</li>
                   ))}
                 </ul>
-                <div className="muted" style={{ marginTop: 8, fontSize: '0.9rem' }}>
-                  Need the exact schema? Use the <em>Copy Schema Docs</em> button in the Export tab.
+                <textarea value={importErrorBlock || ''} readOnly className="json-textarea" rows={8} style={{ marginTop: 12 }} />
+                <div className="row" style={{ marginTop: 8 }}>
+                  <button className="btn warn" onClick={() => navigator.clipboard.writeText(importErrorBlock || '')}>Copy Errors</button>
+                  <button className="btn ghost" onClick={() => navigator.clipboard.writeText(schemaDocs)}>Copy Schema Docs</button>
                 </div>
               </div>
             )}
@@ -552,8 +325,8 @@ This tool validates all imported JSON against the schema. Invalid data will be r
             <div className="json-import">
               <textarea
                 value={importJson}
-                onChange={(e) => {
-                  setImportJson(e.target.value);
+                onChange={(event) => {
+                  setImportJson(event.target.value);
                   setImportError(null);
                   setImportSuccess(null);
                 }}
@@ -561,11 +334,7 @@ This tool validates all imported JSON against the schema. Invalid data will be r
                 placeholder="Paste JSON data here..."
                 rows={15}
               />
-              <button 
-                onClick={handleImport}
-                className="btn primary"
-                disabled={!importJson.trim()}
-              >
+              <button onClick={handleImport} className="btn primary" disabled={!importJson.trim()}>
                 Import JSON
               </button>
             </div>
@@ -581,18 +350,11 @@ This tool validates all imported JSON against the schema. Invalid data will be r
                     title: previewData.incoming.title,
                     notes: previewData.incoming.notes || '',
                     topics: previewData.incoming.topics,
-                    __createdAt: previewData.incoming.createdAt
+                    items: previewData.incoming.items,
+                    __createdAt: previewData.incoming.createdAt,
                   });
                   setPreviewData(null);
                   setImportSuccess('Preference set overwritten with imported data');
-                  toast.show({
-                    variant: 'success',
-                    title: 'Preferences imported',
-                    message: 'View your updated preferences?',
-                    actionLabel: 'View Preferences',
-                    onAction: () => setBallotMode('preference'),
-                    duration: 7000,
-                  });
                 }}
                 onMerge={(accepted?: Set<string>) => {
                   const merged = accepted && accepted.size > 0
@@ -602,31 +364,14 @@ This tool validates all imported JSON against the schema. Invalid data will be r
                     title: merged.title,
                     notes: merged.notes || '',
                     topics: merged.topics,
-                    __createdAt: merged.createdAt
+                    items: merged.items,
+                    __createdAt: merged.createdAt,
                   });
                   setPreviewData(null);
                   setImportSuccess('Imported changes merged successfully');
-                  toast.show({
-                    variant: 'success',
-                    title: 'Preferences merged',
-                    message: 'View your updated preferences?',
-                    actionLabel: 'View Preferences',
-                    onAction: () => setBallotMode('preference'),
-                    duration: 7000,
-                  });
                 }}
               />
             )}
-
-            <div className="import-help">
-              <h3>Import Help</h3>
-              <ul>
-                <li>Supports preference sets (tsb.v1, tsb.v0) and ballots (tsb.ballot.v1)</li>
-                <li>All data is validated against the schema</li>
-                <li>Invalid JSON will be rejected with error messages</li>
-                <li>Importing will replace your current data</li>
-              </ul>
-            </div>
           </div>
         )}
       </div>

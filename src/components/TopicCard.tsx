@@ -4,6 +4,8 @@ import { DirectionsList } from './DirectionsList';
 import { SmartDirectionDots } from './SmartDirectionDots';
 import { calculateStandardDeviation, getDifferentiationLevel } from '../utils';
 import type { Topic } from '../schema';
+import { useStore } from '../store';
+import { getItemsForTopic } from '../utils/items';
 
 interface TopicCardProps {
   topic: Topic;
@@ -20,6 +22,8 @@ export const TopicCard: React.FC<TopicCardProps> = ({
   isExpanded = true, 
   onToggleExpand 
 }) => {
+  const items = useStore((state) => state.items);
+  const topicItems = getItemsForTopic(items, topic.id);
 
   const handleHeaderClick = (e: React.MouseEvent) => {
     if (!onToggleExpand) return;
@@ -57,24 +61,21 @@ export const TopicCard: React.FC<TopicCardProps> = ({
           <Stars value={topic.importance} onChange={n => onChange({ importance: n })} />
         </div>
         <div>
-          <label className="muted">Directions</label>
-          <SmartDirectionDots directions={topic.directions} maxVisible={7} />
+          <label className="muted">Items</label>
+          <SmartDirectionDots directions={topicItems} maxVisible={7} />
         </div>
       </div>
 
       {isExpanded && (
         <>
           <div>
-            <label className="muted">Directions</label>
+            <label className="muted">Items</label>
             <div className="muted" style={{ fontSize: '12px', marginBottom: '8px' }}>
-              “Directions” are the outcomes you want under this topic—add one idea per line and rate how strongly you want it (0–5 stars).
+              Add the outcomes you want under this topic. Items can be tagged to multiple topics and keep one shared rating everywhere.
             </div>
-            <DirectionsList 
-              directions={topic.directions}
-              onChange={(directions) => onChange({ directions })}
-            />
+            <DirectionsList topicId={topic.id} />
             
-            {topic.directions.length > 1 && (
+            {topicItems.length > 1 && (
               <div className="differentiation-display" style={{ 
                 marginTop: '12px', 
                 padding: '8px 12px', 
@@ -84,7 +85,7 @@ export const TopicCard: React.FC<TopicCardProps> = ({
                 fontSize: '0.85rem'
               }}>
                 {(() => {
-                  const starValues = topic.directions.map(d => d.stars);
+                  const starValues = topicItems.map(d => d.stars);
                   const stdDev = calculateStandardDeviation(starValues);
                   const diffLevel = getDifferentiationLevel(stdDev);
                   

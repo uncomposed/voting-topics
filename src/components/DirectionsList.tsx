@@ -1,118 +1,124 @@
 import React, { useState } from 'react';
 import { Stars } from './Stars';
-import type { Direction } from '../schema';
-import { uid } from '../utils';
+import { useStore } from '../store';
 import { toast } from '../utils/toast';
+import { getItemsForTopic } from '../utils/items';
 
 interface DirectionsListProps {
-  directions: Direction[];
-  onChange: (directions: Direction[]) => void;
+  topicId: string;
 }
 
-export const DirectionsList: React.FC<DirectionsListProps> = ({ directions, onChange }) => {
-  const [text, setText] = useState("");
+export const DirectionsList: React.FC<DirectionsListProps> = ({ topicId }) => {
+  const topics = useStore((state) => state.topics);
+  const items = useStore((state) => state.items);
+  const addItem = useStore((state) => state.addItem);
+  const patchItem = useStore((state) => state.patchItem);
+  const removeItem = useStore((state) => state.removeItem);
+  const tagItemToTopic = useStore((state) => state.tagItemToTopic);
+  const untagItemFromTopic = useStore((state) => state.untagItemFromTopic);
+  const [text, setText] = useState('');
 
-  const addDirection = () => {
-    const trimmedText = text.trim();
-    if (!trimmedText) return;
+  const topicItems = getItemsForTopic(items, topicId);
 
-    const newDirection: Direction = {
-      id: uid(),
-      text: trimmedText,
-      stars: 0,
-      sources: [],
-      tags: []
-    };
-    
-    onChange([...directions, newDirection]);
-    setText("");
-    toast.show({ variant: 'success', title: 'Direction added', message: trimmedText, duration: 3000 });
-    setTimeout(() => {
-      const target = document.querySelector(`[data-direction-id="${newDirection.id}"]`) as HTMLElement | null;
-      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
-  };
-
-  const updateDirection = (directionId: string, patch: Partial<Direction>) => {
-    onChange(directions.map(d => 
-      d.id === directionId ? { ...d, ...patch } : d
-    ));
-  };
-
-  const removeDirection = (directionId: string) => {
-    onChange(directions.filter(d => d.id !== directionId));
+  const addTopicItem = () => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    addItem(topicId, trimmed);
+    setText('');
+    toast.show({ variant: 'success', title: 'Item added', message: trimmed, duration: 3000 });
   };
 
   return (
     <div>
-      <div className="directions-help" style={{ 
-        marginBottom: '12px', 
-        padding: '8px 12px', 
-        background: 'rgba(139, 211, 255, 0.1)', 
-        border: '1px solid rgba(139, 211, 255, 0.3)', 
+      <div className="directions-help" style={{
+        marginBottom: '12px',
+        padding: '8px 12px',
+        background: 'rgba(139, 211, 255, 0.1)',
+        border: '1px solid rgba(139, 211, 255, 0.3)',
         borderRadius: '6px',
-        fontSize: '0.85rem'
+        fontSize: '0.85rem',
       }}>
-        <strong>💡 Star Rating Guide:</strong> Rate each direction's importance from 0 (skip) to 5 (critical). 
-        This helps you prioritize your preferences and see how differentiated your views are.
+        <strong>Flexible items:</strong> Add outcomes here, rate them, and tag them to more than one topic when they fit multiple themes.
       </div>
-      
+
       <div className="direction-controls">
         <input
           value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addDirection()}
-          placeholder="Add a direction (e.g., 'much less death by firearms')"
+          onChange={(event) => setText(event.target.value)}
+          onKeyDown={(event) => event.key === 'Enter' && addTopicItem()}
+          placeholder="Add an item (e.g., 'housing costs take a smaller share of income')"
           className="input"
         />
-        <button
-          onClick={addDirection}
-          className="btn"
-          type="button"
-        >
+        <button onClick={addTopicItem} className="btn" type="button">
           Add
         </button>
       </div>
 
-      {directions.map(direction => (
-        <div key={direction.id} data-direction-id={direction.id} className="direction-item">
-          <div className="direction-item-header">
-            <div>{direction.text}</div>
+      {topicItems.map((item) => (
+        <div key={item.id} data-direction-id={item.id} className="direction-item">
+          <div className="direction-item-header" style={{ alignItems: 'flex-start' }}>
+            <input
+              className="input"
+              value={item.text}
+              onChange={(event) => patchItem(item.id, { text: event.target.value })}
+              aria-label="Item text"
+            />
             <button
-              onClick={() => removeDirection(direction.id)}
+              onClick={() => {
+                if (item.topicIds.length > 1) {
+                  untagItemFromTopic(item.id, topicId);
+                } else {
+                  removeItem(item.id);
+                }
+              }}
               className="btn ghost danger"
-              aria-label="Remove direction"
+              aria-label={item.topicIds.length > 1 ? 'Remove item from topic' : 'Delete item'}
               type="button"
             >
-              Remove
+              {item.topicIds.length > 1 ? 'Remove From Topic' : 'Delete'}
             </button>
           </div>
 
           <div className="row">
             <span className="muted">Importance:</span>
-            <Stars
-              value={direction.stars}
-              onChange={(stars) => updateDirection(direction.id, { stars })}
-            />
+            <Stars value={item.stars} onChange={(stars) => patchItem(item.id, { stars })} />
           </div>
 
-          {direction.notes && (
-            <div className="muted" style={{ marginTop: 4 }}>
-              <strong>Notes:</strong> {direction.notes}
-            </div>
-          )}
+          <label className="muted" style={{ display: 'block', marginTop: 8 }}>
+            Notes
+            <textarea
+              className="input"
+              rows={2}
+              value={item.notes || ''}
+              onChange={(event) => patchItem(item.id, { notes: event.target.value })}
+              placeholder="Optional notes for this item"
+            />
+          </label>
 
-          {direction.sources.length > 0 && (
-            <div className="muted" style={{ marginTop: 4 }}>
-              <strong>Sources:</strong> {direction.sources.length} source(s)
+          <details style={{ marginTop: 8 }}>
+            <summary className="muted" style={{ cursor: 'pointer' }}>Topics</summary>
+            <div className="grid" style={{ marginTop: 8 }}>
+              {topics.map((topic) => (
+                <label key={topic.id} className="row" style={{ justifyContent: 'space-between' }}>
+                  <span>{topic.title || 'Untitled Topic'}</span>
+                  <input
+                    type="checkbox"
+                    checked={item.topicIds.includes(topic.id)}
+                    onChange={(event) => {
+                      if (event.target.checked) tagItemToTopic(item.id, topic.id);
+                      else untagItemFromTopic(item.id, topic.id);
+                    }}
+                  />
+                </label>
+              ))}
             </div>
-          )}
+          </details>
         </div>
       ))}
 
-      {directions.length === 0 && (
+      {topicItems.length === 0 && (
         <div className="empty" style={{ marginTop: 8 }}>
-          No directions added yet. Add your first direction above.
+          No items tagged to this topic yet. Add your first item above.
         </div>
       )}
     </div>

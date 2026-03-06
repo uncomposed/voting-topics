@@ -12,14 +12,15 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
   candidateId
 }) => {
   const topics = useStore(state => state.topics);
+  const items = useStore(state => state.items);
   const currentBallot = useStore(state => state.currentBallot);
   const addReasoningLink = useStore(state => state.addReasoningLink);
   const removeReasoningLink = useStore(state => state.removeReasoningLink);
   const [showAddReasoning, setShowAddReasoning] = useState(false);
   const [newReasoning, setNewReasoning] = useState({
-    type: 'topic' as 'topic' | 'direction',
+    type: 'topic' as 'topic' | 'item',
     topicId: '',
-    directionId: '',
+    itemId: '',
     relevance: '',
     weight: 3
   });
@@ -39,13 +40,14 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
   }
 
   const selectedTopic = topics.find(t => t.id === newReasoning.topicId);
+  const selectedItems = selectedTopic ? items.filter(item => item.topicIds.includes(selectedTopic.id)) : [];
 
   const handleAddReasoning = () => {
     if (newReasoning.topicId && newReasoning.relevance.trim()) {
       const reasoning: ReasoningLink = {
         type: newReasoning.type,
         topicId: newReasoning.topicId,
-        directionId: newReasoning.type === 'direction' ? newReasoning.directionId : undefined,
+        itemId: newReasoning.type === 'item' ? newReasoning.itemId : undefined,
         relevance: newReasoning.relevance.trim(),
         weight: newReasoning.weight
       };
@@ -55,7 +57,7 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
       setNewReasoning({
         type: 'topic',
         topicId: '',
-        directionId: '',
+        itemId: '',
         relevance: '',
         weight: 3
       });
@@ -71,9 +73,9 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
     const topic = topics.find(t => t.id === reasoning.topicId);
     if (!topic) return 'Unknown topic';
     
-    if (reasoning.type === 'direction' && reasoning.directionId) {
-      const direction = topic.directions.find(d => d.id === reasoning.directionId);
-      return direction ? `${topic.title} → ${direction.text}` : topic.title;
+    if (reasoning.type === 'item' && reasoning.itemId) {
+      const item = items.find(currentItem => currentItem.id === reasoning.itemId);
+      return item ? `${topic.title} → ${item.text}` : topic.title;
     }
     
     return topic.title;
@@ -106,7 +108,7 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
                   onChange={(e) => setNewReasoning(prev => ({ 
                     ...prev, 
                     type: e.target.value as 'topic',
-                    directionId: ''
+                    itemId: ''
                   }))}
                 />
                 Topic
@@ -114,14 +116,14 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
               <label>
                 <input
                   type="radio"
-                  value="direction"
-                  checked={newReasoning.type === 'direction'}
+                  value="item"
+                  checked={newReasoning.type === 'item'}
                   onChange={(e) => setNewReasoning(prev => ({ 
-                    ...prev, 
-                    type: e.target.value as 'direction'
+                    ...prev,
+                    type: e.target.value as 'item'
                   }))}
                 />
-                Specific Direction
+                Specific Item
               </label>
             </div>
           </div>
@@ -134,7 +136,7 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
               onChange={(e) => setNewReasoning(prev => ({ 
                 ...prev, 
                 topicId: e.target.value,
-                directionId: ''
+                itemId: ''
               }))}
             >
               <option value="">Select a topic</option>
@@ -146,21 +148,21 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
             </select>
           </div>
 
-          {newReasoning.type === 'direction' && selectedTopic && (
+          {newReasoning.type === 'item' && selectedTopic && (
             <div className="form-group">
-              <label htmlFor="reasoning-direction">Direction *</label>
+              <label htmlFor="reasoning-direction">Item *</label>
               <select
                 id="reasoning-direction"
-                value={newReasoning.directionId}
+                value={newReasoning.itemId}
                 onChange={(e) => setNewReasoning(prev => ({ 
-                  ...prev, 
-                  directionId: e.target.value
+                  ...prev,
+                  itemId: e.target.value
                 }))}
               >
-                <option value="">Select a direction</option>
-                {selectedTopic.directions.map(direction => (
-                  <option key={direction.id} value={direction.id}>
-                    {direction.text} ({direction.stars}/5 stars)
+                <option value="">Select an item</option>
+                {selectedItems.map(item => (
+                  <option key={item.id} value={item.id}>
+                    {item.text} ({item.stars}/5 stars)
                   </option>
                 ))}
               </select>
@@ -176,7 +178,7 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
                 ...prev, 
                 relevance: e.target.value
               }))}
-              placeholder="Explain how this topic/direction relates to this candidate choice"
+              placeholder="Explain how this topic or item relates to this candidate choice"
               rows={3}
             />
           </div>
@@ -225,7 +227,7 @@ export const ReasoningLinker: React.FC<ReasoningLinkerProps> = ({
                 <p className="reasoning-relevance">{reasoning.relevance}</p>
               </div>
               <button 
-                onClick={() => handleRemoveReasoning(reasoning.topicId)}
+                onClick={() => handleRemoveReasoning(reasoning.itemId || reasoning.topicId || reasoning.directionId || '')}
                 className="btn small danger"
               >
                 Remove

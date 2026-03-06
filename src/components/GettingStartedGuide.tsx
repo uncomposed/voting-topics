@@ -56,24 +56,23 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
       )
     },
     {
-      title: "Step 2: Topics vs. Directions (why they feel abstract)",
+      title: "Step 2: Topics vs. Items (why they feel flexible)",
       content: (
         <div>
           <p>
-            Topics are containers (e.g., "Privacy", "Housing"). Directions are the outcomes you want under a topic
+            Topics are the themes you prioritize (e.g., "Privacy", "Housing"). Items are the outcomes you want
             (e.g., "Less unauthorized surveillance", "Housing costs take a smaller share of income").
           </p>
           <p>
-            You won’t see specific policies or bills here by default. That’s intentional: we separate <em>ends</em> (outcomes you care about)
-            from <em>means</em> (policies that might achieve them). This keeps the conversation constructive and makes sharing preferences concise.
+            Items can be tagged to more than one topic. That lets you define what a topic means to you by keeping only the items that belong in your version of it.
           </p>
           <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
-            <li>Add 2–5 directions per topic</li>
+            <li>Add 2–5 items per topic to start</li>
             <li>Be concrete about results, not prescriptions</li>
-            <li>Rate each direction’s importance later (0–5 stars)</li>
+            <li>Rate both topics and items later (0–5 stars)</li>
           </ul>
           <div style={{ background: 'rgba(255, 209, 102, 0.1)', padding: '8px', borderRadius: '6px', marginTop: '8px' }}>
-            <strong>💡 Why this design?</strong> It avoids unproductive policy fights and highlights shared goals first.
+            <strong>💡 Why this design?</strong> It avoids unproductive policy fights and keeps overlapping concerns connected across topics.
           </div>
         </div>
       )
@@ -82,7 +81,7 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
       title: "Step 3: Rate Importance (5-10 minutes)",
       content: (
         <div>
-          <p>Rate each direction's importance using the star system:</p>
+          <p>Rate each item's importance using the star system, and separately rate the overall topic:</p>
           <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
             <li>0 stars = Skip this direction</li>
             <li>1-2 stars = Low importance</li>

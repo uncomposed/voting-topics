@@ -1,10 +1,10 @@
-import type { Topic, Ballot } from '../schema';
+import type { Topic, Item, Ballot } from '../schema';
 
-export const isPreferenceExportReady = (topics: Topic[]): boolean => {
+export const isPreferenceExportReady = (topics: Topic[], items: Item[] = []): boolean => {
   const hasTopics = topics.length > 0;
-  const hasAnyDirection = topics.some(t => t.directions.length > 0);
-  const hasAnyRatedDirection = topics.some(t => t.directions.some(d => d.stars > 0));
-  return Boolean(hasTopics && hasAnyDirection && hasAnyRatedDirection);
+  const hasAnyItem = items.some(item => item.topicIds.length > 0);
+  const hasAnyRatedItem = items.some(item => item.stars > 0);
+  return Boolean(hasTopics && hasAnyItem && hasAnyRatedItem);
 };
 
 export const isBallotShareReady = (ballot: Ballot | null | undefined): boolean => {
