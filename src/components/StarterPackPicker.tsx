@@ -2,12 +2,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../store';
 import { toast } from '../utils/toast';
 import starterPackData from '../../starter-pack.v2.4.json';
-import type { StarterPackJson, StarterTopicJson } from '../types';
+import type { StarterItemJson, StarterPackJson, StarterTopicJson } from '../types';
 
 const starterPack: StarterPackJson = starterPackData;
 
 type StarterTopic = Pick<StarterTopicJson, 'id' | 'title'> & {
-  directions: Array<{ text: string }>;
+  items: StarterItemJson[];
 };
 
 export const StarterPackPicker: React.FC = () => {
@@ -17,10 +17,11 @@ export const StarterPackPicker: React.FC = () => {
   const advanceFlowStep = useStore(state => state.advanceFlowStep);
   const [pool, setPool] = useState<StarterTopic[]>(() => {
     const raw = starterPack.topics || [];
+    const starterItems = starterPack.items || [];
     return raw.map((t) => ({
       id: t.id,
       title: t.title,
-      directions: (t.directions || []).map((d) => ({ text: d.text }))
+      items: starterItems.filter((item) => (item.topicIds || []).includes(t.id)),
     }));
   });
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(() => new Set<string>());

@@ -37,7 +37,6 @@ export const App: React.FC = () => {
   const [showDiffComparison, setShowDiffComparison] = useState(false);
   const [showLLMIntegration, setShowLLMIntegration] = useState(false);
   const [showGettingStarted, setShowGettingStarted] = useState(false);
-  const hasSeenOnboarding = useStore(state => state.hasSeenOnboarding);
   const setHasSeenOnboarding = useStore(state => state.setHasSeenOnboarding);
   const hasSeenIntroModal = useStore(state => state.hasSeenIntroModal);
   const setHasSeenIntroModal = useStore(state => state.setHasSeenIntroModal);
@@ -80,12 +79,6 @@ export const App: React.FC = () => {
 
   // Keep URL share payload in sync with current topics
   useShareUrlSync(true, 500);
-
-  useEffect(() => {
-    if (!hasSeenOnboarding) {
-      setShowGettingStarted(true);
-    }
-  }, [hasSeenOnboarding]);
 
   useEffect(() => {
     const shareDetected = /(#sp2=|#sp=|#ballot=|share=)/i.test(window.location.href);
@@ -359,10 +352,13 @@ export const App: React.FC = () => {
           isSharedView={isSharedSession}
           onDismiss={() => {
             setHasSeenIntroModal(true);
+            setHasSeenOnboarding(true);
+            setShowGettingStarted(false);
             setShowWelcomeModal(false);
           }}
           onOpenGuide={() => {
             setHasSeenIntroModal(true);
+            setHasSeenOnboarding(true);
             setShowWelcomeModal(false);
             setShowGettingStarted(true);
           }}

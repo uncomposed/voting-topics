@@ -318,7 +318,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         onClick: () => window.dispatchEvent(new Event('vt-starter-add-selected')),
       };
     } else {
-      nextAction = { label: 'Start Here', onClick: () => setShowGettingStarted(true) };
+      nextAction = {
+        label: 'Start Here',
+        onClick: () => {
+          window.dispatchEvent(new Event('vt-exit-special'));
+          setTimeout(() => {
+            const el = document.getElementById('starter-pack');
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              window.dispatchEvent(new Event('vt-open-starter'));
+            }
+          }, 50);
+        },
+      };
     }
   } else if (anyUnratedTopic) {
     // Encourage organizing priorities: card on desktop, list on mobile

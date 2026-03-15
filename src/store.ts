@@ -38,8 +38,8 @@ type OfficeInput = Omit<Office, 'id' | 'candidates'> & { candidates: CandidateIn
 interface StarterTopicInput {
   id?: string;
   title: string;
-  items?: Array<{ id?: string; text: string }>;
-  directions?: Array<{ id?: string; text: string }>;
+  items?: Array<{ id?: string; text: string; topicIds?: string[] }>;
+  directions?: Array<{ id?: string; text: string; topicIds?: string[] }>;
 }
 
 interface Store {
@@ -164,27 +164,50 @@ export const useStore = create<Store>()(
       addTopicFromStarter: (starterTopic) => set((state) => {
         const topicId = starterTopic.id ?? uid();
         const sourceItems = starterTopic.items ?? starterTopic.directions ?? [];
-        const items = [
-          ...sourceItems.map((item) => ({
-            id: item.id ?? uid(),
-            text: item.text,
+        const items = [...state.items];
+
+        sourceItems.forEach((starterItem) => {
+          const starterTopicIds = starterItem.topicIds?.length
+            ? starterItem.topicIds
+            : [topicId];
+          const nextTopicIds = Array.from(new Set([...starterTopicIds, topicId]));
+          const existingIdx = items.findIndex((item) => item.id === starterItem.id);
+
+          if (existingIdx >= 0) {
+            items[existingIdx] = {
+              ...items[existingIdx],
+              text: items[existingIdx].text || starterItem.text,
+              topicIds: Array.from(new Set([...(items[existingIdx].topicIds || []), ...nextTopicIds])),
+            };
+            return;
+          }
+
+          items.push({
+            id: starterItem.id ?? uid(),
+            text: starterItem.text,
             stars: 0,
             notes: '',
             sources: [],
-            topicIds: [topicId],
+            topicIds: nextTopicIds,
             tags: [],
-          })),
-          ...state.items,
-        ];
-        const topics = syncTopics([{
-          id: topicId,
-          title: starterTopic.title,
-          importance: 0,
-          stance: 'neutral' as Stance,
-          notes: '',
-          sources: [],
-          relations: { broader: [], narrower: [], related: [] },
-        }, ...state.topics], items);
+          });
+        });
+
+        const topicExists = state.topics.some((topic) =>
+          topic.id === topicId || topic.title.trim().toLowerCase() === starterTopic.title.trim().toLowerCase(),
+        );
+        const nextTopics = topicExists
+          ? state.topics
+          : [{
+              id: topicId,
+              title: starterTopic.title,
+              importance: 0,
+              stance: 'neutral' as Stance,
+              notes: '',
+              sources: [],
+              relations: { broader: [], narrower: [], related: [] },
+            }, ...state.topics];
+        const topics = syncTopics(nextTopics, items);
         return {
           topics,
           items,
