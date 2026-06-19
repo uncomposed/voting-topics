@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../store';
+import { applyPreferencePatch, describePatchOperation, parsePreferencePatch, type PreferencePatch } from '../patchSchema';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { buildTemplate, buildBallot } from '../exporters';
 import { ImportPreview } from './ImportPreview';
@@ -37,7 +38,32 @@ export const LLMIntegration: React.FC = () => {
     };
   }, [ballotMode, currentBallot]);
 
-  // Load prompt pack lazily
+  const patchDocs = `# Voting Topics Builder - AI Patch Schema (tsb.patch.v1)
+
+Use patches when an AI should propose focused changes to an existing preference set instead of replacing the whole JSON document. Return only JSON.
+
+\`\`\`json
+{
+  "version": "tsb.patch.v1",
+  "summary": "Add source citations and topic tags for housing preferences.",
+  "operations": [
+    { "op": "create_topic", "id": "topic-climate", "title": "Climate", "importance": 4, "stance": "for" },
+    { "op": "create_item", "id": "item-climate-1", "text": "Prioritize clean energy investment", "stars": 5, "topicIds": ["topic-climate"], "tags": ["energy"] },
+    { "op": "add_item_tag", "itemId": "item-climate-1", "tag": "infrastructure" },
+    { "op": "add_topic_source", "topicId": "topic-climate", "source": { "label": "Official climate plan", "url": "https://example.org/climate" } }
+  ]
+}
+\`\`\`
+
+Supported operations: create_topic, update_topic, create_item, update_item, add_topic_source, add_item_source, add_item_tag, tag_item_to_topic, remove_item_tag, remove_item_from_topic, delete_topic, delete_item, noop.
+`;
+
+
+  const [activeTab, setActiveTab] = useState<'export' | 'import' | 'patch'>('export');
+  const [patchJson, setPatchJson] = useState('');
+  const [patchPreview, setPatchPreview] = useState<PreferencePatch | null>(null);
+  const [patchError, setPatchError] = useState<string | null>(null);
+  const [patchResult, setPatchResult] = useState<string | null>(null);
   useEffect(() => {
     import('../prompt-packs/core.en.json')
       .then((m) => setPromptPack((m as any).default as PromptPack))
@@ -157,6 +183,40 @@ This tool helps voters organize their positions on ballot measures and candidate
           "label": "Source name",
           "url": "https://example.com"
         }
+  const aiPatchBundle = useMemo(() => JSON.stringify({
+    instructions: 'Review the current preference set and return a tsb.patch.v1 JSON patch with focused, schema-valid proposals only. Prefer additive operations and cite sources with URLs when adding factual context.',
+    currentPreferenceSet,
+    patchSchema: patchDocs,
+  }, null, 2), [currentPreferenceSet]);
+
+  const handlePreviewPatch = () => {
+    if (!patchJson.trim()) {
+      setPatchError('Please paste patch JSON.');
+      return;
+    }
+    try {
+      setPatchPreview(parsePreferencePatch(JSON.parse(patchJson)));
+      setPatchError(null);
+      setPatchResult(null);
+    } catch (error) {
+      setPatchPreview(null);
+      setPatchError(error instanceof Error ? error.message : 'Invalid patch JSON');
+    }
+  };
+
+  const handleApplyPatch = () => {
+    if (!patchPreview) return;
+    const state = useStore.getState();
+    const result = applyPreferencePatch({ topics: state.topics, items: state.items }, patchPreview);
+    useStore.setState({ topics: result.topics, items: result.items });
+    setPatchResult(`Applied ${result.applied.length} operation(s); skipped ${result.skipped.length}.`);
+    setPatchPreview(null);
+    setPatchJson('');
+  };
+
+        <button className={`tab ${activeTab === 'patch' ? 'active' : ''}`} onClick={() => setActiveTab('patch')}>
+          AI Patch
+        </button>
       ],
       "relations": {
         "broader": ["broader-topic-id"],
@@ -262,6 +322,58 @@ This tool helps voters organize their positions on ballot measures and candidate
 - "direction": Links to specific direction within topic
 
 ## Usage Instructions
+
+
+
+        {activeTab === 'patch' && (
+          <div className="import-section">
+            <div className="import-header">
+              <h2>AI-Assisted Patch Workflow</h2>
+              <p>Export a bundle for an AI assistant, then paste its focused patch here for review before applying it.</p>
+            </div>
+
+            <div className="panel" style={{ marginBottom: 16 }}>
+              <h3 className="panel-title">1. Export enrichment bundle</h3>
+              <p className="muted">The bundle includes your current preference set, instructions, and the patch schema. The AI should return only <code>tsb.patch.v1</code> JSON.</p>
+              <textarea value={aiPatchBundle} readOnly className="json-textarea" rows={10} />
+              <button className="btn primary" onClick={() => navigator.clipboard.writeText(aiPatchBundle)}>Copy AI Bundle</button>
+            </div>
+
+            <div className="panel" style={{ marginBottom: 16 }}>
+              <h3 className="panel-title">2. Preview returned patch</h3>
+              {patchError && <div className="error-message"><strong>Patch Error:</strong> {patchError}</div>}
+              {patchResult && <div className="success-message"><strong>Success:</strong> {patchResult}</div>}
+              <textarea
+                value={patchJson}
+                onChange={(event) => {
+                  setPatchJson(event.target.value);
+                  setPatchError(null);
+                  setPatchResult(null);
+                }}
+                className="json-textarea"
+                placeholder="Paste tsb.patch.v1 JSON here..."
+                rows={12}
+              />
+              <button className="btn primary" onClick={handlePreviewPatch} disabled={!patchJson.trim()}>Preview Patch</button>
+            </div>
+
+            {patchPreview && (
+              <div className="panel">
+                <h3 className="panel-title">Patch Preview</h3>
+                {patchPreview.summary && <p>{patchPreview.summary}</p>}
+                <ol className="muted" style={{ paddingLeft: 20 }}>
+                  {patchPreview.operations.map((operation, idx) => (
+                    <li key={idx}>{describePatchOperation(operation)}</li>
+                  ))}
+                </ol>
+                <div className="row" style={{ gap: 8 }}>
+                  <button className="btn primary" onClick={handleApplyPatch}>Apply Patch</button>
+                  <button className="btn ghost" onClick={() => setPatchPreview(null)}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
 1. **Export Current Data**: Copy the JSON from the export section
 2. **Share with LLM**: Provide this schema documentation and your JSON data to your LLM
