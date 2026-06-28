@@ -31,8 +31,9 @@ export const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({ onClose }) => {
             topics and ballots.
           </p>
           <p>
-            Exports you create (JSON, PDF, JPEG) are generated on your device. When you copy prompts or share links we
-            only use the information needed for that action and we never transmit your preferences anywhere.
+            Exports you create (JSON, PDF, JPEG) are generated on your device. Review links encode the shared preference
+            set or sample ballot into the link itself; we do not continuously sync your URL or transmit your preferences
+            to an app server.
           </p>
           <p>
             Voting Topics is a community tool provided as-is. It does not provide legal advice, confirm election rules,

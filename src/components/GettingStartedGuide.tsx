@@ -9,10 +9,10 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
   
   const steps = [
     {
-      title: "Welcome to Voting Topics Builder",
+      title: "Build a reusable sample ballot",
       content: (
         <div>
-          <p>This tool helps you think through your political preferences systematically and create a sample ballot based on your values.</p>
+          <p>This tool is for politically engaged people who want to turn their values and research into a sample ballot friends can review, compare, and adapt.</p>
           <div style={{ background: 'rgba(139, 211, 255, 0.1)', padding: '12px', borderRadius: '6px', marginTop: '12px' }}>
             <strong>⏱️ Time Estimate:</strong> 15-30 minutes for a complete preference set
           </div>
@@ -43,14 +43,14 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
       title: "Step 1: Add Topics (5-10 minutes)",
       content: (
         <div>
-          <p>Start by adding topics that matter to you. You can:</p>
+          <p>Start by adding the topics that explain your recommendation. You can:</p>
           <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
             <li>Choose from our starter pack of common topics</li>
             <li>Create your own custom topics</li>
-            <li>Focus on 3-7 topics for best results</li>
+            <li>Focus on 3-7 topics that will help friends understand the tradeoffs</li>
           </ul>
           <div style={{ background: 'rgba(100, 255, 161, 0.1)', padding: '8px', borderRadius: '6px', marginTop: '8px' }}>
-            <strong>💡 Tip:</strong> Think about what issues would most influence your vote
+            <strong>💡 Tip:</strong> Think about what evidence or values would make a friend reconsider your sample ballot
           </div>
         </div>
       )
@@ -81,7 +81,7 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
       title: "Step 3: Rate Importance (5-10 minutes)",
       content: (
         <div>
-          <p>Rate each item's importance using the star system, and separately rate the overall topic:</p>
+          <p>Rate each item's importance using the star system, and separately rate the overall topic so readers can see your value differences:</p>
           <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
             <li>0 stars = Skip this direction</li>
             <li>1-2 stars = Low importance</li>
@@ -95,18 +95,19 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({ onClos
       )
     },
     {
-      title: "Step 4: Create Your Ballot (5 minutes)",
+      title: "Step 4: Create and Share Your Sample Ballot (5 minutes)",
       content: (
         <div>
           <p>Once your preferences are set, you can:</p>
           <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
             <li>Create a sample ballot for upcoming elections</li>
-            <li>Export your preferences as JSON or PDF</li>
+            <li>Copy a review link that includes your full preference set or sample ballot</li>
+            <li>Export your preferences as JSON or PDF for backup</li>
             <li>Ask the AI assistant to build a ballot using the internet and our schema</li>
             <li>Compare different preference sets</li>
           </ul>
           <div style={{ background: 'rgba(100, 255, 161, 0.1)', padding: '8px', borderRadius: '6px', marginTop: '8px' }}>
-            <strong>🎉 Result:</strong> A clear, organized view of your political priorities
+            <strong>🎉 Result:</strong> A reusable sample ballot friends can review and make their own
           </div>
         </div>
       )

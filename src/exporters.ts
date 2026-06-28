@@ -1,8 +1,29 @@
 import { useStore } from './store';
-import { TemplateSchema, BallotSchema, serializePreferenceSet } from './schema';
+import { TemplateSchema, BallotSchema, serializePreferenceSet, stripTopicDirections } from './schema';
 import { nowISO, sanitize, downloadFile } from './utils';
 import type { Template, Topic, Item, Source, Ballot } from './schema';
 import { getItemsForTopic } from './utils/items';
+
+const stanceLabels: Record<string, string> = {
+  against: 'Strongly Against',
+  lean_against: 'Lean Against',
+  neutral: 'Neutral',
+  lean_for: 'Lean For',
+  for: 'Strongly For',
+};
+
+const appendText = (
+  parent: HTMLElement,
+  tagName: keyof HTMLElementTagNameMap,
+  text: string,
+  className?: string,
+): HTMLElement => {
+  const el = document.createElement(tagName);
+  if (className) el.className = className;
+  el.textContent = text;
+  parent.appendChild(el);
+  return el;
+};
 
 export const buildTemplate = (): Template => {
   const state = useStore.getState();
@@ -10,7 +31,7 @@ export const buildTemplate = (): Template => {
     version: 'tsb.v2' as const,
     title: state.title || 'Untitled Template',
     notes: state.notes || '',
-    topics: state.topics.map(({ directions: _directions, ...topic }) => topic),
+    topics: state.topics.map(stripTopicDirections),
     items: state.items,
     createdAt: state.__createdAt || nowISO(),
     updatedAt: nowISO(),
@@ -92,14 +113,6 @@ export const exportPDF = async () => {
     doc.text(`Importance: ${t.importance}/5`, margin, y); 
     y += 14;
     
-    // New stance display
-    const stanceLabels: Record<string, string> = {
-      'against': 'Strongly Against',
-      'lean_against': 'Lean Against', 
-      'neutral': 'Neutral',
-      'lean_for': 'Lean For',
-      'for': 'Strongly For'
-    };
     doc.text(`Stance: ${stanceLabels[t.stance] || 'Neutral'}`, margin, y); 
     y += 14;
     
@@ -158,43 +171,51 @@ export const renderSocialCard = (tpl: Template): HTMLElement => {
   const root = document.getElementById('social-card');
   if (!root) throw new Error('Social card element not found');
   
-  root.innerHTML = '';
+  root.replaceChildren();
   const top = [...tpl.topics]
     .sort((a, b) => b.importance - a.importance)
     .slice(0, 5);
 
   const el = document.createElement('div');
-  el.innerHTML = `
-    <h1>${tpl.title}</h1>
-    <small>Top ${top.length} topics by importance</small>
-    <div class="card-list">
-      ${top.map((t: Topic, i: number) => {
-        // New stance display
-        const stanceLabels: Record<string, string> = {
-          'against': 'Strongly Against',
-          'lean_against': 'Lean Against', 
-          'neutral': 'Neutral',
-          'lean_for': 'Lean For',
-          'for': 'Strongly For'
-        };
-        
-        const stance = stanceLabels[t.stance] || 'Neutral';
-        const itemCount = getItemsForTopic(tpl.items, t.id).length;
-        
-        return `
-          <div class="row">
-            <div style="font-weight:700">${i + 1}</div>
-            <div>
-              <div style="font-weight:600">${t.title}</div>
-              <div style="font-size: 14px; color: var(--muted); margin: 4px 0;">${stance}${itemCount > 0 ? ` • ${itemCount} item${itemCount !== 1 ? 's' : ''}` : ''}</div>
-              <div class="bar"><span style="width:${(t.importance / 5) * 100}%"></span></div>
-            </div>
-            <div style="text-align:right">${t.importance}/5</div>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
+  appendText(el, 'h1', tpl.title);
+  appendText(el, 'small', `Top ${top.length} topics by importance`);
+
+  const list = document.createElement('div');
+  list.className = 'card-list';
+  top.forEach((t: Topic, i: number) => {
+    const stance = stanceLabels[t.stance] || 'Neutral';
+    const itemCount = getItemsForTopic(tpl.items, t.id).length;
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const rank = appendText(row, 'div', String(i + 1));
+    rank.style.fontWeight = '700';
+
+    const body = document.createElement('div');
+    const title = appendText(body, 'div', t.title);
+    title.style.fontWeight = '600';
+    const meta = appendText(
+      body,
+      'div',
+      `${stance}${itemCount > 0 ? ` • ${itemCount} item${itemCount !== 1 ? 's' : ''}` : ''}`,
+    );
+    meta.style.fontSize = '14px';
+    meta.style.color = 'var(--muted)';
+    meta.style.margin = '4px 0';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    const fill = document.createElement('span');
+    fill.style.width = `${(t.importance / 5) * 100}%`;
+    bar.appendChild(fill);
+    body.appendChild(bar);
+    row.appendChild(body);
+
+    const score = appendText(row, 'div', `${t.importance}/5`);
+    score.style.textAlign = 'right';
+
+    list.appendChild(row);
+  });
+  el.appendChild(list);
   root.appendChild(el);
   return root;
 };
@@ -414,48 +435,58 @@ export const renderBallotCard = (ballot: Ballot): HTMLElement => {
   const root = document.getElementById('social-card');
   if (!root) throw new Error('Social card element not found');
   
-  root.innerHTML = '';
+  root.replaceChildren();
   
   const scoredOffices = ballot.offices.filter(o => o.candidates.some(c => (c.score ?? 0) > 0));
   const selectedMeasures = ballot.measures.filter(m => m.position);
 
   const el = document.createElement('div');
-  el.innerHTML = `
-    <h1>${ballot.title}</h1>
-    <div class="ballot-election-info">
-      <div class="election-name">${ballot.election.name}</div>
-      <div class="election-date">${new Date(ballot.election.date).toLocaleDateString()}</div>
-      <div class="election-location">${ballot.election.location}</div>
-    </div>
-    <div class="ballot-summary">
-      <div class="summary-item">
-        <span class="summary-label">Scored Candidates:</span>
-        <span class="summary-value">${scoredOffices.length}</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">Ballot Measures:</span>
-        <span class="summary-value">${selectedMeasures.length}</span>
-      </div>
-    </div>
-    <div class="ballot-selections">
-      ${scoredOffices.map(office => {
-        const topScore = office.candidates.reduce((best, c) => Math.max(best, c.score ?? 0), 0);
-        const candidate = office.candidates.find(c => (c.score ?? 0) === topScore);
-        return `
-          <div class="selection-item">
-            <div class="office-name">${office.title}</div>
-            <div class="candidate-name">${topScore}/5 – ${candidate?.name || 'Unscored'}${candidate?.party ? ` (${candidate.party})` : ''}</div>
-          </div>
-        `;
-      }).join('')}
-      ${selectedMeasures.map(measure => `
-        <div class="selection-item">
-          <div class="measure-name">${measure.title}</div>
-          <div class="measure-position">${measure.position?.toUpperCase()}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
+  appendText(el, 'h1', ballot.title);
+
+  const election = document.createElement('div');
+  election.className = 'ballot-election-info';
+  appendText(election, 'div', ballot.election.name, 'election-name');
+  appendText(election, 'div', new Date(ballot.election.date).toLocaleDateString(), 'election-date');
+  appendText(election, 'div', ballot.election.location, 'election-location');
+  el.appendChild(election);
+
+  const summary = document.createElement('div');
+  summary.className = 'ballot-summary';
+  const addSummaryItem = (labelText: string, valueText: string) => {
+    const item = document.createElement('div');
+    item.className = 'summary-item';
+    appendText(item, 'span', labelText, 'summary-label');
+    appendText(item, 'span', valueText, 'summary-value');
+    summary.appendChild(item);
+  };
+  addSummaryItem('Scored Candidates:', String(scoredOffices.length));
+  addSummaryItem('Ballot Measures:', String(selectedMeasures.length));
+  el.appendChild(summary);
+
+  const selections = document.createElement('div');
+  selections.className = 'ballot-selections';
+  scoredOffices.forEach((office) => {
+    const topScore = office.candidates.reduce((best, c) => Math.max(best, c.score ?? 0), 0);
+    const candidate = office.candidates.find(c => (c.score ?? 0) === topScore);
+    const item = document.createElement('div');
+    item.className = 'selection-item';
+    appendText(item, 'div', office.title, 'office-name');
+    appendText(
+      item,
+      'div',
+      `${topScore}/5 - ${candidate?.name || 'Unscored'}${candidate?.party ? ` (${candidate.party})` : ''}`,
+      'candidate-name',
+    );
+    selections.appendChild(item);
+  });
+  selectedMeasures.forEach((measure) => {
+    const item = document.createElement('div');
+    item.className = 'selection-item';
+    appendText(item, 'div', measure.title, 'measure-name');
+    appendText(item, 'div', measure.position?.toUpperCase() || '', 'measure-position');
+    selections.appendChild(item);
+  });
+  el.appendChild(selections);
   root.appendChild(el);
   return root;
 };

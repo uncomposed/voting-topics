@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useStore } from '../store';
+import { buildTemplate } from '../exporters';
 
 describe('store direction actions', () => {
   const topic = {
@@ -79,5 +80,20 @@ describe('store direction actions', () => {
     const shared = state.items.find((item) => item.id === 'shared-item');
     expect(shared?.topicIds.sort()).toEqual(['t1', 't2']);
     expect(state.items.filter((item) => item.id === 'shared-item')).toHaveLength(1);
+  });
+
+  it('allows incomplete source rows while editing but still validates on export', () => {
+    expect(() => useStore.getState().addSource('t1')).not.toThrow();
+    let state = useStore.getState();
+    expect(state.topics[0].sources).toEqual([{ label: '', url: '' }]);
+
+    expect(() => useStore.getState().patchSource('t1', 0, { label: 'Local guide' })).not.toThrow();
+    state = useStore.getState();
+    expect(state.topics[0].sources[0].label).toBe('Local guide');
+
+    expect(() => buildTemplate()).toThrow(/Validation failed/);
+
+    expect(() => useStore.getState().patchSource('t1', 0, { url: 'https://example.com/guide' })).not.toThrow();
+    expect(() => buildTemplate()).not.toThrow();
   });
 });

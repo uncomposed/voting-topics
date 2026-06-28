@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A lightweight, open-source project for building and sharing transferable sample ballots",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

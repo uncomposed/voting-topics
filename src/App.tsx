@@ -15,9 +15,8 @@ import { MobileActionBar } from './components/MobileActionBar';
 import { MobileMenu } from './components/MobileMenu';
 import { Toolbar } from './components/Toolbar';
 import { toast } from './utils/toast';
-import { extractAndDecodeFromUrl, applyStarterPreferences } from './utils/share';
+import { applyStarterPreferences, extractShareFromUrl } from './utils/share';
 import { scrollIntoViewSmart } from './utils/scroll';
-import { useShareUrlSync } from './hooks';
 import { WelcomeModal } from './components/WelcomeModal';
 
 export const App: React.FC = () => {
@@ -27,9 +26,11 @@ export const App: React.FC = () => {
   const patchTopic = useStore(state => state.patchTopic);
   const ballotMode = useStore(state => state.ballotMode);
   const setBallotMode = useStore(state => state.setBallotMode);
+  const importData = useStore(state => state.importData);
 
   const topicListRef = useRef<{ toggleAll: () => void; updateButtonText: () => void }>(null);
   const topicCardsRef = useRef<{ toggleExpanded: () => void; updateButtonText: () => void }>(null);
+  const shareAppliedRef = useRef(false);
 
   const [showCards, setShowCards] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
@@ -42,6 +43,7 @@ export const App: React.FC = () => {
   const setHasSeenIntroModal = useStore(state => state.setHasSeenIntroModal);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [isSharedSession, setIsSharedSession] = useState(false);
+  const [sharedTitle, setSharedTitle] = useState<string | null>(null);
 
   // Set up expand/collapse button handler (other buttons are wired in main.tsx)
   useEffect(() => {
@@ -77,16 +79,84 @@ export const App: React.FC = () => {
 
   // Toolbar is now managed by React component via portal
 
-  // Keep URL share payload in sync with current topics
-  useShareUrlSync(true, 500);
-
   useEffect(() => {
-    const shareDetected = /(#sp2=|#sp=|#ballot=|share=)/i.test(window.location.href);
+    const shareDetected = /(#sp2=|#sp=|#full=|#ballot=|[?&]share=)/i.test(window.location.href);
     setIsSharedSession(shareDetected);
     if (!hasSeenIntroModal) {
       setShowWelcomeModal(true);
     }
   }, [hasSeenIntroModal]);
+
+  useEffect(() => {
+    const url = window.location.href;
+    const hasSharePayload = /(#sp2=|#sp=|#full=|#ballot=|[?&]share=)/i.test(url);
+    if (!hasSharePayload) return;
+    if (shareAppliedRef.current) return;
+    shareAppliedRef.current = true;
+
+    const data = extractShareFromUrl(url);
+    if (!data) {
+      toast.show({
+        variant: 'danger',
+        title: 'Shared link could not be opened',
+        message: 'The link payload is missing, outdated, or malformed.',
+        duration: 8000,
+      });
+      return;
+    }
+
+    if (data.kind === 'preference-set') {
+      importData({ ...data.data, notes: data.data.notes || '' });
+      setShowLLMIntegration(false);
+      setShowDiffComparison(false);
+      setBallotMode('preference');
+      setShowCards(true);
+      setIsSharedSession(true);
+      setSharedTitle(data.payload.title || data.data.title);
+      toast.show({
+        variant: 'success',
+        title: 'Shared preferences opened',
+        message: 'Review the values, then make a local copy before changing them.',
+        duration: 7000,
+      });
+      return;
+    }
+
+    if (data.kind === 'sample-ballot') {
+      useStore.setState({ currentBallot: data.data, ballotMode: 'ballot' });
+      setShowLLMIntegration(false);
+      setShowDiffComparison(false);
+      setIsSharedSession(true);
+      setSharedTitle(data.payload.title || data.data.title);
+      toast.show({
+        variant: 'success',
+        title: 'Shared sample ballot opened',
+        message: 'Review the choices and reasoning, then make a local copy to edit.',
+        duration: 7000,
+      });
+      return;
+    }
+
+    const snapshot = {
+      topics: useStore.getState().topics,
+      items: useStore.getState().items,
+    };
+    const { applied } = applyStarterPreferences(data.payload);
+    setShowLLMIntegration(false);
+    setShowDiffComparison(false);
+    setBallotMode('preference');
+    setShowCards(true);
+    setIsSharedSession(true);
+    setSharedTitle('Compact starter share');
+    toast.show({
+      variant: 'success',
+      title: 'Preferences applied',
+      message: `${applied} topics updated`,
+      actionLabel: 'Undo',
+      onAction: () => useStore.setState(snapshot),
+      duration: 6000,
+    });
+  }, [importData, setBallotMode]);
 
   useEffect(() => {
     const openWelcome = () => setShowWelcomeModal(true);
@@ -115,6 +185,17 @@ export const App: React.FC = () => {
 
   const handleTopicDelete = (topicId: string) => {
     removeTopic(topicId);
+  };
+
+  const handleMakeMyCopy = () => {
+    setIsSharedSession(false);
+    setSharedTitle(null);
+    toast.show({
+      variant: 'success',
+      title: 'Local copy ready',
+      message: 'Future edits are your version.',
+      duration: 5000,
+    });
   };
 
   // Decide main content view
@@ -164,36 +245,6 @@ export const App: React.FC = () => {
             window.removeEventListener('vt-open-getting-started', openGS as EventListener);
             window.removeEventListener('vt-exit-special', exitSpecial as EventListener);
           };
-        }, []);
-        return null;
-      })()}
-      {(() => {
-        // On first mount, check for starter preferences payload in the URL hash
-        // Auto-apply and show success with undo, then clear the hash
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        React.useEffect(() => {
-          try {
-            const data = extractAndDecodeFromUrl(window.location.href);
-            if (!data) return;
-            const snapshot = useStore.getState().topics;
-            const { applied } = applyStarterPreferences(data);
-            toast.show({
-              variant: 'success',
-              title: 'Preferences applied',
-              message: `${applied} topics updated`,
-              actionLabel: 'Undo',
-              onAction: () => useStore.setState({ topics: snapshot }),
-              duration: 6000,
-            });
-            // Switch to Card View to encourage sorting after applying a share link
-            setShowLLMIntegration(false);
-            setShowDiffComparison(false);
-            setBallotMode('preference');
-            setShowCards(true);
-          } catch (_e) { /* noop */ }
-          finally {
-            try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (_e) { /* noop */ }
-          }
         }, []);
         return null;
       })()}
@@ -279,16 +330,33 @@ export const App: React.FC = () => {
         setShowGettingStarted={setShowGettingStarted}
         onOpenWelcome={() => setShowWelcomeModal(true)}
       />
+      {isSharedSession && (
+        <div className="panel-header-with-controls shared-review-banner">
+          <div className="panel-header-left">
+            <h2 className="panel-title">
+              {ballotMode === 'ballot' ? 'Review Shared Sample Ballot' : 'Review Shared Preference Set'}
+            </h2>
+            <p className="muted">
+              {ballotMode === 'ballot'
+                ? `You are reviewing ${sharedTitle ? `"${sharedTitle}"` : 'a shared sample ballot'}. Make a local copy before editing or publishing your version.`
+                : `You are reviewing ${sharedTitle ? `"${sharedTitle}"` : 'a shared preference set'}. Make a local copy before editing or publishing your version.`}
+            </p>
+          </div>
+          <div className="panel-controls">
+            <button className="btn" onClick={handleMakeMyCopy}>
+              Make My Copy
+            </button>
+          </div>
+        </div>
+      )}
       {/* Panel header only for list/cards views */}
       {!specialView && (
         <div className="panel-header-with-controls">
           <div className="panel-header-left">
-            <h2 className="panel-title">{isSharedSession ? 'Shared Preference Set' : 'Your Preference Set'}</h2>
+            <h2 className="panel-title">Your Preference Set</h2>
             {showCards && (
               <p className="muted">
-                {isSharedSession
-                  ? 'This set is read-only until you save a copy. Use the toolbar menu to fork it or start from scratch.'
-                  : 'Drag cards to reorder by importance. Click to edit details.'}
+                Drag cards to reorder by importance. Click to edit details.
               </p>
             )}
           </div>

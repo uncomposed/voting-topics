@@ -1,10 +1,11 @@
 # Voting Topics Builder
 
-Voting Topics Builder is an open-source workspace for capturing your political priorities, rating the outcomes you want, and turning them into a sharable STAR Voting ballot. The app keeps preferences portable (JSON, PDF, JPEG), privacy-first (local storage by default), and collaborative (share links and forkable templates).
+Voting Topics Builder is an open-source workspace for politically engaged friends who want to capture values, explain decisions, and turn that work into a reusable sample ballot. The app keeps preferences portable (review links, JSON, PDF, JPEG), privacy-first (local storage by default), and collaborative (reviewable, copyable sample ballots).
 
 ## Why it exists
 - **Outcome-first conversations** – record the results you want (“directions”) before arguing policies.
-- **Guided onboarding** – welcome tour, hints, and next-step prompts help new visitors know what to do.
+- **Reviewable recommendations** – share a full preference set or sample ballot so friends can inspect the reasoning and make their own copy.
+- **Guided onboarding** – welcome tour, hints, and next-step prompts help builders know what to do next.
 - **Starter pack + BYO AI** – pull in curated topics or hand the schema to your favourite LLM.
 - **STAR Voting ballots** – score every candidate 0–5, export, and share.
 
@@ -37,7 +38,7 @@ See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for a deeper walkthrough of maj
 
 1. **Topics** – add issues that matter to you. Each topic can reference related topics (SKOS style) and collects multiple directions.
 2. **Directions** – describe the outcomes you want. Rate each one 0–5 stars (0 = skip for now). The `Stars` component stores the rating in the `Topic` schema.
-3. **Sharing** – the app keeps the URL hash (`#sp2=...`) in sync with your data. Use the toolbar menu → “Share / Export” for JSON, PDF, or JPEG.
+3. **Sharing** – explicit review links encode the complete preference set or sample ballot into the URL. Compact links (`#sp2=...`) remain available for starter-backed topics and items only. The app no longer continuously rewrites the URL while you edit.
 4. **Starter pack** – `StarterPackPicker` offers curated directions. Clear the list from the toolbar if you want to start fresh.
 
 ## Building STAR Voting ballots
@@ -46,7 +47,7 @@ See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for a deeper walkthrough of maj
 - Add offices and candidates. Each candidate now has a 0–5 **STAR score**; the highest score is highlighted automatically.
 - Link reasoning back to your topics/directions via the reasoning linker.
 - Measures support Yes/No/Abstain positions with optional notes.
-- Exports (`exporters.ts`) include JSON, PDF, and JPEG social cards. The readiness helpers require every office to have at least one scored candidate and every measure to have a position before “Share” unlocks.
+- Exports (`exporters.ts`) include review links, JSON, PDF, and JPEG social cards. The readiness helpers require every office to have at least one scored candidate and every measure to have a position before ballot sharing unlocks.
 
 ## Contributing & community pathways
 

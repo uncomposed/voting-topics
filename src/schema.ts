@@ -199,12 +199,15 @@ export const hydrateTopicsWithItems = (topics: Topic[], items: Item[]): TopicVie
     directions: items.filter((item) => item.topicIds.includes(topic.id)),
   }));
 
+export const stripTopicDirections = (topic: Topic): z.infer<typeof TopicSchema> => {
+  const next = { ...topic };
+  delete next.directions;
+  return next;
+};
+
 export const serializePreferenceSet = (preferenceSet: PreferenceSet): PreferenceSet => PreferenceSetSchema.parse({
   ...preferenceSet,
-  topics: preferenceSet.topics.map((topic) => {
-    const { directions: _directions, ...rest } = topic as Topic & { directions?: Item[] };
-    return rest;
-  }),
+  topics: preferenceSet.topics.map((topic) => stripTopicDirections(topic as Topic)),
 });
 
 export const parseIncomingPreferenceSet = (data: unknown): PreferenceSet => {

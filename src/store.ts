@@ -14,7 +14,7 @@ import type {
   ElectionInfo,
   ReasoningLink,
 } from './schema';
-import { hydrateTopicsWithItems } from './schema';
+import { hydrateTopicsWithItems, stripTopicDirections } from './schema';
 import { trackEvent, setAnalyticsEnabled as setAnalyticsFlag } from './utils/analytics';
 
 const clampScore = (score: number) => Math.max(0, Math.min(5, Math.round(score)));
@@ -113,12 +113,13 @@ interface Store {
 }
 
 const removeDirectionsFromTopicPatch = (patch: Partial<Topic>): Partial<Topic> => {
-  const { directions: _directions, ...rest } = patch as Partial<Topic> & { directions?: Item[] };
+  const rest = { ...patch };
+  delete rest.directions;
   return rest;
 };
 
 const syncTopics = (topics: Topic[], items: Item[]): Topic[] => hydrateTopicsWithItems(
-  topics.map(({ directions: _directions, ...topic }) => topic),
+  topics.map(stripTopicDirections),
   items,
 );
 

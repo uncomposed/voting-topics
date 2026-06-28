@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
-import { exportJSON, exportPDF } from '../exporters';
+import { exportBallotJSON, exportBallotPDF, exportJSON, exportPDF } from '../exporters';
 import { scrollIntoViewSmart } from '../utils/scroll';
 import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness';
-import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, itemIndex, extractAndDecodeFromUrl, applyStarterPreferences } from '../utils/share';
+import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, itemIndex } from '../utils/share';
+import { applySharedUrlToStore, buildCurrentReviewUrl } from '../utils/shareActions';
 import { emitHint } from '../utils/hints';
 import { IconShare, IconBraces, IconFile, IconLink } from './icons';
 import { parseIncomingBallot, parseIncomingPreferenceSet } from '../schema';
@@ -129,6 +130,41 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
   const hasStarterTopics = topics.some(t => topicIndex.includes(t.id) || topicTitleIndex.includes((t.title || '').toLowerCase()));
   const hasStarterItems = items.some(item => itemIndex.includes(item.id));
 
+  const copyReviewLink = async () => {
+    const url = buildCurrentReviewUrl(ballotMode);
+    await navigator.clipboard.writeText(url);
+    toast.show({
+      variant: 'success',
+      title: 'Review link copied',
+      message: ballotMode === 'ballot'
+        ? 'This link includes the complete sample ballot.'
+        : 'This link includes the complete preference set.',
+      duration: 5000,
+    });
+  };
+
+  const applyLink = (url: string) => {
+    const result = applySharedUrlToStore(url);
+    if (!result) {
+      alert('Invalid share payload');
+      return;
+    }
+    if (result.kind === 'sample-ballot') {
+      window.dispatchEvent(new Event('vt-create-ballot'));
+    } else {
+      window.dispatchEvent(new Event('vt-back-preferences'));
+      window.dispatchEvent(new Event('vt-open-card-view'));
+    }
+    toast.show({
+      variant: 'success',
+      title: result.kind === 'sample-ballot' ? 'Sample ballot opened' : 'Preferences opened',
+      message: result.kind === 'starter'
+        ? `${result.applied ?? 0} topics updated`
+        : `Review ${result.title || 'the shared work'} before editing.`,
+      duration: 5000,
+    });
+  };
+
   // Dispatch hint availability for mobile (no hover). Trigger when state changes.
   useEffect(() => {
     const fire = (key: string, anchorId: string, content: string) => emitHint(key, anchorId, content, 'auto');
@@ -157,7 +193,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
             left: '2px', 
             fontSize: '10px', 
             background: 'var(--accent)', 
-            color: 'white', 
+            color: '#06131f', 
             padding: '1px 2px', 
             borderRadius: '6px',
             fontWeight: '600',
@@ -227,8 +263,13 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
             </button>
             {open && (
               <div ref={exportMenuRef} className="mobile-export-menu" role="menu">
+                <button className="btn primary" style={{ width: 44, height: 44 }} aria-label="Copy Review Link" title="Copy Review Link" onClick={async () => {
+                  try {
+                    await copyReviewLink();
+                  } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } finally { setOpen(false); }
+                }} role="menuitem"><IconShare /></button>
                 {hasStarterTopics || hasStarterItems ? (
-                  <button className="btn" style={{ width: 44, height: 44 }} aria-label="Copy Share Link" title="Copy Share Link" onClick={async () => {
+                  <button className="btn" style={{ width: 44, height: 44 }} aria-label="Copy Compact Link" title="Copy Compact Link" onClick={async () => {
                     try {
                       const payload = encodeStarterPreferencesV2(useStore.getState().topics, useStore.getState().items);
                       const url = buildShareUrlV2(payload);
@@ -237,8 +278,8 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
                     } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } finally { setOpen(false); }
                   }} role="menuitem"><IconLink /></button>
                 ) : null}
-                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Full Share JSON" title="Full Share JSON" onClick={() => { setOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
-                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Full Share PDF" title="Full Share PDF" onClick={() => { setOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
+                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Full Share JSON" title="Full Share JSON" onClick={() => { setOpen(false); try { ballotMode === 'ballot' ? exportBallotJSON() : exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
+                <button className="btn" style={{ width: 44, height: 44 }} aria-label="Full Share PDF" title="Full Share PDF" onClick={() => { setOpen(false); (ballotMode === 'ballot' ? exportBallotPDF() : exportPDF()).catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
               </div>
             )}
           </>
@@ -290,14 +331,10 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
                   <IconBraces />
                 </button>
                 <button className="btn" style={{ width: 44, height: 44 }} aria-label="Apply from Link" title="Apply from Link" role="menuitem" onClick={() => {
-                  const url = prompt('Paste share link (supports #sp2= or #sp=)');
+                  const url = prompt('Paste review or compact share link');
                   if (!url) return;
                   try {
-                    const data = extractAndDecodeFromUrl(url);
-                    if (!data) { alert('Invalid share payload'); return; }
-                    const { applied } = applyStarterPreferences(data);
-                    toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
-                    window.dispatchEvent(new Event('vt-open-card-view'));
+                    applyLink(url);
                   } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
                   finally { setImportOpen(false); }
                 }}>

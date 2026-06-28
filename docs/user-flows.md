@@ -2,28 +2,28 @@
 
 ## Personas
 
-### First-time voter
-A newcomer who wants guidance to build a preference set from scratch.
+### Activated ballot builder
+A politically literate friend who researches choices, builds a reusable sample ballot, and shares it with people who trust their judgment.
 
-### Organizer building ballots
-An organizer assembling sample ballots for a group using a prepared preference set.
+### Reviewing friend
+A friend who receives a sample ballot, wants to understand the decisions and value differences, and then makes a local copy with their own changes.
 
 ### Power user comparing sets
 An experienced user who imports and compares multiple preference sets.
 
 ## Flows
 
-### First-time voter
-1. **StarterPackPicker** – select initial topics.
-2. **TopicCards** – sort topics by priority.
-3. **TopicList** – add directions and rate them.
-4. **BallotBuilder** – create a sample ballot for sharing.
+### Activated ballot builder
+1. **StarterPackPicker / Import** – load starter topics or a prepared preference set.
+2. **TopicList** – refine outcomes, ratings, notes, and source links that explain the recommendation.
+3. **BallotBuilder** – assemble offices, candidates, measures, scores, and reasoning.
+4. **Share / Export** – copy a review link for the complete sample ballot, with JSON/PDF as backup formats.
 
-### Organizer building ballots
-1. **StarterPackPicker** – load or import a prepared topic list.
-2. **TopicList** – refine directions and ratings as needed.
-3. **BallotBuilder** – assemble offices, candidates, and measures.
-4. **Exporters** – share the completed ballot.
+### Reviewing friend
+1. **Open review link** – load the shared preference set or sample ballot.
+2. **Review decisions** – inspect topics, scores, and reasoning to understand the builder's values.
+3. **Make My Copy** – switch from review context into a local editable version.
+4. **Adjust and share** – change ratings or choices, then copy a new review link.
 
 ### Power user comparing sets
 1. **StarterPackPicker** or Import – load multiple preference sets.

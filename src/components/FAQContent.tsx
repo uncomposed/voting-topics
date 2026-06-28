@@ -10,16 +10,20 @@ const faqEntries = [
     a: 'Topic priority is still a first-class rating. It tells the app how important that whole theme is to you, separately from the stars on individual items.',
   },
   {
-    q: 'What is Quick Share?',
-    a: 'Quick Share creates a compact link that only includes starter-backed topics and items. It keeps data local-first, but custom topics and items are not included.',
+    q: 'What is a review link?',
+    a: 'A review link includes the complete preference set or sample ballot so a friend can inspect your decisions, compare values, and make a local copy.',
   },
   {
-    q: 'What is Full Share?',
-    a: 'Full Share exports a complete snapshot of your current data as JSON or PDF.',
+    q: 'What is a compact link?',
+    a: 'Compact links only include starter-backed topics and items. They are shorter, but custom topics and items are excluded.',
+  },
+  {
+    q: 'What are JSON and PDF exports for?',
+    a: 'JSON is a backup/import format. PDF is a readable artifact for offline review. Review links are the easiest handoff when someone should adapt your work.',
   },
   {
     q: 'How private is this tool?',
-    a: 'Your work stays local in the browser by default. There are no accounts, and Quick Share works by encoding starter-backed ratings in the URL instead of storing your data on a server.',
+    a: 'Your work stays local in the browser by default. There are no accounts. Share and review links encode the selected data into the URL instead of storing it on an app server.',
   },
   {
     q: 'How should I use AI imports?',

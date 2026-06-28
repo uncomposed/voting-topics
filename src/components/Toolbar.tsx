@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../store';
-import { exportJSON, exportPDF } from '../exporters';
+import { exportBallotJSON, exportBallotPDF, exportJSON, exportPDF } from '../exporters';
 import { isPreferenceExportReady, isBallotShareReady } from '../utils/readiness';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
 import { toast } from '../utils/toast';
 import { scrollIntoViewSmart } from '../utils/scroll';
-import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, itemIndex, extractAndDecodeFromUrl, applyStarterPreferences } from '../utils/share';
+import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, itemIndex } from '../utils/share';
+import { applySharedUrlToStore, buildCurrentReviewUrl } from '../utils/shareActions';
 import { emitHint } from '../utils/hints';
 import { coerceItems, getItemsForTopic } from '../utils/items';
 
@@ -290,6 +291,43 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const hasStarterItems = effectiveItems.some(item => itemIndex.includes(item.id));
   const quickShareReady = hasStarterTopics || hasStarterItems;
 
+  const copyReviewLink = async () => {
+    const url = buildCurrentReviewUrl(ballotMode);
+    await navigator.clipboard.writeText(url);
+    toast.show({
+      variant: 'success',
+      title: 'Review link copied',
+      message: ballotMode === 'ballot'
+        ? 'This link includes the complete sample ballot for review.'
+        : 'This link includes the complete preference set for review.',
+      duration: 5000,
+    });
+  };
+
+  const applyLink = (url: string) => {
+    const result = applySharedUrlToStore(url);
+    if (!result) {
+      alert('Invalid share payload');
+      return;
+    }
+    setShowLLMIntegration(false);
+    setShowDiffComparison(false);
+    if (result.kind === 'sample-ballot') {
+      setBallotMode('ballot');
+    } else {
+      setBallotMode('preference');
+      window.dispatchEvent(new Event('vt-open-card-view'));
+    }
+    toast.show({
+      variant: 'success',
+      title: result.kind === 'sample-ballot' ? 'Sample ballot opened' : 'Preferences opened',
+      message: result.kind === 'starter'
+        ? `${result.applied ?? 0} topics updated`
+        : `Review ${result.title || 'the shared work'} and make your own copy before editing.`,
+      duration: 5000,
+    });
+  };
+
   const jumpToTopicId = (id: string | undefined) => {
     if (!id) return;
     const target = document.querySelector(`[data-topic-id="${id}"]`) as HTMLElement | null;
@@ -429,7 +467,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               left: '1px', 
               fontSize: '10px', 
               background: 'var(--accent)', 
-              color: 'white', 
+              color: '#06131f', 
               padding: '1px 3px', 
               borderRadius: '6px',
               fontWeight: '600',
@@ -454,6 +492,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               {exportMode === 'choice' ? (
                 <>
                   <div className="muted" style={{ padding: '4px 6px' }}>Choose a share mode</div>
+                  <button id="btn-export-copy-review-inline" className="btn primary" role="menuitem" onClick={async () => {
+                    try {
+                      await copyReviewLink();
+                    } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                    finally { setExportOpen(false); }
+                  }}>Copy Review Link</button>
                   {quickShareReady && (
                     <button id="btn-export-copy-share-inline" className="btn" role="menuitem" onClick={async () => {
                       try {
@@ -463,16 +507,22 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         toast.show({ variant: 'success', title: 'Quick share copied', message: 'Only starter-backed topics and items are included in quick share links.', duration: 5000 });
                       } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
                       finally { setExportOpen(false); }
-                    }}>Quick Share</button>
+                    }}>Copy Compact Link</button>
                   )}
                   <button id="btn-export-full-inline" className="btn" role="menuitem" onClick={() => setExportMode('full')}>Full Share</button>
                   <div className="muted" style={{ padding: '4px 6px', maxWidth: 240 }}>
-                    Quick Share stays local-first and compact. Custom topics and items are excluded.
+                    Review links include your complete set. Compact links only include starter-backed topics and items.
                   </div>
                 </>
               ) : (
                 <>
                   <div className="muted" style={{ padding: '4px 6px' }}>Full Share format</div>
+                  <button className="btn primary" role="menuitem" onClick={async () => {
+                    try {
+                      await copyReviewLink();
+                    } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                    finally { setExportOpen(false); }
+                  }}>Copy Review Link</button>
                   <button id="btn-export-json-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>JSON</button>
                   <button id="btn-export-pdf-inline" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>PDF</button>
                   <button className="btn ghost" role="menuitem" onClick={() => setExportMode('choice')}>Back</button>
@@ -492,8 +542,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           {exportOpen && (
             <div className="toolbar-menu" role="menu" onClick={(e) => e.stopPropagation()}>
               <div className="muted" style={{ padding: '4px 6px' }}>Ballot export format</div>
-              <button id="btn-export-json-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
-              <button id="btn-export-pdf-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Export PDF</button>
+              <button className="btn primary" role="menuitem" onClick={async () => {
+                try {
+                  await copyReviewLink();
+                } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                finally { setExportOpen(false); }
+              }}>Copy Review Link</button>
+              <button id="btn-export-json-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); try { exportBallotJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Export JSON</button>
+              <button id="btn-export-pdf-inline-ballot" className="btn" role="menuitem" onClick={() => { setExportOpen(false); exportBallotPDF().catch(e => alert(String(e))); }}>Export PDF</button>
             </div>
           )}
         </div>
@@ -544,13 +600,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <div className="toolbar-menu" role="menu">
               <button className="btn" role="menuitem" onClick={() => { setImportInlineOpen(false); fileRef.current?.click(); }}>Import JSON…</button>
               <button className="btn" role="menuitem" onClick={() => {
-                const url = prompt('Paste share link (supports #sp2= or #sp=)');
+                const url = prompt('Paste review or compact share link');
                 if (!url) return;
                 try {
-                  const data = extractAndDecodeFromUrl(url);
-                  if (!data) { alert('Invalid share payload'); return; }
-                  const { applied } = applyStarterPreferences(data);
-                  toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
+                  applyLink(url);
                 } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
                 finally { setImportInlineOpen(false); }
               }}>Apply from Link…</button>
@@ -655,14 +708,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <button id="btn-import" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); fileRef.current?.click(); }}>Import JSON</button>
             <button id="btn-import-from-link" className="btn" role="menuitem" onClick={() => {
               setMoreOpen(false);
-              const url = prompt('Paste share link (supports #sp2= or #sp=)');
+              const url = prompt('Paste review or compact share link');
               if (!url) return;
               try {
-                const data = extractAndDecodeFromUrl(url);
-                if (!data) { alert('Invalid share payload'); return; }
-                const { applied } = applyStarterPreferences(data);
-                toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
-                window.dispatchEvent(new Event('vt-open-card-view'));
+                applyLink(url);
               } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
             }}>Apply from Link…</button>
             {quickShareReady && (
@@ -683,7 +732,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   }
                 }}
               >
-                Copy Share Link
+                Copy Compact Link
               </button>
             )}
             {ballotMode !== 'ballot' && (
@@ -746,6 +795,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   <button className="btn" role="menuitem" onClick={() => setMenuExportOpen(v => !v)} aria-expanded={menuExportOpen}>Share…</button>
                   {menuExportOpen && (
                     <div className="toolbar-menu" role="menu" style={{ position: 'static', marginTop: 6 }}>
+                      <button className="btn primary" role="menuitem" onClick={async () => {
+                        try {
+                          await copyReviewLink();
+                        } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                        finally { setMoreOpen(false); setMenuExportOpen(false); }
+                      }}>Copy Review Link</button>
                       {quickShareReady && (
                         <button className="btn" role="menuitem" onClick={async () => {
                           try {
@@ -755,7 +810,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             toast.show({ variant: 'success', title: 'Quick share copied', message: 'Custom topics and items are not included in quick share links.', duration: 5000 });
                           } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
                           finally { setMoreOpen(false); setMenuExportOpen(false); }
-                        }}>Quick Share</button>
+                        }}>Copy Compact Link</button>
                       )}
                       <button id="btn-export-json" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setMenuExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); } }}>Full Share: JSON</button>
                       <button id="btn-export-pdf" className="btn" role="menuitem" onClick={() => { setMoreOpen(false); setMenuExportOpen(false); exportPDF().catch(e => alert(String(e))); }}>Full Share: PDF</button>

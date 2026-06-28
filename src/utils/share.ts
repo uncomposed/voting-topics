@@ -1,7 +1,7 @@
 import { useStore } from '../store';
-import type { Item, Topic } from '../schema';
+import type { Ballot, Item, PreferenceSet, Topic } from '../schema';
 import { coerceItems } from './items';
-import { hydrateTopicsWithItems } from '../schema';
+import { hydrateTopicsWithItems, parseIncomingBallot, parseIncomingPreferenceSet } from '../schema';
 import starterPackData from '../../starter-pack.v2.4.json';
 import type { StarterPackJson } from '../types';
 
@@ -30,14 +30,47 @@ export const directionTextIndex: string[][] = topicIndex.map((topicId) =>
   starterItems.filter((item) => (item.topicIds || []).includes(topicId)).map((item) => item.text.toLowerCase()),
 );
 
-const base64urlEncode = (s: string): string => Buffer.from(s, 'utf8').toString('base64')
-  .replace(/\+/g, '-')
-  .replace(/\//g, '_')
-  .replace(/=+$/g, '');
+const getBuffer = () => (
+  globalThis as typeof globalThis & {
+    Buffer?: { from: (input: string | Uint8Array, encoding?: string) => { toString: (encoding: string) => string } };
+  }
+).Buffer;
+
+const binaryFromUtf8 = (value: string): string => {
+  if (typeof TextEncoder !== 'undefined') {
+    return Array.from(new TextEncoder().encode(value), byte => String.fromCharCode(byte)).join('');
+  }
+  const BufferCtor = getBuffer();
+  if (!BufferCtor) throw new Error('No UTF-8 encoder available');
+  return BufferCtor.from(value, 'utf8').toString('binary');
+};
+
+const utf8FromBinary = (value: string): string => {
+  if (typeof TextDecoder !== 'undefined') {
+    return new TextDecoder().decode(Uint8Array.from(value, char => char.charCodeAt(0)));
+  }
+  const BufferCtor = getBuffer();
+  if (!BufferCtor) throw new Error('No UTF-8 decoder available');
+  return BufferCtor.from(value, 'binary').toString('utf8');
+};
+
+export const base64urlEncode = (value: string): string => {
+  const binary = binaryFromUtf8(value);
+  const encoded = typeof btoa === 'function'
+    ? btoa(binary)
+    : getBuffer()?.from(binary, 'binary').toString('base64');
+  if (!encoded) throw new Error('No base64 encoder available');
+  return encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+};
 
 const base64urlDecode = (s: string): string => {
   const pad = s.length % 4 === 0 ? '' : '='.repeat(4 - (s.length % 4));
-  return Buffer.from(s.replace(/-/g, '+').replace(/_/g, '/') + pad, 'base64').toString('utf8');
+  const normalized = s.replace(/-/g, '+').replace(/_/g, '/') + pad;
+  const binary = typeof atob === 'function'
+    ? atob(normalized)
+    : getBuffer()?.from(normalized, 'base64').toString('binary');
+  if (!binary) throw new Error('No base64 decoder available');
+  return utf8FromBinary(binary);
 };
 
 export interface StarterPayloadSparse {
@@ -61,6 +94,19 @@ export interface LegacyStarterPayloadSparse {
 }
 
 export type StarterPayload = StarterPayloadSparse | LegacyStarterPayloadDense | LegacyStarterPayloadSparse;
+
+export interface FullSharePayload {
+  v: 'vt.full.v1';
+  kind: 'preference-set' | 'sample-ballot';
+  title: string;
+  createdAt: string;
+  data: PreferenceSet | Ballot;
+}
+
+export type DecodedShare =
+  | { kind: 'starter'; payload: StarterPayload }
+  | { kind: 'preference-set'; payload: FullSharePayload; data: PreferenceSet }
+  | { kind: 'sample-ballot'; payload: FullSharePayload; data: Ballot };
 
 const clamp = (value: number) => Math.max(0, Math.min(5, Number(value) || 0));
 
@@ -272,6 +318,44 @@ export const buildShareUrlV2 = (
   return `${url.origin}${url.pathname}${url.search}#sp2=${payload}`;
 };
 
+export const encodeFullSharePayload = (
+  kind: FullSharePayload['kind'],
+  data: PreferenceSet | Ballot,
+  title = 'Voting Topics review link',
+): string => base64urlEncode(JSON.stringify({
+  v: 'vt.full.v1',
+  kind,
+  title,
+  createdAt: new Date().toISOString(),
+  data,
+} satisfies FullSharePayload));
+
+export const decodeFullSharePayload = (payload: string): DecodedShare | null => {
+  try {
+    const parsed = JSON.parse(base64urlDecode(payload)) as FullSharePayload;
+    if (!parsed || parsed.v !== 'vt.full.v1') return null;
+    if (parsed.kind === 'preference-set') {
+      const data = parseIncomingPreferenceSet(parsed.data);
+      return { kind: 'preference-set', payload: { ...parsed, data }, data };
+    }
+    if (parsed.kind === 'sample-ballot') {
+      const data = parseIncomingBallot(parsed.data);
+      return { kind: 'sample-ballot', payload: { ...parsed, data }, data };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+export const buildFullShareUrl = (
+  payload: string,
+  base: string = typeof window !== 'undefined' ? window.location.href : 'http://localhost/',
+): string => {
+  const url = new URL(base);
+  return `${url.origin}${url.pathname}${url.search}#full=${payload}`;
+};
+
 export const extractAndDecodeFromUrl = (url: string): StarterPayload | null => {
   try {
     const m2 = url.match(/[#&]sp2=([^&]+)/);
@@ -285,4 +369,21 @@ export const extractAndDecodeFromUrl = (url: string): StarterPayload | null => {
   } catch {
     return null;
   }
+};
+
+export const extractFullShareFromUrl = (url: string): DecodedShare | null => {
+  try {
+    const full = url.match(/[#&?]full=([^&]+)/) || url.match(/[#&?]share=([^&]+)/);
+    if (!full) return null;
+    return decodeFullSharePayload(decodeURIComponent(full[1]));
+  } catch {
+    return null;
+  }
+};
+
+export const extractShareFromUrl = (url: string): DecodedShare | null => {
+  const full = extractFullShareFromUrl(url);
+  if (full) return full;
+  const starter = extractAndDecodeFromUrl(url);
+  return starter ? { kind: 'starter', payload: starter } : null;
 };

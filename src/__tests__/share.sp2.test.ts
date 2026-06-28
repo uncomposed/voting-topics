@@ -1,6 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import type { Topic } from '../schema';
-import { encodeStarterPreferencesV2, decodeStarterPreferencesV2, extractAndDecodeFromUrl, topicIndex, directionIndex, buildShareUrl, buildShareUrlV2 } from '../utils/share';
+import type { PreferenceSet, Topic } from '../schema';
+import {
+  base64urlEncode,
+  buildFullShareUrl,
+  buildShareUrl,
+  buildShareUrlV2,
+  decodeFullSharePayload,
+  decodeStarterPreferencesV2,
+  encodeFullSharePayload,
+  encodeStarterPreferencesV2,
+  extractAndDecodeFromUrl,
+  extractShareFromUrl,
+  topicIndex,
+  directionIndex,
+} from '../utils/share';
 
 describe('sp2 share encoding', () => {
   it('roundtrips small set and stays short', () => {
@@ -69,6 +82,45 @@ describe('sp2 share encoding', () => {
     const url = `https://example.com/app#sp2=${p2}`;
     const parsed = extractAndDecodeFromUrl(url);
     expect(parsed && 'tip' in parsed).toBe(true);
+  });
+
+  it('roundtrips without a Node Buffer global', () => {
+    const globals = globalThis as typeof globalThis & { Buffer?: unknown };
+    const originalBuffer = globals.Buffer;
+    globals.Buffer = undefined;
+    try {
+      const topics: Topic[] = [
+        { id: topicIndex[0], title: topicIndex[0], importance: 3, stance: 'neutral', directions: [], notes: '', sources: [], relations: { broader: [], narrower: [], related: [] } },
+      ];
+      const payload = encodeStarterPreferencesV2(topics);
+      const decoded = decodeStarterPreferencesV2(payload);
+      expect(decoded?.tip).toContainEqual([0, 3]);
+    } finally {
+      globals.Buffer = originalBuffer;
+    }
+  });
+
+  it('roundtrips a full preference review link', () => {
+    const preferenceSet: PreferenceSet = {
+      version: 'tsb.v2',
+      title: 'Research friend sample',
+      notes: 'A complete set with custom work',
+      topics: [
+        { id: 'custom-topic', title: 'Public health', importance: 4, stance: 'for', notes: '', sources: [], relations: { broader: [], narrower: [], related: [] } },
+      ],
+      items: [
+        { id: 'custom-item', text: 'Shorter emergency room waits', stars: 5, notes: '', sources: [], topicIds: ['custom-topic'], tags: [] },
+      ],
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    };
+    const payload = encodeFullSharePayload('preference-set', preferenceSet, preferenceSet.title);
+    const decoded = decodeFullSharePayload(payload);
+    expect(decoded?.kind).toBe('preference-set');
+    expect(decoded?.data.title).toBe('Research friend sample');
+    const url = buildFullShareUrl(payload, 'https://example.com/app?x=1');
+    expect(url).toContain('#full=');
+    expect(extractShareFromUrl(url)?.kind).toBe('preference-set');
   });
 
   it('builds share urls with custom base', () => {
@@ -152,8 +204,7 @@ describe('sp2 share encoding', () => {
 
   it('returns null for malformed or unknown payloads', () => {
     expect(extractAndDecodeFromUrl('https://x#sp2=%%%')).toBeNull();
-    const bad = Buffer.from(JSON.stringify({ v: 'unknown', ti: [], ds: [] }), 'utf8').toString('base64')
-      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const bad = base64urlEncode(JSON.stringify({ v: 'unknown', ti: [], ds: [] }));
     expect(extractAndDecodeFromUrl(`https://x#sp=${bad}`)).toBeNull();
   });
 });

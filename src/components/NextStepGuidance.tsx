@@ -30,7 +30,7 @@ export const NextStepGuidance: React.FC = () => {
       default:
         return {
           current: 'Preference Set Complete',
-          next: 'Export your preferences or create a sample ballot',
+          next: 'Copy a review link or create a sample ballot',
           action: 'export-or-ballot'
         };
     }
@@ -59,7 +59,7 @@ export const NextStepGuidance: React.FC = () => {
       case 'export-or-ballot':
         return (
           <div className="muted" style={{ fontSize: '0.9rem' }}>
-            👆 Use the buttons below to export or create a ballot
+            👆 Use Share to copy a review link, or open Ballot to build a sample
           </div>
         );
       default:

@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
-import { exportJSON, exportPDF } from '../exporters';
+import { exportBallotJSON, exportBallotPDF, exportJSON, exportPDF } from '../exporters';
 import { parseIncomingPreferenceSet, parseIncomingBallot } from '../schema';
-import { encodeStarterPreferencesV2, buildShareUrlV2, extractAndDecodeFromUrl, applyStarterPreferences, topicIndex, topicTitleIndex, itemIndex } from '../utils/share';
+import { encodeStarterPreferencesV2, buildShareUrlV2, topicIndex, topicTitleIndex, itemIndex } from '../utils/share';
+import { applySharedUrlToStore, buildCurrentReviewUrl } from '../utils/shareActions';
 import { IconShare, IconBraces, IconFile, IconLink } from './icons';
 import { toast } from '../utils/toast';
+import { isBallotShareReady } from '../utils/readiness';
 
 export const MobileMenu: React.FC = () => {
   const addTopic = useStore(s => s.addTopic);
@@ -89,6 +91,42 @@ export const MobileMenu: React.FC = () => {
   const exportReady = hasTopics && items.some(item => item.topicIds.length > 0) && items.some(item => item.stars > 0);
   const hasStarterTopics = topics.some(t => topicIndex.includes(t.id) || topicTitleIndex.includes((t.title || '').toLowerCase()));
   const hasStarterItems = items.some(item => itemIndex.includes(item.id));
+  const ballotReady = ballotMode === 'ballot' && isBallotShareReady(currentBallot);
+
+  const copyReviewLink = async () => {
+    const url = buildCurrentReviewUrl(ballotMode);
+    await navigator.clipboard.writeText(url);
+    toast.show({
+      variant: 'success',
+      title: 'Review link copied',
+      message: ballotMode === 'ballot'
+        ? 'This link includes the complete sample ballot.'
+        : 'This link includes the complete preference set.',
+      duration: 5000,
+    });
+  };
+
+  const applyLink = (url: string) => {
+    const result = applySharedUrlToStore(url);
+    if (!result) {
+      alert('Invalid share payload');
+      return;
+    }
+    if (result.kind === 'sample-ballot') {
+      window.dispatchEvent(new Event('vt-create-ballot'));
+    } else {
+      window.dispatchEvent(new Event('vt-back-preferences'));
+      window.dispatchEvent(new Event('vt-open-card-view'));
+    }
+    toast.show({
+      variant: 'success',
+      title: result.kind === 'sample-ballot' ? 'Sample ballot opened' : 'Preferences opened',
+      message: result.kind === 'starter'
+        ? `${result.applied ?? 0} topics updated`
+        : `Review ${result.title || 'the shared work'} before editing.`,
+      duration: 5000,
+    });
+  };
 
   // Determine if comparison view is currently active (DOM check is fine for SPA)
   const isComparing = typeof document !== 'undefined' && !!document.querySelector('.diff-container');
@@ -104,13 +142,19 @@ export const MobileMenu: React.FC = () => {
             </div>
             <div className="mobile-menu-items">
               <button className="btn" onClick={() => { addTopic(0); setOpen(false); }}>New Topic</button>
-              {exportReady && (
+              {(exportReady || ballotReady) && (
                 <div style={{ position: 'relative' }}>
                   <button className="btn" onClick={() => setExportOpen(v => !v)} aria-expanded={exportOpen} aria-label="Export options" title="Export"><IconShare /></button>
                   {exportOpen && (
                     <div className="mobile-export-menu" role="menu" style={{ right: 0, position: 'absolute' }}>
+                      <button className="btn primary" aria-label="Copy Review Link" title="Copy Review Link" onClick={async () => {
+                        try {
+                          await copyReviewLink();
+                        } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
+                        finally { setExportOpen(false); setOpen(false); }
+                      }} role="menuitem"><IconShare /></button>
                       {hasStarterTopics || hasStarterItems ? (
-                        <button className="btn" aria-label="Copy Share Link" title="Copy Share Link" onClick={async () => {
+                        <button className="btn" aria-label="Copy Compact Link" title="Copy Compact Link" onClick={async () => {
                           try {
                             const payload = encodeStarterPreferencesV2(useStore.getState().topics, useStore.getState().items);
                             const url = buildShareUrlV2(payload);
@@ -120,22 +164,18 @@ export const MobileMenu: React.FC = () => {
                           finally { setExportOpen(false); setOpen(false); }
                         }} role="menuitem"><IconLink /></button>
                       ) : null}
-                      <button className="btn" aria-label="Full Share JSON" title="Full Share JSON" onClick={() => { setExportOpen(false); try { exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
-                      <button className="btn" aria-label="Full Share PDF" title="Full Share PDF" onClick={() => { setExportOpen(false); exportPDF().catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
+                      <button className="btn" aria-label="Full Share JSON" title="Full Share JSON" onClick={() => { setExportOpen(false); try { ballotMode === 'ballot' ? exportBallotJSON() : exportJSON(); } catch (e) { alert(String(e)); } }} role="menuitem"><IconBraces /></button>
+                      <button className="btn" aria-label="Full Share PDF" title="Full Share PDF" onClick={() => { setExportOpen(false); (ballotMode === 'ballot' ? exportBallotPDF() : exportPDF()).catch(e => alert(String(e))); }} role="menuitem"><IconFile /></button>
                     </div>
                   )}
                 </div>
               )}
               {/* Copy Share Link now lives inside Export… submenu to save space */}
               <button className="btn" onClick={() => {
-                const url = prompt('Paste share link (supports #sp2= or #sp=)');
+                const url = prompt('Paste review or compact share link');
                 if (!url) return;
               try {
-                const data = extractAndDecodeFromUrl(url);
-                if (!data) { alert('Invalid share payload'); return; }
-                const { applied } = applyStarterPreferences(data);
-                toast.show({ variant: 'success', title: 'Preferences applied', message: `${applied} topics updated`, duration: 4000 });
-                window.dispatchEvent(new Event('vt-open-card-view'));
+                applyLink(url);
               } catch (e) { alert(String(e instanceof Error ? e.message : String(e))); }
               finally { setOpen(false); }
             }}>Apply from Link…</button>

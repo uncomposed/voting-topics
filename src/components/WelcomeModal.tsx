@@ -7,26 +7,26 @@ interface WelcomeModalProps {
 }
 
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isSharedView, onDismiss, onOpenGuide }) => {
-  const headline = isSharedView ? 'You are viewing a shared preference set' : 'Welcome to Voting Topics Builder';
+  const headline = isSharedView ? 'Review a shared sample' : 'Build a reusable sample ballot';
   const intro = isSharedView
-    ? 'Someone shared their preference set with you. Explore their priorities, fork a copy to make it your own, or start from scratch.'
-    : 'This workspace helps you capture the outcomes you want from public policy and turn them into a sample ballot.';
+    ? 'Someone shared their decisions and values with you. Review where you agree, make a local copy, then adjust it into your own version.'
+    : 'This workspace helps politically engaged friends turn values into a reusable sample ballot that other people can review and adapt.';
 
   const actions = [
     {
       emoji: '📝',
-      title: '1. Capture your priorities',
-      body: 'Add topics that matter, then add items — specific outcomes you want, which can belong to more than one topic.'
+      title: '1. Capture the values',
+      body: 'Add topics and concrete outcomes so readers can see what drove the sample ballot.'
     },
     {
       emoji: '⭐',
-      title: '2. Rate importance',
-      body: 'Use the 0–5 star scale (0 = skip for now) to show how strongly you care about each direction.'
+      title: '2. Make the tradeoffs visible',
+      body: 'Use 0-5 ratings to show which outcomes matter most and which are lower priority.'
     },
     {
       emoji: '🗳️',
-      title: '3. Build a STAR Voting ballot',
-      body: 'Score every candidate in the ballot builder, export, and share your results.'
+      title: '3. Share for review',
+      body: 'Build a sample ballot, copy a review link, and let friends compare your choices with their own.'
     }
   ];
 
