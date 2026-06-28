@@ -35,6 +35,16 @@ const findTopCandidateId = (candidates: Candidate[]): string | undefined => {
 type CandidateInput = Omit<Candidate, 'id' | 'score'> & { score?: number; id?: string };
 type OfficeInput = Omit<Office, 'id' | 'candidates'> & { candidates: CandidateInput[] };
 
+export type ShareReviewKind = 'starter' | 'preference-set' | 'sample-ballot';
+
+export interface ShareReviewState {
+  active: boolean;
+  kind?: ShareReviewKind;
+  title?: string;
+  sourceUrl?: string;
+  shareId?: string;
+}
+
 interface StarterTopicInput {
   id?: string;
   title: string;
@@ -52,6 +62,7 @@ interface Store {
   ballotMode: 'preference' | 'ballot';
   currentBallot: Ballot | null;
   ballotHistory: Ballot[];
+  shareReview: ShareReviewState;
 
   currentFlowStep: 'starter' | 'cards' | 'list' | 'complete';
   hasSeenIntroModal: boolean;
@@ -76,6 +87,8 @@ interface Store {
   patchDirection: (topicId: string, directionId: string, patch: Partial<Direction>) => void;
   clearAll: () => void;
   importData: (data: { title: string; notes: string; topics: Topic[]; items?: Item[] }) => void;
+  setShareReview: (review: ShareReviewState) => void;
+  clearShareReview: () => void;
 
   setCurrentFlowStep: (step: 'starter' | 'cards' | 'list' | 'complete') => void;
   advanceFlowStep: () => void;
@@ -134,6 +147,7 @@ export const useStore = create<Store>()(
       ballotMode: 'preference' as const,
       currentBallot: null,
       ballotHistory: [],
+      shareReview: { active: false },
 
       currentFlowStep: 'starter' as const,
       hasSeenIntroModal: false,
@@ -302,6 +316,7 @@ export const useStore = create<Store>()(
         ballotMode: 'preference',
         currentBallot: null,
         ballotHistory: [],
+        shareReview: { active: false },
       }),
       importData: (data) => set({
         title: data.title,
@@ -310,6 +325,8 @@ export const useStore = create<Store>()(
         items: data.items ?? [],
         __createdAt: new Date().toISOString(),
       }),
+      setShareReview: (review) => set({ shareReview: review }),
+      clearShareReview: () => set({ shareReview: { active: false } }),
 
       setCurrentFlowStep: (step) => {
         trackEvent('flow_step', { step });
@@ -508,7 +525,14 @@ export const useStore = create<Store>()(
       },
       recordExport: (type) => trackEvent('export', { type }),
     }),
-    { name: 'vt.m2' },
+    {
+      name: 'vt.m2',
+      partialize: (state) => {
+        const persisted: Partial<Store> = { ...state };
+        delete persisted.shareReview;
+        return persisted;
+      },
+    },
   ),
 );
 

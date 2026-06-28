@@ -1,4 +1,4 @@
-import { screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import { act, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest';
 import { renderAppWithStore } from './helpers';
 import { useStore } from '../store';
@@ -16,6 +16,36 @@ afterEach(() => {
   window.history.replaceState(null, '', '/');
   cleanup();
   vi.clearAllMocks();
+});
+
+const buildPreferenceSet = (title: string): PreferenceSet => ({
+  version: 'tsb.v2',
+  title,
+  notes: '',
+  topics: [
+    {
+      id: `${title.toLowerCase().replace(/\W+/g, '-')}-topic`,
+      title: 'Clean transit',
+      importance: 4,
+      stance: 'for',
+      notes: '',
+      sources: [],
+      relations: { broader: [], narrower: [], related: [] },
+    },
+  ],
+  items: [
+    {
+      id: `${title.toLowerCase().replace(/\W+/g, '-')}-item`,
+      text: 'More frequent buses',
+      stars: 5,
+      notes: '',
+      sources: [],
+      topicIds: [`${title.toLowerCase().replace(/\W+/g, '-')}-topic`],
+      tags: [],
+    },
+  ],
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-02T00:00:00.000Z',
 });
 
 describe('App integration smoke tests', () => {
@@ -85,35 +115,7 @@ describe('App integration smoke tests', () => {
   });
 
   it('shows shared review controls for full preference review links', async () => {
-    const preferenceSet: PreferenceSet = {
-      version: 'tsb.v2',
-      title: 'Shared Preference Example',
-      notes: '',
-      topics: [
-        {
-          id: 'shared-topic',
-          title: 'Clean transit',
-          importance: 4,
-          stance: 'for',
-          notes: '',
-          sources: [],
-          relations: { broader: [], narrower: [], related: [] },
-        },
-      ],
-      items: [
-        {
-          id: 'shared-item',
-          text: 'More frequent buses',
-          stars: 5,
-          notes: '',
-          sources: [],
-          topicIds: ['shared-topic'],
-          tags: [],
-        },
-      ],
-      createdAt: '2026-01-01T00:00:00.000Z',
-      updatedAt: '2026-01-02T00:00:00.000Z',
-    };
+    const preferenceSet = buildPreferenceSet('Shared Preference Example');
     const url = buildFullShareUrl(
       encodeFullSharePayload('preference-set', preferenceSet, preferenceSet.title),
       `${window.location.origin}/`,
@@ -133,6 +135,8 @@ describe('App integration smoke tests', () => {
     await waitFor(() => {
       expect(screen.queryByText('Review Shared Preference Set')).not.toBeInTheDocument();
     });
+    expect(window.location.href).not.toContain('#full=');
+    expect(useStore.getState().shareReview.active).toBe(false);
     restoreStore();
   });
 
@@ -191,6 +195,72 @@ describe('App integration smoke tests', () => {
     await waitFor(() => {
       expect(screen.queryByText('Review Shared Sample Ballot')).not.toBeInTheDocument();
     });
+    restoreStore();
+  });
+
+  it('rejects malformed share links without entering review mode or replacing local work', async () => {
+    const localTopic: Topic = {
+      id: 'local-topic',
+      title: 'Local housing',
+      importance: 3,
+      stance: 'neutral',
+      directions: [],
+      notes: '',
+      sources: [],
+      relations: { broader: [], narrower: [], related: [] },
+    };
+    window.history.replaceState(null, '', `${window.location.origin}/#full=not-a-valid-payload`);
+
+    const { restoreStore } = renderAppWithStore({
+      storeOverrides: { hasSeenIntroModal: true },
+      topics: [localTopic],
+    });
+
+    await waitFor(() => {
+      expect(useStore.getState().shareReview.active).toBe(false);
+    });
+    expect(screen.queryByText(/Review Shared/)).not.toBeInTheDocument();
+    expect(useStore.getState().topics[0]?.title).toBe('Local housing');
+    restoreStore();
+  });
+
+  it('applies a later share hash in an already open tab after confirmation', async () => {
+    const firstPreferenceSet = buildPreferenceSet('First Shared Set');
+    const secondPreferenceSet = buildPreferenceSet('Second Shared Set');
+    const firstUrl = buildFullShareUrl(
+      encodeFullSharePayload('preference-set', firstPreferenceSet, firstPreferenceSet.title),
+      `${window.location.origin}/`,
+    );
+    const secondUrl = buildFullShareUrl(
+      encodeFullSharePayload('preference-set', secondPreferenceSet, secondPreferenceSet.title),
+      `${window.location.origin}/`,
+    );
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    const { restoreStore } = renderAppWithStore({
+      storeOverrides: { hasSeenIntroModal: true },
+      topics: [],
+    });
+
+    act(() => {
+      window.history.pushState(null, '', firstUrl);
+      window.dispatchEvent(new Event('hashchange'));
+    });
+    await waitFor(() => {
+      expect(useStore.getState().title).toBe('First Shared Set');
+    });
+
+    act(() => {
+      window.history.pushState(null, '', secondUrl);
+      window.dispatchEvent(new Event('hashchange'));
+    });
+    await waitFor(() => {
+      expect(useStore.getState().title).toBe('Second Shared Set');
+    });
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    expect(useStore.getState().shareReview.title).toBe('Second Shared Set');
+
+    confirmSpy.mockRestore();
     restoreStore();
   });
 });

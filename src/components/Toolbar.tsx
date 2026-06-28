@@ -467,7 +467,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               left: '1px', 
               fontSize: '10px', 
               background: 'var(--accent)', 
-              color: '#06131f', 
+              color: '#06131f',
               padding: '1px 3px', 
               borderRadius: '6px',
               fontWeight: '600',

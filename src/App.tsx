@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { useStore } from './store';
 import { TopicCards } from './components/TopicCards';
 import { TopicModal } from './components/TopicModal';
@@ -15,7 +15,12 @@ import { MobileActionBar } from './components/MobileActionBar';
 import { MobileMenu } from './components/MobileMenu';
 import { Toolbar } from './components/Toolbar';
 import { toast } from './utils/toast';
-import { applyStarterPreferences, extractShareFromUrl } from './utils/share';
+import {
+  applySharedUrlToStore,
+  clearSharePayloadFromCurrentUrl,
+  getShareIdFromUrl,
+  hasSharePayload,
+} from './utils/shareActions';
 import { scrollIntoViewSmart } from './utils/scroll';
 import { WelcomeModal } from './components/WelcomeModal';
 
@@ -26,11 +31,12 @@ export const App: React.FC = () => {
   const patchTopic = useStore(state => state.patchTopic);
   const ballotMode = useStore(state => state.ballotMode);
   const setBallotMode = useStore(state => state.setBallotMode);
-  const importData = useStore(state => state.importData);
+  const shareReview = useStore(state => state.shareReview);
+  const clearShareReview = useStore(state => state.clearShareReview);
 
   const topicListRef = useRef<{ toggleAll: () => void; updateButtonText: () => void }>(null);
   const topicCardsRef = useRef<{ toggleExpanded: () => void; updateButtonText: () => void }>(null);
-  const shareAppliedRef = useRef(false);
+  const appliedShareIdRef = useRef<string | null>(null);
 
   const [showCards, setShowCards] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
@@ -42,8 +48,6 @@ export const App: React.FC = () => {
   const hasSeenIntroModal = useStore(state => state.hasSeenIntroModal);
   const setHasSeenIntroModal = useStore(state => state.setHasSeenIntroModal);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const [isSharedSession, setIsSharedSession] = useState(false);
-  const [sharedTitle, setSharedTitle] = useState<string | null>(null);
 
   // Set up expand/collapse button handler (other buttons are wired in main.tsx)
   useEffect(() => {
@@ -80,83 +84,95 @@ export const App: React.FC = () => {
   // Toolbar is now managed by React component via portal
 
   useEffect(() => {
-    const shareDetected = /(#sp2=|#sp=|#full=|#ballot=|[?&]share=)/i.test(window.location.href);
-    setIsSharedSession(shareDetected);
     if (!hasSeenIntroModal) {
       setShowWelcomeModal(true);
     }
   }, [hasSeenIntroModal]);
 
-  useEffect(() => {
-    const url = window.location.href;
-    const hasSharePayload = /(#sp2=|#sp=|#full=|#ballot=|[?&]share=)/i.test(url);
-    if (!hasSharePayload) return;
-    if (shareAppliedRef.current) return;
-    shareAppliedRef.current = true;
+  const applyReviewUrl = useCallback((url: string) => {
+    if (!hasSharePayload(url)) return null;
 
-    const data = extractShareFromUrl(url);
-    if (!data) {
+    const shareId = getShareIdFromUrl(url);
+    if (appliedShareIdRef.current === shareId) return null;
+
+    const result = applySharedUrlToStore(url);
+    if (!result) {
+      clearShareReview();
       toast.show({
         variant: 'danger',
         title: 'Shared link could not be opened',
         message: 'The link payload is missing, outdated, or malformed.',
         duration: 8000,
       });
-      return;
+      return null;
     }
 
-    if (data.kind === 'preference-set') {
-      importData({ ...data.data, notes: data.data.notes || '' });
-      setShowLLMIntegration(false);
-      setShowDiffComparison(false);
-      setBallotMode('preference');
-      setShowCards(true);
-      setIsSharedSession(true);
-      setSharedTitle(data.payload.title || data.data.title);
-      toast.show({
-        variant: 'success',
-        title: 'Shared preferences opened',
-        message: 'Review the values, then make a local copy before changing them.',
-        duration: 7000,
-      });
-      return;
-    }
+    appliedShareIdRef.current = result.shareId;
+    setShowLLMIntegration(false);
+    setShowDiffComparison(false);
 
-    if (data.kind === 'sample-ballot') {
-      useStore.setState({ currentBallot: data.data, ballotMode: 'ballot' });
-      setShowLLMIntegration(false);
-      setShowDiffComparison(false);
-      setIsSharedSession(true);
-      setSharedTitle(data.payload.title || data.data.title);
+    if (result.kind === 'sample-ballot') {
+      setBallotMode('ballot');
       toast.show({
         variant: 'success',
         title: 'Shared sample ballot opened',
         message: 'Review the choices and reasoning, then make a local copy to edit.',
         duration: 7000,
       });
-      return;
+      return result;
     }
 
-    const snapshot = {
-      topics: useStore.getState().topics,
-      items: useStore.getState().items,
-    };
-    const { applied } = applyStarterPreferences(data.payload);
-    setShowLLMIntegration(false);
-    setShowDiffComparison(false);
     setBallotMode('preference');
     setShowCards(true);
-    setIsSharedSession(true);
-    setSharedTitle('Compact starter share');
+    const undoSnapshot = result.kind === 'starter' ? result.undoSnapshot : undefined;
     toast.show({
       variant: 'success',
-      title: 'Preferences applied',
-      message: `${applied} topics updated`,
-      actionLabel: 'Undo',
-      onAction: () => useStore.setState(snapshot),
-      duration: 6000,
+      title: result.kind === 'starter' ? 'Preferences applied' : 'Shared preferences opened',
+      message: result.kind === 'starter'
+        ? `${result.applied ?? 0} topics updated`
+        : 'Review the values, then make a local copy before changing them.',
+      actionLabel: undoSnapshot ? 'Undo' : undefined,
+      onAction: undoSnapshot
+        ? () => {
+            useStore.setState(undoSnapshot);
+            clearShareReview();
+            clearSharePayloadFromCurrentUrl();
+            appliedShareIdRef.current = null;
+          }
+        : undefined,
+      duration: result.kind === 'starter' ? 6000 : 7000,
     });
-  }, [importData, setBallotMode]);
+    return result;
+  }, [clearShareReview, setBallotMode]);
+
+  useEffect(() => {
+    const applyCurrentLocationShare = (promptBeforeReplace: boolean) => {
+      const url = window.location.href;
+      if (!hasSharePayload(url)) return;
+
+      const shareId = getShareIdFromUrl(url);
+      if (appliedShareIdRef.current === shareId) return;
+
+      if (promptBeforeReplace) {
+        const state = useStore.getState();
+        const hasLocalWork = state.topics.length > 0 || state.items.length > 0 || !!state.currentBallot;
+        if (hasLocalWork && !window.confirm('Open this shared link and replace the work currently loaded in this tab?')) {
+          return;
+        }
+      }
+
+      applyReviewUrl(url);
+    };
+
+    applyCurrentLocationShare(false);
+    const onLocationChange = () => applyCurrentLocationShare(true);
+    window.addEventListener('hashchange', onLocationChange);
+    window.addEventListener('popstate', onLocationChange);
+    return () => {
+      window.removeEventListener('hashchange', onLocationChange);
+      window.removeEventListener('popstate', onLocationChange);
+    };
+  }, [applyReviewUrl]);
 
   useEffect(() => {
     const openWelcome = () => setShowWelcomeModal(true);
@@ -188,8 +204,9 @@ export const App: React.FC = () => {
   };
 
   const handleMakeMyCopy = () => {
-    setIsSharedSession(false);
-    setSharedTitle(null);
+    clearShareReview();
+    clearSharePayloadFromCurrentUrl();
+    appliedShareIdRef.current = null;
     toast.show({
       variant: 'success',
       title: 'Local copy ready',
@@ -330,7 +347,7 @@ export const App: React.FC = () => {
         setShowGettingStarted={setShowGettingStarted}
         onOpenWelcome={() => setShowWelcomeModal(true)}
       />
-      {isSharedSession && (
+      {shareReview.active && (
         <div className="panel-header-with-controls shared-review-banner">
           <div className="panel-header-left">
             <h2 className="panel-title">
@@ -338,8 +355,8 @@ export const App: React.FC = () => {
             </h2>
             <p className="muted">
               {ballotMode === 'ballot'
-                ? `You are reviewing ${sharedTitle ? `"${sharedTitle}"` : 'a shared sample ballot'}. Make a local copy before editing or publishing your version.`
-                : `You are reviewing ${sharedTitle ? `"${sharedTitle}"` : 'a shared preference set'}. Make a local copy before editing or publishing your version.`}
+                ? `You are reviewing ${shareReview.title ? `"${shareReview.title}"` : 'a shared sample ballot'}. Make a local copy before editing or publishing your version.`
+                : `You are reviewing ${shareReview.title ? `"${shareReview.title}"` : 'a shared preference set'}. Make a local copy before editing or publishing your version.`}
             </p>
           </div>
           <div className="panel-controls">
@@ -417,7 +434,7 @@ export const App: React.FC = () => {
 
       {showWelcomeModal && (
         <WelcomeModal
-          isSharedView={isSharedSession}
+          isSharedView={shareReview.active}
           onDismiss={() => {
             setHasSeenIntroModal(true);
             setHasSeenOnboarding(true);

@@ -193,7 +193,7 @@ export const MobileActionBar: React.FC<Props> = ({ showCards, onToggleView, show
             left: '2px', 
             fontSize: '10px', 
             background: 'var(--accent)', 
-            color: '#06131f', 
+            color: '#06131f',
             padding: '1px 2px', 
             borderRadius: '6px',
             fontWeight: '600',
