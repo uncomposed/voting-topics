@@ -1,32 +1,29 @@
-# User Personas and Flows
+# Gate 1 user flows
 
-## Personas
+## Creator
 
-### First-time voter
-A newcomer who wants guidance to build a preference set from scratch.
+1. Start the clearly fictional five-contest demo or import a validated election template.
+2. Make an explicit candidate or measure recommendation for every contest.
+3. Explain the recommendation and link at least one reusable desired-outcome statement.
+4. Optionally record personal-fit ratings and sources. Ratings never select candidates.
+5. Review only after every contest passes published-guide validation.
+6. Copy a compressed private review link, export JSON, or print to PDF.
 
-### Organizer building ballots
-An organizer assembling sample ballots for a group using a prepared preference set.
+## Reviewing friend
 
-### Power user comparing sets
-An experienced user who imports and compares multiple preference sets.
+1. Open a read-only review link.
+2. See each recommendation before its rationale, desired outcomes, sources, and secondary ratings.
+3. Choose **Make my copy** to confirm replacement, save an editable browser copy, and remove the shared hash from the address bar.
 
-## Flows
+## Existing pre-pivot user
 
-### First-time voter
-1. **StarterPackPicker** – select initial topics.
-2. **TopicCards** – sort topics by priority.
-3. **TopicList** – add directions and rate them.
-4. **BallotBuilder** – create a sample ballot for sharing.
+1. See that earlier `vt.m2` data still exists and is not compatible with the new guide model.
+2. Download the exact raw value as a backup or dismiss the notice.
+3. Start or import a guide under the separate `vt.guide.v1` key.
 
-### Organizer building ballots
-1. **StarterPackPicker** – load or import a prepared topic list.
-2. **TopicList** – refine directions and ratings as needed.
-3. **BallotBuilder** – assemble offices, candidates, and measures.
-4. **Exporters** – share the completed ballot.
+## Failure behavior
 
-### Power user comparing sets
-1. **StarterPackPicker** or Import – load multiple preference sets.
-2. **PreferenceSetComparison** – review differences between sets.
-3. **TopicCards** / **TopicList** – edit merged topics.
-4. **BallotBuilder** – optionally produce a combined ballot.
+- A malformed or oversized share payload shows a clear error and cannot replace local state.
+- A malformed import shows a clear error and cannot replace local state.
+- An incomplete guide stays editable but cannot produce a review link.
+- Clipboard failure exposes a selectable review-link field.

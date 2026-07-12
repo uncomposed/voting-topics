@@ -1,0 +1,91 @@
+name: Deploy to VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to deploy
+        required: true
+        default: main
+
+concurrency:
+  group: trusted-voter-guide-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_PORT: ${{ secrets.VPS_PORT }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+      PUBLIC_BASE_URL: ${{ secrets.PUBLIC_BASE_URL }}
+      RELEASE_NAME: ${{ github.sha }}-${{ github.run_id }}
+    steps:
+      - name: Validate deployment configuration
+        env:
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -eu
+          for value in "$VPS_HOST" "$VPS_PORT" "$VPS_USER" "$VPS_DEPLOY_PATH" "$PUBLIC_BASE_URL" "$VPS_SSH_PRIVATE_KEY" "$VPS_KNOWN_HOSTS"; do
+            test -n "$value" || { echo "A required production secret is missing." >&2; exit 1; }
+          done
+          echo "$VPS_DEPLOY_PATH" | grep -Eq '^/[A-Za-z0-9._/-]+$' || { echo "VPS_DEPLOY_PATH must be a simple absolute path." >&2; exit 1; }
+
+      - name: Checkout selected ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Build static release
+        run: |
+          npm ci
+          npm run build
+          npm run check:bundle
+
+      - name: Configure pinned SSH identity
+        env:
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload immutable release
+        run: |
+          set -eu
+          release_path="$VPS_DEPLOY_PATH/releases/$RELEASE_NAME"
+          ssh -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "mkdir -p '$release_path'"
+          rsync -az --delete -e "ssh -p $VPS_PORT" dist/ "$VPS_USER@$VPS_HOST:$release_path/"
+
+      - name: Atomically activate release
+        run: |
+          set -eu
+          release_path="$VPS_DEPLOY_PATH/releases/$RELEASE_NAME"
+          ssh -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "set -eu; previous=\$(readlink '$VPS_DEPLOY_PATH/current' || true); printf '%s' \"\$previous\" > '$VPS_DEPLOY_PATH/.previous-release'; ln -sfn '$release_path' '$VPS_DEPLOY_PATH/current.next'; mv -Tf '$VPS_DEPLOY_PATH/current.next' '$VPS_DEPLOY_PATH/current'"
+
+      - name: Smoke test or roll back
+        run: |
+          set -eu
+          if curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --retry-all-errors "$PUBLIC_BASE_URL" > /dev/null; then
+            echo "Production smoke check passed."
+            exit 0
+          fi
+          echo "Smoke check failed; restoring the previous release." >&2
+          ssh -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "set -eu; previous=\$(cat '$VPS_DEPLOY_PATH/.previous-release'); test -n \"\$previous\"; ln -sfn \"\$previous\" '$VPS_DEPLOY_PATH/current.next'; mv -Tf '$VPS_DEPLOY_PATH/current.next' '$VPS_DEPLOY_PATH/current'"
+          exit 1

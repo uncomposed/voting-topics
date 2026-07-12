@@ -1,84 +1,47 @@
-import { screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
-import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest';
-import { renderAppWithStore } from './helpers';
-import { useStore } from '../store';
-import type { Topic } from '../schema';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import App from '../App';
+import { LEGACY_STORAGE_KEY, useGuideStore } from '../guide/store';
+import { completeDemoGuide } from './fixtures';
 
-let initialState: ReturnType<typeof useStore.getState>;
-
-beforeAll(() => {
-  initialState = useStore.getState();
-});
-
-afterEach(() => {
-  useStore.setState(initialState, true);
-  cleanup();
-  vi.clearAllMocks();
-});
-
-describe('App integration smoke tests', () => {
-  it('renders toolbar actions via portal and toggles between views', async () => {
-    const seededTopic: Topic = {
-      id: 'topic-seeded',
-      title: 'Housing',
-      importance: 3,
-      stance: 'neutral',
-      directions: [
-        {
-          id: 'dir-seeded',
-          text: 'Add affordable housing units',
-          stars: 3,
-          sources: [],
-          tags: [],
-        },
-      ],
-      notes: '',
-      sources: [],
-      relations: { broader: [], narrower: [], related: [] },
-    };
-
-    const { restoreStore } = renderAppWithStore({ topics: [seededTopic] });
-
-    const toggleButton = await waitFor(() => {
-      const btn = document.getElementById('btn-toggle-view');
-      if (!btn) throw new Error('Toggle view button not ready');
-      return btn;
-    });
-    expect(toggleButton.textContent).toMatch(/Card View/i);
-
-    await waitFor(() => {
-      expect(document.getElementById('btn-next-action')?.textContent).toMatch(/Ballot/i);
-    });
-
-    fireEvent.click(toggleButton);
-    await waitFor(() => {
-      expect(document.getElementById('btn-toggle-view')?.textContent).toMatch(/List View/i);
-    });
-
-    const compareButton = document.getElementById('btn-diff-comparison');
-    expect(compareButton).toBeInTheDocument();
-
-    restoreStore();
+describe('App safety and first-run behavior', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    window.history.replaceState(null, '', '/');
+    useGuideStore.setState({ draft: null, backup: null, legacyDismissed: false });
   });
 
-  it('adds starter topics when selection submitted', async () => {
-    const addTopicFromStarter = vi.fn();
-    const { restoreStore } = renderAppWithStore({
-      storeOverrides: {
-        addTopicFromStarter,
-        currentFlowStep: 'starter',
-      },
-      topics: [],
-    });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
-    const starterCheckboxes = await screen.findAllByRole('checkbox');
-    fireEvent.click(starterCheckboxes[0]);
-    const addButton = screen.getByRole('button', { name: /add selected \(\d+\)/i });
-    fireEvent.click(addButton);
+  it('starts the deliberately fictional guide without onboarding detours', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Start fictional demo' }));
+    expect(screen.getByRole('heading', { name: 'Mayor' })).toBeInTheDocument();
+    expect(screen.getByText(/Fictional demo election/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Review guide' })).toBeDisabled();
+  });
 
-    await waitFor(() => {
-      expect(addTopicFromStarter).toHaveBeenCalled();
-    });
-    restoreStore();
+  it('does not replace local state when a shared URL is malformed', () => {
+    const guide = completeDemoGuide();
+    useGuideStore.setState({ draft: guide });
+    window.history.replaceState(null, '', '/#guide=g1.damaged');
+    render(<App />);
+    expect(screen.getByRole('alert')).toHaveTextContent('saved guide was not changed');
+    expect(useGuideStore.getState().draft?.id).toBe(guide.id);
+    expect(screen.getByRole('button', { name: 'Resume saved guide' })).toBeInTheDocument();
+  });
+
+  it('offers the untouched legacy payload as a raw download', () => {
+    localStorage.setItem(LEGACY_STORAGE_KEY, '{"legacy":true}');
+    const createObjectUrl = vi.fn(() => 'blob:legacy');
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectUrl });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Download legacy backup' }));
+    expect(createObjectUrl).toHaveBeenCalledOnce();
+    expect(localStorage.getItem(LEGACY_STORAGE_KEY)).toBe('{"legacy":true}');
   });
 });

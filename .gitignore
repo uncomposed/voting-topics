@@ -97,3 +97,7 @@ jspm_packages/
 
 *storybook.log
 storybook-static
+
+# Browser-test artifacts
+test-results/
+playwright-report/

@@ -1,11 +1,27 @@
-import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { expect, test, type Page } from '@playwright/test';
+import { completeDemoGuide } from './helpers';
 
-test('home has no critical a11y violations', async ({ page, baseURL }) => {
-  await page.goto(baseURL!);
-  const axe = new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa']);
-  const results = await axe.analyze();
-  const critical = results.violations.filter(v => ['critical','serious'].includes(v.impact || ''));
-  expect(critical, JSON.stringify(critical, null, 2)).toHaveLength(0);
+async function expectNoSeriousViolations(page: Page) {
+  const results = await new AxeBuilder({ page }).analyze();
+  const serious = results.violations.filter((violation) =>
+    violation.impact === 'serious' || violation.impact === 'critical',
+  );
+  expect(serious).toEqual([]);
+}
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
 });
 
+test('home, editor, and review have no serious automated accessibility violations', async ({ page }) => {
+  await page.goto('/');
+  await expectNoSeriousViolations(page);
+  await page.getByRole('button', { name: 'Start fictional demo' }).click();
+  await expectNoSeriousViolations(page);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await completeDemoGuide(page);
+  await expectNoSeriousViolations(page);
+});

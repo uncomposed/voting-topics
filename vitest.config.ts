@@ -8,11 +8,5 @@ export default defineConfig({
     setupFiles: ['./src/test-setup.ts'],
     globals: true,
     exclude: ['e2e/**', 'tests/**', 'node_modules/**'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html'],
-      reportsDirectory: './test-results/coverage',
-      exclude: ['**/*.stories.*', 'src/stories/**']
-    }
   }
 });
