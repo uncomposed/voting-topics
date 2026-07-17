@@ -82,10 +82,14 @@ jobs:
       - name: Smoke test or roll back
         run: |
           set -eu
-          if curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --retry-all-errors "$PUBLIC_BASE_URL" > /dev/null; then
-            echo "Production smoke check passed."
+          headers="$(mktemp)"
+          if curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --retry-all-errors --dump-header "$headers" "$PUBLIC_BASE_URL" > /dev/null \
+            && grep -Eiq '^x-content-type-options:[[:space:]]*nosniff' "$headers" \
+            && grep -Eiq '^referrer-policy:' "$headers" \
+            && grep -Eiq '^content-security-policy:' "$headers"; then
+            echo "Production smoke and security-header checks passed."
             exit 0
           fi
-          echo "Smoke check failed; restoring the previous release." >&2
+          echo "Smoke or security-header check failed; restoring the previous release." >&2
           ssh -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "set -eu; previous=\$(cat '$VPS_DEPLOY_PATH/.previous-release'); test -n \"\$previous\"; ln -sfn \"\$previous\" '$VPS_DEPLOY_PATH/current.next'; mv -Tf '$VPS_DEPLOY_PATH/current.next' '$VPS_DEPLOY_PATH/current'"
           exit 1

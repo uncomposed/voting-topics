@@ -1,6 +1,6 @@
 # VPS deployment
 
-The `Deploy to VPS` workflow is manual. It builds the same static `dist/` artifact as CI, uploads it to an immutable release directory, atomically switches a `current` symlink, checks the public URL, and restores the previous symlink if the smoke check fails.
+The `Deploy to VPS` workflow remains manual and must not run until the corrected Gate 1 branch is merged and the share–inspect–fork–change–regenerate–reshare pilot passes. It builds the same static `dist/` artifact as CI, uploads it to an immutable release directory, atomically switches a `current` symlink, checks the public URL and required security headers, and restores the previous symlink if any check fails.
 
 ## Required GitHub Actions secrets
 
@@ -20,6 +20,7 @@ The web server should serve `VPS_DEPLOY_PATH/current` and fall back to `index.ht
 
 1. Configure the web server and all seven repository secrets.
 2. Run **Deploy to VPS** from GitHub Actions against `main`.
-3. Confirm the workflow's smoke check and then manually open a newly copied review link from a separate browser profile.
+3. Confirm the workflow's smoke and security-header checks (`Content-Security-Policy`, `Referrer-Policy`, and `X-Content-Type-Options: nosniff`).
+4. Manually complete the peer loop from a separate browser profile and confirm the reopened fork’s digest and change summary.
 
 No deployment is considered configured merely because the workflow file exists. Missing secrets fail before upload, and a failed public smoke check triggers rollback and fails the run.

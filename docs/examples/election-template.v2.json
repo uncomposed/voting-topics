@@ -1,0 +1,20 @@
+{
+  "version": "vt.election-template.v2",
+  "id": "example-election",
+  "title": "Example election",
+  "electionDate": "2026-11-03",
+  "jurisdiction": "Example County",
+  "isFictional": true,
+  "disclaimer": "Fictional example only; not voting advice.",
+  "contests": [
+    {
+      "id": "mayor",
+      "title": "Mayor",
+      "method": "fptp",
+      "options": [
+        { "id": "avery", "name": "Avery Stone" },
+        { "id": "jordan", "name": "Jordan Vale" }
+      ]
+    }
+  ]
+}

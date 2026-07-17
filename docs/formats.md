@@ -1,38 +1,62 @@
-# Portable JSON formats
+# Portable formats and deterministic calculation
 
-The executable contracts live in `src/guide/schema.ts`; this document explains their intent. Unknown or malformed data is rejected before it can replace a saved guide.
+The executable Zod contracts live in `src/domain/schema.ts`. Unknown versions, unsupported voting methods, damaged digests, non-HTTP(S) evidence URLs, and malformed references are rejected before local state changes.
 
-## `vt.election-template.v1`
+## `vt.topic-profile.v1`
 
-An election template contains:
+A reusable profile contains owner/title metadata and stable topics. Each topic has a specific outcome statement, 0–5 voter importance stars, and optional category, notes, and sources. A category is presentation metadata only and never enters a calculation.
 
-- stable `id`, `title`, `electionDate`, and `jurisdiction` metadata;
-- `isFictional` and a required `disclaimer`;
-- one or more contests with unique ids;
-- candidate contests using `choose-one` or `choose-up-to`, an explicit `maxSelections`, and at least two uniquely identified candidates;
-- measure contests with Yes, No, or Abstain guide positions.
+Topic statements should be:
 
-Gate 1 intentionally excludes ranked choice, write-ins, districts that alter the guide while editing, and a visual template builder.
+- **specific** enough to evaluate against an election option;
+- **directional** about the outcome the person wants;
+- **solution-agnostic**, so competing approaches can be rated against it.
 
-## `vt.guide.v1`
+Changing wording invalidates linked assessments until they are reconfirmed. Changing only category or importance does not invalidate research; importance changes recompute generated scores.
 
-A guide embeds its election template so a review link is self-contained. It also contains:
+## `vt.election-template.v2`
 
-- guide identity, title, optional author label, and timestamps;
-- reusable desired outcomes (`values`);
-- exactly one typed recommendation per contest;
-- explicit candidate ids or a measure position;
-- rationale, linked outcome ids, optional sources, and optional 0–5 candidate ratings.
+An election embeds stable contest and option ids plus exactly one supported method:
 
-The draft schema validates structure while allowing unfinished recommendations. The published schema additionally requires:
+- `fptp`;
+- `choose-up-to` with `maxSelections`;
+- `rcv` with `maxRankings`;
+- `star`;
+- `yes-no` with option ids `yes` and `no`.
 
-- a non-empty title;
-- every contest to have a valid explicit selection;
-- rationale of at least 20 characters;
-- at least one existing desired-outcome link per recommendation;
-- complete, valid source URLs when a source row is present;
-- no unknown contests, candidates, ratings, or desired-outcome references.
+Unsupported methods fail validation. Method, option, or method-limit changes invalidate that contest’s mapping, draft, and confirmation.
 
-## Review link envelope
+## `vt.election-map.v1`
 
-A published guide is wrapped as `{ "v": "g1", "guide": ... }`, gzip-compressed, base64url encoded, and placed after `#guide=g1.`. Links longer than 6,000 characters are refused with a JSON-export fallback. The representative completed demo is required by tests to remain below 4,000 characters.
+The author selects only materially relevant profile topics per contest. Within that subset every viable option/topic pair must contain either:
+
+- an assessed 0–5 fit, confidence, short reason, and at least one referenced HTTP(S) source; or
+- explicit `unknown`, which means adequate evidence was not found.
+
+Zero is an evidenced strong conflict. Unknown and a missing cell never become zero or neutral. Sources are stored once and referenced by id.
+
+## Scoring and readiness
+
+For voter stars `p`, option fit stars `m`, and confidence `w` (`low=.5`, `medium=.75`, `high=1`):
+
+```text
+option score = Σ(p × m × w) / Σ(p × w)
+coverage     = Σ(p × w for assessed topics) / Σ(p for all relevant topics)
+```
+
+Zero-importance topics do not contribute. Full precision is retained and the UI displays one decimal. Every viable option needs at least 60% weighted coverage before an automatic recommendation. A margin below 0.25 at a selection or ranking boundary is a close call requiring explicit human resolution.
+
+The method adapter generates one FPTP mark, top-N choose-up-to marks, a full-precision RCV order up to `maxRankings`, rounded official STAR scores, or Yes/No/Abstain. STAR output never claims a meaningful single-voter runoff result.
+
+## `vt.peer-guide.v1`
+
+An immutable snapshot carries only the relevant topic subset, election, deduplicated evidence map, algorithm version and draft, human decisions, author/timestamps, lineage, and SHA-256 digest. It is canonicalized, gzip-compressed, base64url-encoded, and placed after `#guide=p1.`.
+
+- Representative target: below 4,000 URL characters.
+- Hard limit: 6,000 characters, with JSON fallback.
+- Maximum decompressed payload: 200 KB.
+- Digest mismatch, oversize, corruption, or unknown versions never alter local state.
+
+If realistic pilot links cannot stay under the target without dropping evidence, stop and evaluate immutable short-link storage.
+
+See `docs/examples/` for small valid profile, election, and map objects.

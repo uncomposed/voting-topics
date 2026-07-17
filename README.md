@@ -1,26 +1,28 @@
-# Trusted Voter Guide
+# Voting Topics — reusable peer sample ballot
 
-Trusted Voter Guide helps a politically engaged person make a transparent guide and share it privately so friends can understand, copy, and adapt the recommendations.
+Voting Topics helps the politically activated friend turn reusable topic priorities into an evidence-backed draft sample ballot, then share it with peers who can inspect, fork, change, regenerate, and reshare independently.
 
-Gate 1 deliberately proves one narrow loop:
+Gate 1 proves this loop:
 
-1. Create a complete five-contest guide from the fictional demo or an imported election template.
-2. Share it as a compressed, read-only URL with no account or server-side guide storage.
-3. Understand the explicit recommendation, rationale, desired outcomes, and optional sources.
-4. Make a private editable copy without overwriting existing work silently.
+1. Capture specific, directional, solution-agnostic topics and rate their importance 0–5.
+2. Manually define an election and its real voting methods.
+3. Select relevant topics per contest and rate every viable option/topic pair 0–5 from cited evidence or mark it Unknown.
+4. Generate transparent option STAR scores and translate them into FPTP, choose-up-to-N, RCV/IRV, STAR, or Yes/No ballot marks.
+5. Review, override, and publish an immutable, reproducible snapshot.
+6. Let a peer inspect the evidence, make an independent copy, change it, see a semantic diff, and reshare it.
 
-The demo election and every person or proposal in it are fictional. This repository does not yet ship real election data or voting advice.
+There is no shared mutable group profile, canonical candidate database, account, real-election API, or AI generation in Gate 1. The bundled demonstration is entirely fictional and is not voting advice.
 
-## Run it locally
+## Run locally
 
-Node 20 is the supported runtime.
+Node 20 is supported.
 
 ```bash
 npm ci
 npm run dev
 ```
 
-The development app runs at `http://localhost:3000`. To exercise the production quality gate:
+Open `http://localhost:3000`. Run the release gate with:
 
 ```bash
 npm run lint
@@ -30,35 +32,32 @@ npm run build
 npm run check:bundle
 ```
 
-The Playwright suite runs at 1280×800 and 390×844. It covers completion, share/reopen, make-copy/reload, damaged input, legacy backup, and automated accessibility checks.
+Playwright runs the complete activated-friend and peer loop at 1280×800 and 390×844, including serious/critical Axe checks, damaged input, legacy conversion, and URL size.
 
-## Privacy and portability
+## Privacy, persistence, and portability
 
-- Draft state is stored only under `vt.guide.v1` in the current browser.
-- Existing pre-pivot state under `vt.m2` is never migrated or changed. The home page offers its raw contents as a backup download.
-- Review links store a gzip-compressed published guide after `#guide=g1.`. URL fragments are not sent in ordinary HTTP requests, but anyone who receives a link can read it.
-- Complete guides can be exported as `vt.guide.v1` JSON or printed to PDF through the browser.
-- A single rolling backup is retained before a guide is replaced by an import or shared copy.
+- Reusable profiles live under `vt.topic-profile.v1`; election workspaces live separately under `vt.election-workspaces.v1`.
+- One rolling pre-replacement backup is retained for each. A fork’s immutable parent snapshot is kept under `vt.peer-guide.parent.v1` for comparison.
+- The old `vt.m2` bytes are never modified. Conversion is previewed first; cancel/failure changes nothing, and acceptance creates a new profile.
+- The hand-authored experiment under `vt.guide.v1` remains downloadable but is not silently converted into evidence.
+- Shared snapshots are canonicalized, SHA-256 digested, gzip-compressed, base64url encoded, and stored after `#guide=p1.`. The target is under 4,000 URL characters and the hard limit is 6,000.
+- A link recipient can read everything in that snapshot. URL fragments are normally not sent to the web server, but they are not a secrecy boundary.
 
 ## Repository map
 
 | Path | Responsibility |
 | --- | --- |
-| `PRODUCT.md` | Mission, scope boundaries, evidence rules, and Gate 2 pilot thresholds |
-| `src/guide/schema.ts` | Election-template, draft-guide, and published-guide contracts |
-| `src/guide/store.ts` | Local persistence and rolling replacement backup |
-| `src/guide/share.ts` | Compressed review-link encoding and validation |
-| `src/App.tsx` | The home, creator, local review, and shared review routes |
-| `e2e/` | User-behavior and accessibility evidence on desktop and mobile |
-| `docs/formats.md` | JSON format and validation expectations |
-| `docs/deploy-vps.md` | Atomic VPS deployment and rollback setup |
+| `PRODUCT.md` | Product constitution, actors, loop, boundaries, and stopping rules |
+| `docs/decisions/001-reusable-peer-ballot.md` | Why the reusable mechanism was restored |
+| `src/domain/schema.ts` | Versioned portable contracts |
+| `src/domain/scoring.ts` | Sparse-map audit, confidence/coverage formula, method translation |
+| `src/domain/migration.ts` | Preview-only v0/v1/v2 legacy conversion |
+| `src/domain/share.ts` | Canonical digest and compressed snapshot links |
+| `src/domain/diff.ts` | Peer-fork semantic comparison |
+| `src/domain/store.ts` | Separate local profile/workspace persistence and invalidation |
+| `src/features/` | Activated-friend and peer user-flow surfaces |
+| `e2e/` | Desktop/mobile stakeholder-loop and accessibility evidence |
+| `docs/formats.md` | Format and scoring reference |
+| `docs/deploy-vps.md` | Manual atomic deployment and rollback |
 
-The full pre-pivot implementation remains available at the Git tag `archive/pre-trusted-guide-pivot`; it is intentionally not part of the active MVP build.
-
-## Product decision rule
-
-New work must improve Create, Share, Understand, or Copy and name the evidence that would prove it. Real election data, accounts, analytics, AI workflows, politician profiles, arbitrary comparisons, ranked-choice contests, and a visual template editor remain outside Gate 1. See [PRODUCT.md](PRODUCT.md) before proposing expansion.
-
-## Contributing
-
-See [Contributing.md](Contributing.md). Gate 1 work is tracked in the `Trusted Voter Guide — Gate 1` milestone; pre-pivot issues carry the `legacy-pre-pivot` label.
+Historical implementations remain at `archive/pre-trusted-guide-pivot` and `archive/hand-authored-guide-experiment`. Do not restore their topic-card workspace, comparisons, onboarding, LLM UI, politician library, or manual-guide domain model.

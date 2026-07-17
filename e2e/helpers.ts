@@ -1,37 +1,17 @@
 import { expect, type Page } from '@playwright/test';
 
-async function completeContest(page: Page, contestId: string, choice: () => Promise<void>) {
-  const card = page.getByTestId(`contest-${contestId}`);
-  await choice();
-  await card.getByLabel(/Rationale for/i).fill(
-    'This recommendation best advances accountable public services while respecting the important tradeoffs.',
-  );
-  await card.getByLabel(/Desired outcome for/i).fill('Accountable and accessible public services');
-  await card.getByRole('button', { name: 'Add and link' }).click();
+export async function startDemo(page: Page) {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start with fictional demonstration' }).click();
+  await expect(page.getByRole('heading', { name: 'Your topic profile' })).toBeVisible();
 }
 
-export async function completeDemoGuide(page: Page) {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Start fictional demo' }).click();
-
-  await completeContest(page, 'mayor', async () => {
-    await page.getByLabel('Recommend Avery Stone for Mayor').check();
-  });
-  await completeContest(page, 'county-council', async () => {
-    await page.getByLabel('Recommend Casey Brooks for County Council At-Large').check();
-    await page.getByLabel('Recommend Riley Chen for County Council At-Large').check();
-  });
-  await completeContest(page, 'school-board', async () => {
-    await page.getByLabel('Recommend Jamie Park for School Board').check();
-  });
-  await completeContest(page, 'transit-bond', async () => {
-    await page.getByTestId('contest-transit-bond').getByRole('radio', { name: 'Yes' }).check();
-  });
-  await completeContest(page, 'library-levy', async () => {
-    await page.getByTestId('contest-library-levy').getByRole('radio', { name: 'No' }).check();
-  });
-
-  await expect(page.getByText('5 of 5 contests complete')).toBeVisible();
-  await page.getByRole('button', { name: 'Review guide' }).click();
-  await expect(page.getByTestId('review-mayor').getByText('Avery Stone')).toBeVisible();
+export async function openReviewedDemo(page: Page) {
+  await startDemo(page);
+  await page.getByRole('button', { name: '4 Draft & share' }).click();
+  await expect(page.getByRole('heading', { name: 'Explainable draft ballot' })).toBeVisible();
+  const confirmations = page.getByLabel(/I reviewed the generated evidence/u);
+  await expect(confirmations).toHaveCount(5);
+  for (let index = 0; index < 5; index += 1) await confirmations.nth(index).check();
+  await expect(page.getByRole('button', { name: 'Create share snapshot' })).toBeEnabled();
 }
