@@ -27,6 +27,9 @@ jobs:
       - name: Unit tests
         run: npm run test:run
 
+      - name: Check generated JSON Schemas
+        run: npm run check:schemas
+
       - name: Install browser
         run: npx playwright install --with-deps chromium
 

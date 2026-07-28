@@ -1,0 +1,25 @@
+{
+  "version": "vt.topic-profile.v2",
+  "id": "profile-example",
+  "title": "My reusable priorities",
+  "ownerLabel": "Alex",
+  "topics": [
+    {
+      "id": "housing",
+      "title": "More residents can afford stable housing near jobs and services",
+      "stars": 5,
+      "category": "Infrastructure & Housing",
+      "sources": [],
+      "origin": {
+        "menuId": "voting-topics-core-priorities",
+        "menuItemId": "infrastructure-housing-1",
+        "menuRevision": 1,
+        "menuDigest": "54ceed99005baaad3e34e8b91baaddb60cbf335c51f845f8bd91ce3de6ca69cf",
+        "customized": false
+      }
+    }
+  ],
+  "authorship": { "kind": "human" },
+  "createdAt": "2026-07-17T12:00:00.000Z",
+  "updatedAt": "2026-07-17T12:00:00.000Z"
+}

@@ -1,4 +1,20 @@
-import { PROFILE_VERSION, TopicProfileSchema, newId, type Source, type Topic, type TopicProfile } from './schema';
+import { z } from 'zod';
+import { generateDraft } from './scoring';
+import {
+  ContestDecisionSchema,
+  ElectionWorkspaceSchema,
+  PROFILE_VERSION,
+  TopicProfileSchema,
+  newId,
+  upgradeElection,
+  upgradeElectionMap,
+  upgradeTopicProfile,
+  type ElectionTemplate,
+  type ElectionWorkspace,
+  type Source,
+  type Topic,
+  type TopicProfile,
+} from './schema';
 
 type RecordLike = Record<string, unknown>;
 
@@ -8,6 +24,22 @@ export interface MigrationPreview {
   warnings: string[];
   discardedCategoryImportance: Array<{ category: string; importance: number }>;
 }
+
+export interface PrototypeMigrationPreview {
+  profiles: TopicProfile[];
+  elections: ElectionTemplate[];
+  workspaces: ElectionWorkspace[];
+  warnings: string[];
+}
+
+const PrototypeWorkspaceSchema = z.object({
+  id: z.string().trim().min(1),
+  election: z.unknown(),
+  mapping: z.unknown(),
+  decisions: z.array(ContestDecisionSchema),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
 
 function record(value: unknown): RecordLike {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Legacy data is not an object.');
@@ -104,6 +136,7 @@ export function previewLegacyConversion(input: unknown, now = new Date().toISOSt
       title: text(data.title, 'Converted topic profile'),
       ownerLabel: undefined,
       topics: converted,
+      authorship: { kind: 'import' },
       createdAt: now,
       updatedAt: now,
     }),
@@ -114,4 +147,60 @@ export function previewLegacyConversion(input: unknown, now = new Date().toISOSt
 
 export function previewLegacyRaw(raw: string, now?: string): MigrationPreview {
   return previewLegacyConversion(JSON.parse(raw), now);
+}
+
+function parseRawArray(raw: string | null, label: string): unknown[] {
+  if (!raw) return [];
+  const parsed: unknown = JSON.parse(raw);
+  if (!Array.isArray(parsed)) throw new Error(`${label} is not an array.`);
+  return parsed;
+}
+
+/**
+ * Converts the corrected Gate 1 prototype's embedded-election workspaces into the
+ * normalized MVP library. This is deliberately preview-only: callers must make a
+ * separate, explicit atomic acceptance call after showing the returned artifacts.
+ */
+export function previewPrototypeConversion(profileRaw: string | null, workspaceRaw: string | null, now = new Date().toISOString()): PrototypeMigrationPreview {
+  const profiles = parseRawArray(profileRaw, 'Prototype profile storage').map(upgradeTopicProfile);
+  const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
+  if (profileById.size !== profiles.length) throw new Error('Prototype profiles contain duplicate ids.');
+
+  const electionsById = new Map<string, ElectionTemplate>();
+  const workspaces = parseRawArray(workspaceRaw, 'Prototype workspace storage').map((input, index) => {
+    const legacy = PrototypeWorkspaceSchema.parse(input);
+    const election = upgradeElection(legacy.election, now);
+    const mapping = upgradeElectionMap(legacy.mapping, now);
+    const profile = profileById.get(mapping.profileId);
+    if (!profile) throw new Error(`Prototype workspace ${index + 1} refers to missing profile “${mapping.profileId}”.`);
+    if (mapping.electionId !== election.id) throw new Error(`Prototype workspace ${index + 1} has conflicting election references.`);
+
+    const previousElection = electionsById.get(election.id);
+    if (previousElection && JSON.stringify(previousElection) !== JSON.stringify(election)) {
+      throw new Error(`Prototype workspaces contain conflicting copies of election “${election.id}”.`);
+    }
+    electionsById.set(election.id, election);
+
+    return ElectionWorkspaceSchema.parse({
+      id: legacy.id,
+      profileId: profile.id,
+      electionId: election.id,
+      mapping,
+      draft: generateDraft(profile, election, mapping, now),
+      decisions: legacy.decisions,
+      createdAt: legacy.createdAt,
+      updatedAt: now,
+    });
+  });
+
+  return {
+    profiles,
+    elections: [...electionsById.values()],
+    workspaces,
+    warnings: [
+      'Prototype candidate research is retained as imported, human-verified evidence.',
+      'Prototype contests return to draft verification because they did not record official election sources.',
+      'The exact prototype storage remains untouched after acceptance.',
+    ],
+  };
 }

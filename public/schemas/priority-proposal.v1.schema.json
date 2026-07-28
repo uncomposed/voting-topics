@@ -1,0 +1,91 @@
+{
+  "$ref": "#/definitions/priority-proposal.v1",
+  "definitions": {
+    "priority-proposal.v1": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "vt.priority-proposal.v1"
+        },
+        "taskId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "inputDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "selections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "menuItemId": {
+                "$ref": "#/definitions/priority-proposal.v1/properties/taskId"
+              },
+              "stars": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 5
+              },
+              "note": {
+                "type": "string",
+                "maxLength": 600
+              }
+            },
+            "required": [
+              "menuItemId",
+              "stars"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
+        "customPriorities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/definitions/priority-proposal.v1/properties/taskId"
+              },
+              "statement": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "category": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "stars": {
+                "$ref": "#/definitions/priority-proposal.v1/properties/selections/items/properties/stars"
+              },
+              "note": {
+                "type": "string",
+                "maxLength": 600
+              }
+            },
+            "required": [
+              "statement",
+              "stars"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 50,
+          "default": []
+        }
+      },
+      "required": [
+        "version",
+        "taskId",
+        "inputDigest",
+        "selections"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -1,0 +1,1074 @@
+{
+  "$ref": "#/definitions/peer-guide.v2",
+  "definitions": {
+    "peer-guide.v2": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "vt.peer-guide.v2"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "authorLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "profile": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string",
+              "const": "vt.topic-profile.v2"
+            },
+            "id": {
+              "$ref": "#/definitions/peer-guide.v2/properties/id"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "ownerLabel": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "topics": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "$ref": "#/definitions/peer-guide.v2/properties/id"
+                  },
+                  "title": {
+                    "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/title"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 600
+                  },
+                  "stars": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 5
+                  },
+                  "category": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 1200
+                  },
+                  "sources": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "$ref": "#/definitions/peer-guide.v2/properties/id"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160
+                        },
+                        "url": {
+                          "type": "string",
+                          "format": "uri",
+                          "maxLength": 2000
+                        },
+                        "evidenceSummary": {
+                          "type": "string",
+                          "maxLength": 800
+                        },
+                        "asOfDate": {
+                          "type": "string",
+                          "format": "date"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "label",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 5,
+                    "default": []
+                  },
+                  "origin": {
+                    "type": "object",
+                    "properties": {
+                      "menuId": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/id"
+                      },
+                      "menuItemId": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/id"
+                      },
+                      "menuRevision": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0
+                      },
+                      "menuDigest": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "customized": {
+                        "type": "boolean",
+                        "default": false
+                      }
+                    },
+                    "required": [
+                      "menuId",
+                      "menuItemId",
+                      "menuRevision"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "stars"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 100
+            },
+            "authorship": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "human",
+                    "chatbot",
+                    "import",
+                    "fork"
+                  ]
+                },
+                "toolLabel": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "taskId": {
+                  "$ref": "#/definitions/peer-guide.v2/properties/id"
+                },
+                "inputDigest": {
+                  "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/topics/items/properties/origin/properties/menuDigest"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false,
+              "default": {
+                "kind": "human"
+              }
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "version",
+            "id",
+            "title",
+            "topics",
+            "createdAt",
+            "updatedAt"
+          ],
+          "additionalProperties": false
+        },
+        "election": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string",
+              "const": "vt.election-template.v3"
+            },
+            "id": {
+              "$ref": "#/definitions/peer-guide.v2/properties/id"
+            },
+            "title": {
+              "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/title"
+            },
+            "electionDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "jurisdiction": {
+              "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/title"
+            },
+            "isFictional": {
+              "type": "boolean"
+            },
+            "disclaimer": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 600
+            },
+            "sources": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/topics/items/properties/sources/items"
+              },
+              "maxItems": 200,
+              "default": []
+            },
+            "authorship": {
+              "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/authorship"
+            },
+            "lineage": {
+              "type": "object",
+              "properties": {
+                "parentElectionId": {
+                  "$ref": "#/definitions/peer-guide.v2/properties/id"
+                },
+                "parentDigest": {
+                  "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/topics/items/properties/origin/properties/menuDigest"
+                },
+                "importedFrom": {
+                  "type": "string",
+                  "format": "uri",
+                  "maxLength": 2000
+                }
+              },
+              "additionalProperties": false,
+              "default": {}
+            },
+            "contests": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/id"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/title"
+                      },
+                      "description": {
+                        "type": "string",
+                        "maxLength": 1200
+                      },
+                      "ballotInstructions": {
+                        "type": "string",
+                        "maxLength": 1200
+                      },
+                      "sourceIds": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/peer-guide.v2/properties/id"
+                        },
+                        "maxItems": 10,
+                        "default": []
+                      },
+                      "verification": {
+                        "type": "object",
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "verified"
+                            ]
+                          },
+                          "verifiedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "status"
+                        ],
+                        "additionalProperties": false,
+                        "default": {
+                          "status": "draft"
+                        }
+                      },
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/id"
+                            },
+                            "name": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/title"
+                            },
+                            "party": {
+                              "type": "string",
+                              "maxLength": 100
+                            },
+                            "description": {
+                              "type": "string",
+                              "maxLength": 800
+                            },
+                            "website": {
+                              "type": "string",
+                              "format": "uri",
+                              "maxLength": 2000
+                            },
+                            "sourceIds": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/definitions/peer-guide.v2/properties/id"
+                              },
+                              "maxItems": 10,
+                              "default": []
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "minItems": 2,
+                        "maxItems": 30
+                      },
+                      "method": {
+                        "type": "string",
+                        "const": "fptp"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "options",
+                      "method"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/id"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/title"
+                      },
+                      "description": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/description"
+                      },
+                      "ballotInstructions": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/ballotInstructions"
+                      },
+                      "sourceIds": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/sourceIds"
+                      },
+                      "verification": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                      },
+                      "options": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/options"
+                      },
+                      "method": {
+                        "type": "string",
+                        "const": "choose-up-to"
+                      },
+                      "maxSelections": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 20
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "options",
+                      "method",
+                      "maxSelections"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/id"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/title"
+                      },
+                      "description": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/description"
+                      },
+                      "ballotInstructions": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/ballotInstructions"
+                      },
+                      "sourceIds": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/sourceIds"
+                      },
+                      "verification": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                      },
+                      "options": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/options"
+                      },
+                      "method": {
+                        "type": "string",
+                        "const": "rcv"
+                      },
+                      "maxRankings": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "options",
+                      "method",
+                      "maxRankings"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/id"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/title"
+                      },
+                      "description": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/description"
+                      },
+                      "ballotInstructions": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/ballotInstructions"
+                      },
+                      "sourceIds": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/sourceIds"
+                      },
+                      "verification": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                      },
+                      "options": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/options"
+                      },
+                      "method": {
+                        "type": "string",
+                        "const": "star"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "options",
+                      "method"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/id"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/title"
+                      },
+                      "description": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/description"
+                      },
+                      "ballotInstructions": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/ballotInstructions"
+                      },
+                      "sourceIds": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/sourceIds"
+                      },
+                      "verification": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                      },
+                      "options": {
+                        "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/options"
+                      },
+                      "method": {
+                        "type": "string",
+                        "const": "yes-no"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "options",
+                      "method"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "minItems": 1,
+              "maxItems": 50
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "version",
+            "id",
+            "title",
+            "electionDate",
+            "jurisdiction",
+            "isFictional",
+            "disclaimer",
+            "contests",
+            "createdAt",
+            "updatedAt"
+          ],
+          "additionalProperties": false
+        },
+        "mapping": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string",
+              "const": "vt.election-map.v2"
+            },
+            "id": {
+              "$ref": "#/definitions/peer-guide.v2/properties/id"
+            },
+            "electionId": {
+              "$ref": "#/definitions/peer-guide.v2/properties/id"
+            },
+            "profileId": {
+              "$ref": "#/definitions/peer-guide.v2/properties/id"
+            },
+            "authorLabel": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "sources": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/topics/items/properties/sources/items"
+              },
+              "maxItems": 200
+            },
+            "contests": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "contestId": {
+                    "$ref": "#/definitions/peer-guide.v2/properties/id"
+                  },
+                  "relevantTopicIds": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/peer-guide.v2/properties/id"
+                    },
+                    "minItems": 1,
+                    "maxItems": 20
+                  },
+                  "assessments": {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "const": "assessed"
+                            },
+                            "contestId": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/id"
+                            },
+                            "optionId": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/id"
+                            },
+                            "topicId": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/id"
+                            },
+                            "stars": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/topics/items/properties/stars"
+                            },
+                            "confidence": {
+                              "type": "string",
+                              "enum": [
+                                "low",
+                                "medium",
+                                "high"
+                              ]
+                            },
+                            "reason": {
+                              "type": "string",
+                              "minLength": 10,
+                              "maxLength": 1200
+                            },
+                            "sourceIds": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/definitions/peer-guide.v2/properties/id"
+                              },
+                              "minItems": 1,
+                              "maxItems": 5
+                            },
+                            "authorship": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/authorship"
+                            },
+                            "verification": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                            }
+                          },
+                          "required": [
+                            "status",
+                            "contestId",
+                            "optionId",
+                            "topicId",
+                            "stars",
+                            "confidence",
+                            "reason",
+                            "sourceIds"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "const": "unknown"
+                            },
+                            "contestId": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/id"
+                            },
+                            "optionId": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/id"
+                            },
+                            "topicId": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/id"
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "authorship": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/authorship"
+                            },
+                            "verification": {
+                              "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                            }
+                          },
+                          "required": [
+                            "status",
+                            "contestId",
+                            "optionId",
+                            "topicId"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "maxItems": 600
+                  },
+                  "authorship": {
+                    "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/authorship"
+                  },
+                  "verification": {
+                    "$ref": "#/definitions/peer-guide.v2/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                  }
+                },
+                "required": [
+                  "contestId",
+                  "relevantTopicIds",
+                  "assessments"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 50
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "version",
+            "id",
+            "electionId",
+            "profileId",
+            "sources",
+            "contests",
+            "createdAt",
+            "updatedAt"
+          ],
+          "additionalProperties": false
+        },
+        "draft": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string",
+              "const": "vt.draft-ballot.v1"
+            },
+            "algorithmVersion": {
+              "type": "string",
+              "const": "topic-match.v1"
+            },
+            "profileId": {
+              "$ref": "#/definitions/peer-guide.v2/properties/id"
+            },
+            "electionId": {
+              "$ref": "#/definitions/peer-guide.v2/properties/id"
+            },
+            "mappingId": {
+              "$ref": "#/definitions/peer-guide.v2/properties/id"
+            },
+            "contests": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "contestId": {
+                    "$ref": "#/definitions/peer-guide.v2/properties/id"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "ready",
+                      "research-needed",
+                      "close-call"
+                    ]
+                  },
+                  "optionScores": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "optionId": {
+                          "$ref": "#/definitions/peer-guide.v2/properties/id"
+                        },
+                        "score": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 5
+                        },
+                        "coverage": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "contributions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "topicId": {
+                                "$ref": "#/definitions/peer-guide.v2/properties/id"
+                              },
+                              "voterStars": {
+                                "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/topics/items/properties/stars"
+                              },
+                              "optionStars": {
+                                "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/topics/items/properties/stars"
+                              },
+                              "confidence": {
+                                "$ref": "#/definitions/peer-guide.v2/properties/mapping/properties/contests/items/properties/assessments/items/anyOf/0/properties/confidence"
+                              },
+                              "weightedContribution": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "topicId",
+                              "voterStars",
+                              "optionStars",
+                              "confidence",
+                              "weightedContribution"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "optionId",
+                        "score",
+                        "coverage",
+                        "contributions"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "translated": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "method": {
+                                "type": "string",
+                                "const": "fptp"
+                              },
+                              "selectedOptionIds": {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/definitions/peer-guide.v2/properties/id"
+                                },
+                                "maxItems": 1
+                              }
+                            },
+                            "required": [
+                              "method",
+                              "selectedOptionIds"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "method": {
+                                "type": "string",
+                                "const": "choose-up-to"
+                              },
+                              "selectedOptionIds": {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/definitions/peer-guide.v2/properties/id"
+                                },
+                                "maxItems": 20
+                              }
+                            },
+                            "required": [
+                              "method",
+                              "selectedOptionIds"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "method": {
+                                "type": "string",
+                                "const": "rcv"
+                              },
+                              "rankedOptionIds": {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/definitions/peer-guide.v2/properties/id"
+                                },
+                                "maxItems": 30
+                              }
+                            },
+                            "required": [
+                              "method",
+                              "rankedOptionIds"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "method": {
+                                "type": "string",
+                                "const": "star"
+                              },
+                              "scores": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/topics/items/properties/stars"
+                                },
+                                "propertyNames": {
+                                  "minLength": 1,
+                                  "maxLength": 120
+                                }
+                              }
+                            },
+                            "required": [
+                              "method",
+                              "scores"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "method": {
+                                "type": "string",
+                                "const": "yes-no"
+                              },
+                              "position": {
+                                "type": "string",
+                                "enum": [
+                                  "yes",
+                                  "no",
+                                  "abstain"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "method",
+                              "position"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "explanation": {
+                    "type": "string"
+                  },
+                  "warnings": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "contestId",
+                  "status",
+                  "optionScores",
+                  "translated",
+                  "explanation",
+                  "warnings"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "generatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "version",
+            "algorithmVersion",
+            "profileId",
+            "electionId",
+            "mappingId",
+            "contests",
+            "generatedAt"
+          ],
+          "additionalProperties": false
+        },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contestId": {
+                "$ref": "#/definitions/peer-guide.v2/properties/id"
+              },
+              "confirmed": {
+                "type": "boolean"
+              },
+              "override": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/peer-guide.v2/properties/draft/properties/contests/items/properties/translated/anyOf/0"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "personalNote": {
+                "type": "string",
+                "maxLength": 2000
+              },
+              "noteAuthorship": {
+                "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/authorship"
+              }
+            },
+            "required": [
+              "contestId",
+              "confirmed",
+              "override",
+              "personalNote"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "lineage": {
+          "type": "object",
+          "properties": {
+            "parentSnapshotDigest": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/topics/items/properties/origin/properties/menuDigest"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "parentAuthorLabel": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "changesFromParent": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100
+            }
+          },
+          "required": [
+            "parentSnapshotDigest",
+            "changesFromParent"
+          ],
+          "additionalProperties": false
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "snapshotDigest": {
+          "$ref": "#/definitions/peer-guide.v2/properties/profile/properties/topics/items/properties/origin/properties/menuDigest"
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "authorLabel",
+        "profile",
+        "election",
+        "mapping",
+        "draft",
+        "decisions",
+        "lineage",
+        "createdAt",
+        "snapshotDigest"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

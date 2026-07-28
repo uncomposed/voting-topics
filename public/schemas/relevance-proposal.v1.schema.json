@@ -1,0 +1,60 @@
+{
+  "$ref": "#/definitions/relevance-proposal.v1",
+  "definitions": {
+    "relevance-proposal.v1": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "vt.relevance-proposal.v1"
+        },
+        "taskId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "inputDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "contests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contestId": {
+                "$ref": "#/definitions/relevance-proposal.v1/properties/taskId"
+              },
+              "topicIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/relevance-proposal.v1/properties/taskId"
+                },
+                "minItems": 1,
+                "maxItems": 20
+              },
+              "reason": {
+                "type": "string",
+                "maxLength": 800
+              }
+            },
+            "required": [
+              "contestId",
+              "topicIds"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 50
+        }
+      },
+      "required": [
+        "version",
+        "taskId",
+        "inputDigest",
+        "contests"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

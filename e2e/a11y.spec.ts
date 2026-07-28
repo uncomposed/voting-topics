@@ -18,9 +18,9 @@ test('home, profile, election, mapping, and review pass serious/critical Axe che
   await expectNoSeriousViolations(page);
   await page.getByRole('button', { name: '2 Election' }).click();
   await expectNoSeriousViolations(page);
-  await page.getByRole('button', { name: '3 Map' }).click();
+  await page.getByRole('button', { name: '3 Pair & research' }).click();
   await expectNoSeriousViolations(page);
-  await page.getByRole('button', { name: '4 Draft & share' }).click();
+  await page.getByRole('button', { name: '4 Draft & review' }).click();
   await expectNoSeriousViolations(page);
   await page.evaluate(() => localStorage.clear());
   await openReviewedDemo(page);

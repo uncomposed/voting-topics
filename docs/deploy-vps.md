@@ -1,6 +1,6 @@
 # VPS deployment
 
-The `Deploy to VPS` workflow remains manual and must not run until the corrected Gate 1 branch is merged and the share–inspect–fork–change–regenerate–reshare pilot passes. It builds the same static `dist/` artifact as CI, uploads it to an immutable release directory, atomically switches a `current` symlink, checks the public URL and required security headers, and restores the previous symlink if any check fails.
+The `Deploy to VPS` workflow remains manual and must not run until the MVP studio branch is merged and the documented five-creator/ten-peer direct, mixed, and chatbot-assisted pilot passes. The dispatcher must type `PILOT-PASSED`; this is an explicit human gate, not an automated substitute for pilot evidence. The workflow reruns lint, unit tests, schema-drift checks, build, and bundle budget, uploads to an immutable release directory, atomically switches a `current` symlink, checks the public URL and required security headers, and restores the previous symlink if any check fails.
 
 ## Required GitHub Actions secrets
 
@@ -19,7 +19,7 @@ The web server should serve `VPS_DEPLOY_PATH/current` and fall back to `index.ht
 ## First deployment
 
 1. Configure the web server and all seven repository secrets.
-2. Run **Deploy to VPS** from GitHub Actions against `main`.
+2. Complete the evidence and release decision in `docs/mvp-pilot.md`, run **Deploy to VPS** against `main`, and enter `PILOT-PASSED`.
 3. Confirm the workflow's smoke and security-header checks (`Content-Security-Policy`, `Referrer-Policy`, and `X-Content-Type-Options: nosniff`).
 4. Manually complete the peer loop from a separate browser profile and confirm the reopened fork’s digest and change summary.
 

@@ -1,0 +1,88 @@
+{
+  "$ref": "#/definitions/priority-menu.v1",
+  "definitions": {
+    "priority-menu.v1": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "vt.priority-menu.v1"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "revision": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "sourceNote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/definitions/priority-menu.v1/properties/id"
+              },
+              "statement": {
+                "$ref": "#/definitions/priority-menu.v1/properties/title"
+              },
+              "category": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 600
+              },
+              "reflectionQuestion": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "revision": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "id",
+              "statement",
+              "category",
+              "revision"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 300
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "title",
+        "revision",
+        "digest",
+        "sourceNote",
+        "items"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

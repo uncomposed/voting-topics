@@ -1,0 +1,164 @@
+{
+  "$ref": "#/definitions/assessment-batch.v1",
+  "definitions": {
+    "assessment-batch.v1": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "vt.assessment-batch.v1"
+        },
+        "taskId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "inputDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "contestId": {
+          "$ref": "#/definitions/assessment-batch.v1/properties/taskId"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/definitions/assessment-batch.v1/properties/taskId"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "maxLength": 2000
+              },
+              "evidenceSummary": {
+                "type": "string",
+                "maxLength": 800
+              },
+              "asOfDate": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            "required": [
+              "id",
+              "label",
+              "url"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
+        "assessments": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "assessed"
+                  },
+                  "contestId": {
+                    "$ref": "#/definitions/assessment-batch.v1/properties/taskId"
+                  },
+                  "optionId": {
+                    "$ref": "#/definitions/assessment-batch.v1/properties/taskId"
+                  },
+                  "topicId": {
+                    "$ref": "#/definitions/assessment-batch.v1/properties/taskId"
+                  },
+                  "stars": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 5
+                  },
+                  "confidence": {
+                    "type": "string",
+                    "enum": [
+                      "low",
+                      "medium",
+                      "high"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 1200
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/assessment-batch.v1/properties/taskId"
+                    },
+                    "minItems": 1,
+                    "maxItems": 5
+                  }
+                },
+                "required": [
+                  "status",
+                  "contestId",
+                  "optionId",
+                  "topicId",
+                  "stars",
+                  "confidence",
+                  "reason",
+                  "sourceIds"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "unknown"
+                  },
+                  "contestId": {
+                    "$ref": "#/definitions/assessment-batch.v1/properties/taskId"
+                  },
+                  "optionId": {
+                    "$ref": "#/definitions/assessment-batch.v1/properties/taskId"
+                  },
+                  "topicId": {
+                    "$ref": "#/definitions/assessment-batch.v1/properties/taskId"
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "status",
+                  "contestId",
+                  "optionId",
+                  "topicId"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "maxItems": 600
+        }
+      },
+      "required": [
+        "version",
+        "taskId",
+        "inputDigest",
+        "contestId",
+        "sources",
+        "assessments"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

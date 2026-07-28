@@ -1,0 +1,188 @@
+{
+  "$ref": "#/definitions/topic-profile.v3",
+  "definitions": {
+    "topic-profile.v3": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "vt.topic-profile.v3"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "ownerLabel": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "topics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/definitions/topic-profile.v3/properties/id"
+              },
+              "title": {
+                "$ref": "#/definitions/topic-profile.v3/properties/title"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 600
+              },
+              "stars": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 5
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "category": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 1200
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "$ref": "#/definitions/topic-profile.v3/properties/id"
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri",
+                      "maxLength": 2000
+                    },
+                    "evidenceSummary": {
+                      "type": "string",
+                      "maxLength": 800
+                    },
+                    "asOfDate": {
+                      "type": "string",
+                      "format": "date"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "label",
+                    "url"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 5,
+                "default": []
+              },
+              "origin": {
+                "type": "object",
+                "properties": {
+                  "menuId": {
+                    "$ref": "#/definitions/topic-profile.v3/properties/id"
+                  },
+                  "menuItemId": {
+                    "$ref": "#/definitions/topic-profile.v3/properties/id"
+                  },
+                  "menuRevision": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  },
+                  "menuDigest": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "customized": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "menuId",
+                  "menuItemId",
+                  "menuRevision"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "stars"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
+        "authorship": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "human",
+                "chatbot",
+                "import",
+                "fork"
+              ]
+            },
+            "toolLabel": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "taskId": {
+              "$ref": "#/definitions/topic-profile.v3/properties/id"
+            },
+            "inputDigest": {
+              "$ref": "#/definitions/topic-profile.v3/properties/topics/items/properties/origin/properties/menuDigest"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false,
+          "default": {
+            "kind": "human"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "title",
+        "topics",
+        "createdAt",
+        "updatedAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

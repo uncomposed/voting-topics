@@ -1,0 +1,176 @@
+{
+  "$ref": "#/definitions/review-proposal.v1",
+  "definitions": {
+    "review-proposal.v1": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "vt.review-proposal.v1"
+        },
+        "taskId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "inputDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "contests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contestId": {
+                "$ref": "#/definitions/review-proposal.v1/properties/taskId"
+              },
+              "personalNote": {
+                "type": "string",
+                "maxLength": 2000
+              },
+              "concerns": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "maxItems": 10,
+                "default": []
+              },
+              "suggestedOverride": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "const": "fptp"
+                      },
+                      "selectedOptionIds": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/review-proposal.v1/properties/taskId"
+                        },
+                        "maxItems": 1
+                      }
+                    },
+                    "required": [
+                      "method",
+                      "selectedOptionIds"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "const": "choose-up-to"
+                      },
+                      "selectedOptionIds": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/review-proposal.v1/properties/taskId"
+                        },
+                        "maxItems": 20
+                      }
+                    },
+                    "required": [
+                      "method",
+                      "selectedOptionIds"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "const": "rcv"
+                      },
+                      "rankedOptionIds": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/review-proposal.v1/properties/taskId"
+                        },
+                        "maxItems": 30
+                      }
+                    },
+                    "required": [
+                      "method",
+                      "rankedOptionIds"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "const": "star"
+                      },
+                      "scores": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 5
+                        },
+                        "propertyNames": {
+                          "minLength": 1,
+                          "maxLength": 120
+                        }
+                      }
+                    },
+                    "required": [
+                      "method",
+                      "scores"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "const": "yes-no"
+                      },
+                      "position": {
+                        "type": "string",
+                        "enum": [
+                          "yes",
+                          "no",
+                          "abstain"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "method",
+                      "position"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "contestId"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 50
+        }
+      },
+      "required": [
+        "version",
+        "taskId",
+        "inputDigest",
+        "contests"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -7,6 +7,7 @@ import {
   ElectionTemplateSchema,
   ElectionWorkspaceSchema,
   TopicProfileSchema,
+  verifiedNow,
   type Confidence,
   type ElectionMap,
   type ElectionTemplate,
@@ -15,12 +16,14 @@ import {
 } from './schema';
 
 const NOW = '2026-07-01T12:00:00.000Z';
+const VERIFIED = verifiedNow(NOW);
 
 export const DEMO_PROFILE: TopicProfile = TopicProfileSchema.parse({
   version: PROFILE_VERSION,
   id: 'profile-riverbend',
   title: 'My reusable community priorities',
   ownerLabel: 'Your politically activated friend',
+  authorship: { kind: 'human' },
   createdAt: NOW,
   updatedAt: NOW,
   topics: [
@@ -45,12 +48,17 @@ export const DEMO_ELECTION: ElectionTemplate = ElectionTemplateSchema.parse({
   jurisdiction: 'Riverbend County',
   isFictional: true,
   disclaimer: 'Fictional demonstration only. Every person, measure, claim, and source is invented for product testing—not voting advice.',
+  sources: [{ id: 'source-election', label: 'Fictional official election notice', url: 'https://example.org/riverbend/official-election' }],
+  authorship: { kind: 'human' },
+  lineage: {},
+  createdAt: NOW,
+  updatedAt: NOW,
   contests: [
-    { id: 'mayor', title: 'Mayor', method: 'fptp', options: [{ id: 'avery', name: 'Avery Stone' }, { id: 'jordan', name: 'Jordan Vale' }] },
-    { id: 'council', title: 'County Council — choose up to two', method: 'choose-up-to', maxSelections: 2, options: [{ id: 'casey', name: 'Casey Brooks' }, { id: 'riley', name: 'Riley Chen' }, { id: 'sam', name: 'Sam Diaz' }] },
-    { id: 'school', title: 'School Board — ranked choice', method: 'rcv', maxRankings: 3, options: [{ id: 'jamie', name: 'Jamie Park' }, { id: 'quinn', name: 'Quinn Bell' }, { id: 'taylor', name: 'Taylor Okafor' }] },
-    { id: 'parks', title: 'Parks Commissioner — STAR voting', method: 'star', options: [{ id: 'morgan', name: 'Morgan Reed' }, { id: 'devon', name: 'Devon Ibarra' }] },
-    { id: 'water-bond', title: 'Water resilience bond', method: 'yes-no', options: [{ id: 'yes', name: 'Yes' }, { id: 'no', name: 'No' }] },
+    { id: 'mayor', title: 'Mayor', method: 'fptp', sourceIds: ['source-election'], verification: VERIFIED, options: [{ id: 'avery', name: 'Avery Stone' }, { id: 'jordan', name: 'Jordan Vale' }] },
+    { id: 'council', title: 'County Council — choose up to two', method: 'choose-up-to', maxSelections: 2, sourceIds: ['source-election'], verification: VERIFIED, options: [{ id: 'casey', name: 'Casey Brooks' }, { id: 'riley', name: 'Riley Chen' }, { id: 'sam', name: 'Sam Diaz' }] },
+    { id: 'school', title: 'School Board — ranked choice', method: 'rcv', maxRankings: 3, sourceIds: ['source-election'], verification: VERIFIED, options: [{ id: 'jamie', name: 'Jamie Park' }, { id: 'quinn', name: 'Quinn Bell' }, { id: 'taylor', name: 'Taylor Okafor' }] },
+    { id: 'parks', title: 'Parks Commissioner — STAR voting', method: 'star', sourceIds: ['source-election'], verification: VERIFIED, options: [{ id: 'morgan', name: 'Morgan Reed' }, { id: 'devon', name: 'Devon Ibarra' }] },
+    { id: 'water-bond', title: 'Water resilience bond', method: 'yes-no', sourceIds: ['source-election'], verification: VERIFIED, options: [{ id: 'yes', name: 'Yes' }, { id: 'no', name: 'No' }] },
   ],
 });
 
@@ -62,7 +70,9 @@ export const SECOND_DEMO_ELECTION: ElectionTemplate = ElectionTemplateSchema.par
   jurisdiction: 'Riverbend County',
   isFictional: true,
   disclaimer: 'Fictional demonstration only. This second election proves that one topic profile can be reused without re-entry.',
-  contests: [{ id: 'clinic-measure', title: 'Community clinic measure', method: 'yes-no', options: [{ id: 'yes', name: 'Yes' }, { id: 'no', name: 'No' }] }],
+  sources: [{ id: 'source-election-special', label: 'Fictional special election notice', url: 'https://example.org/riverbend/special-election' }],
+  authorship: { kind: 'human' }, lineage: {}, createdAt: NOW, updatedAt: NOW,
+  contests: [{ id: 'clinic-measure', title: 'Community clinic measure', method: 'yes-no', sourceIds: ['source-election-special'], verification: VERIFIED, options: [{ id: 'yes', name: 'Yes' }, { id: 'no', name: 'No' }] }],
 });
 
 const SOURCES = [
@@ -79,6 +89,8 @@ function contestMapping(contestId: string, topicIds: string[], sourceId: string,
   return {
     contestId,
     relevantTopicIds: topicIds,
+    authorship: { kind: 'human' as const },
+    verification: VERIFIED,
     assessments: cells.map(([optionId, topicId, stars, confidence = 'high']) => ({
       status: 'assessed' as const,
       contestId,
@@ -88,6 +100,8 @@ function contestMapping(contestId: string, topicIds: string[], sourceId: string,
       confidence,
       reason: `The fictional source provides a concrete record supporting this ${stars}-star fit assessment.`,
       sourceIds: [sourceId],
+      authorship: { kind: 'human' as const },
+      verification: VERIFIED,
     })),
   };
 }
@@ -124,7 +138,8 @@ export function createDemoWorkspace(): ElectionWorkspace {
   const draft = generateDraft(DEMO_PROFILE, DEMO_ELECTION, DEMO_MAP, NOW);
   return ElectionWorkspaceSchema.parse({
     id: 'workspace-riverbend-2026',
-    election: DEMO_ELECTION,
+    profileId: DEMO_PROFILE.id,
+    electionId: DEMO_ELECTION.id,
     mapping: DEMO_MAP,
     draft,
     decisions: DEMO_ELECTION.contests.map((contest) => ({ contestId: contest.id, confirmed: false, override: null, personalNote: '' })),

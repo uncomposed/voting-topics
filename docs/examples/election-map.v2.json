@@ -1,0 +1,43 @@
+{
+  "version": "vt.election-map.v2",
+  "id": "map-example-election",
+  "electionId": "example-election",
+  "profileId": "profile-example",
+  "authorLabel": "Alex",
+  "sources": [
+    { "id": "questionnaire", "label": "Fictional questionnaire", "url": "https://example.org/questionnaire" }
+  ],
+  "contests": [
+    {
+      "contestId": "mayor",
+      "relevantTopicIds": ["housing"],
+      "authorship": { "kind": "human" },
+      "verification": { "status": "verified", "verifiedAt": "2026-07-17T12:00:00.000Z" },
+      "assessments": [
+        {
+          "status": "assessed",
+          "contestId": "mayor",
+          "optionId": "avery",
+          "topicId": "housing",
+          "stars": 5,
+          "confidence": "high",
+          "reason": "The cited response commits to measurable housing affordability outcomes.",
+          "sourceIds": ["questionnaire"],
+          "authorship": { "kind": "human" },
+          "verification": { "status": "verified", "verifiedAt": "2026-07-17T12:00:00.000Z" }
+        },
+        {
+          "status": "unknown",
+          "contestId": "mayor",
+          "optionId": "jordan",
+          "topicId": "housing",
+          "note": "No reliable position was found.",
+          "authorship": { "kind": "human" },
+          "verification": { "status": "verified", "verifiedAt": "2026-07-17T12:00:00.000Z" }
+        }
+      ]
+    }
+  ],
+  "createdAt": "2026-07-17T12:00:00.000Z",
+  "updatedAt": "2026-07-17T12:00:00.000Z"
+}

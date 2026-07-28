@@ -1,0 +1,30 @@
+{
+  "version": "vt.election-template.v3",
+  "id": "example-election",
+  "title": "Example election",
+  "electionDate": "2026-11-03",
+  "jurisdiction": "Example County",
+  "isFictional": true,
+  "disclaimer": "Fictional example only; not voting advice.",
+  "sources": [
+    { "id": "official-ballot", "label": "Fictional official ballot", "url": "https://example.org/official-ballot" }
+  ],
+  "authorship": { "kind": "human" },
+  "lineage": {},
+  "contests": [
+    {
+      "id": "mayor",
+      "title": "Mayor",
+      "method": "fptp",
+      "ballotInstructions": "Vote for one.",
+      "sourceIds": ["official-ballot"],
+      "verification": { "status": "verified", "verifiedAt": "2026-07-17T12:00:00.000Z" },
+      "options": [
+        { "id": "avery", "name": "Avery Chen", "sourceIds": ["official-ballot"] },
+        { "id": "jordan", "name": "Jordan Lee", "sourceIds": ["official-ballot"] }
+      ]
+    }
+  ],
+  "createdAt": "2026-07-17T12:00:00.000Z",
+  "updatedAt": "2026-07-17T12:00:00.000Z"
+}

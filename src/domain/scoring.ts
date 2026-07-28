@@ -20,7 +20,7 @@ export interface MappingProblem {
   contestId: string;
   optionId?: string;
   topicId?: string;
-  code: 'missing-contest' | 'missing-topic' | 'missing-cell' | 'invalid-reference' | 'missing-source';
+  code: 'missing-contest' | 'missing-topic' | 'unrated-topic' | 'missing-cell' | 'invalid-reference' | 'missing-source';
   message: string;
 }
 
@@ -34,7 +34,7 @@ export function auditMapping(
   mapping: ElectionMap,
 ): MappingProblem[] {
   const problems: MappingProblem[] = [];
-  const topics = new Set(profile.topics.map((topic) => topic.id));
+  const topics = new Map(profile.topics.map((topic) => [topic.id, topic]));
   const sourceIds = new Set(mapping.sources.map((source) => source.id));
   const contestMaps = new Map(mapping.contests.map((contest) => [contest.contestId, contest]));
 
@@ -48,6 +48,8 @@ export function auditMapping(
     for (const topicId of relevant) {
       if (!topics.has(topicId)) {
         problems.push({ contestId: contest.id, topicId, code: 'missing-topic', message: 'A relevant topic no longer exists in the profile.' });
+      } else if (topics.get(topicId)?.stars === null) {
+        problems.push({ contestId: contest.id, topicId, code: 'unrated-topic', message: 'A relevant priority is still Unrated. Rate it 0–5 before using it in research.' });
       }
     }
     const viableOptions = new Set(contest.options.map((option) => option.id));
@@ -99,7 +101,7 @@ function scoreOption(
 
   for (const topicId of relevantTopicIds) {
     const topic = topics.get(topicId);
-    if (!topic || topic.stars === 0) continue;
+    if (!topic || topic.stars === null || topic.stars === 0) continue;
     coverageDenominator += topic.stars;
     const assessment = cells.get(cellKey(optionId, topicId));
     if (!assessment || assessment.status === 'unknown') continue;

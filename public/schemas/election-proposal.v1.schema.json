@@ -1,0 +1,442 @@
+{
+  "$ref": "#/definitions/election-proposal.v1",
+  "definitions": {
+    "election-proposal.v1": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "vt.election-proposal.v1"
+        },
+        "taskId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "inputDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "election": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string",
+              "const": "vt.election-template.v3"
+            },
+            "id": {
+              "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "electionDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "jurisdiction": {
+              "$ref": "#/definitions/election-proposal.v1/properties/election/properties/title"
+            },
+            "isFictional": {
+              "type": "boolean"
+            },
+            "disclaimer": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 600
+            },
+            "sources": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "maxLength": 2000
+                  },
+                  "evidenceSummary": {
+                    "type": "string",
+                    "maxLength": 800
+                  },
+                  "asOfDate": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                },
+                "required": [
+                  "id",
+                  "label",
+                  "url"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 200,
+              "default": []
+            },
+            "authorship": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "human",
+                    "chatbot",
+                    "import",
+                    "fork"
+                  ]
+                },
+                "toolLabel": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "taskId": {
+                  "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                },
+                "inputDigest": {
+                  "$ref": "#/definitions/election-proposal.v1/properties/inputDigest"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false,
+              "default": {
+                "kind": "human"
+              }
+            },
+            "lineage": {
+              "type": "object",
+              "properties": {
+                "parentElectionId": {
+                  "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                },
+                "parentDigest": {
+                  "$ref": "#/definitions/election-proposal.v1/properties/inputDigest"
+                },
+                "importedFrom": {
+                  "type": "string",
+                  "format": "uri",
+                  "maxLength": 2000
+                }
+              },
+              "additionalProperties": false,
+              "default": {}
+            },
+            "contests": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/title"
+                      },
+                      "description": {
+                        "type": "string",
+                        "maxLength": 1200
+                      },
+                      "ballotInstructions": {
+                        "type": "string",
+                        "maxLength": 1200
+                      },
+                      "sourceIds": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                        },
+                        "maxItems": 10,
+                        "default": []
+                      },
+                      "verification": {
+                        "type": "object",
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "verified"
+                            ]
+                          },
+                          "verifiedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "status"
+                        ],
+                        "additionalProperties": false,
+                        "default": {
+                          "status": "draft"
+                        }
+                      },
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                            },
+                            "name": {
+                              "$ref": "#/definitions/election-proposal.v1/properties/election/properties/title"
+                            },
+                            "party": {
+                              "type": "string",
+                              "maxLength": 100
+                            },
+                            "description": {
+                              "type": "string",
+                              "maxLength": 800
+                            },
+                            "website": {
+                              "type": "string",
+                              "format": "uri",
+                              "maxLength": 2000
+                            },
+                            "sourceIds": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                              },
+                              "maxItems": 10,
+                              "default": []
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "minItems": 2,
+                        "maxItems": 30
+                      },
+                      "method": {
+                        "type": "string",
+                        "const": "fptp"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "options",
+                      "method"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/title"
+                      },
+                      "description": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/description"
+                      },
+                      "ballotInstructions": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/ballotInstructions"
+                      },
+                      "sourceIds": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/sourceIds"
+                      },
+                      "verification": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                      },
+                      "options": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/options"
+                      },
+                      "method": {
+                        "type": "string",
+                        "const": "choose-up-to"
+                      },
+                      "maxSelections": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 20
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "options",
+                      "method",
+                      "maxSelections"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/title"
+                      },
+                      "description": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/description"
+                      },
+                      "ballotInstructions": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/ballotInstructions"
+                      },
+                      "sourceIds": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/sourceIds"
+                      },
+                      "verification": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                      },
+                      "options": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/options"
+                      },
+                      "method": {
+                        "type": "string",
+                        "const": "rcv"
+                      },
+                      "maxRankings": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 30
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "options",
+                      "method",
+                      "maxRankings"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/title"
+                      },
+                      "description": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/description"
+                      },
+                      "ballotInstructions": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/ballotInstructions"
+                      },
+                      "sourceIds": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/sourceIds"
+                      },
+                      "verification": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                      },
+                      "options": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/options"
+                      },
+                      "method": {
+                        "type": "string",
+                        "const": "star"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "options",
+                      "method"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/taskId"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/title"
+                      },
+                      "description": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/description"
+                      },
+                      "ballotInstructions": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/ballotInstructions"
+                      },
+                      "sourceIds": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/sourceIds"
+                      },
+                      "verification": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/verification"
+                      },
+                      "options": {
+                        "$ref": "#/definitions/election-proposal.v1/properties/election/properties/contests/items/anyOf/0/properties/options"
+                      },
+                      "method": {
+                        "type": "string",
+                        "const": "yes-no"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "options",
+                      "method"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "minItems": 1,
+              "maxItems": 50
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "version",
+            "id",
+            "title",
+            "electionDate",
+            "jurisdiction",
+            "isFictional",
+            "disclaimer",
+            "contests",
+            "createdAt",
+            "updatedAt"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "version",
+        "taskId",
+        "inputDigest",
+        "election"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

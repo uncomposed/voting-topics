@@ -7,6 +7,9 @@ on:
         description: Git ref to deploy
         required: true
         default: main
+      pilot_approval:
+        description: Type PILOT-PASSED only after the documented creator/peer pilot succeeds
+        required: true
 
 concurrency:
   group: trusted-voter-guide-production
@@ -31,8 +34,10 @@ jobs:
         env:
           VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          PILOT_APPROVAL: ${{ inputs.pilot_approval }}
         run: |
           set -eu
+          test "$PILOT_APPROVAL" = 'PILOT-PASSED' || { echo "The documented MVP pilot has not been explicitly approved." >&2; exit 1; }
           for value in "$VPS_HOST" "$VPS_PORT" "$VPS_USER" "$VPS_DEPLOY_PATH" "$PUBLIC_BASE_URL" "$VPS_SSH_PRIVATE_KEY" "$VPS_KNOWN_HOSTS"; do
             test -n "$value" || { echo "A required production secret is missing." >&2; exit 1; }
           done
@@ -52,6 +57,9 @@ jobs:
       - name: Build static release
         run: |
           npm ci
+          npm run lint
+          npm run test:run
+          npm run check:schemas
           npm run build
           npm run check:bundle
 

@@ -7,19 +7,20 @@ describe('corrected Gate 1 shell and safety', () => {
   beforeEach(() => {
     localStorage.clear();
     window.history.replaceState(null, '', '/');
-    useAppStore.setState({ profiles: [], workspaces: [], activeProfileId: null, activeWorkspaceId: null, parentGuide: null });
+    useAppStore.setState({ profiles: [], elections: [], workspaces: [], guides: [], preferences: { archivedProfileIds: [], archivedElectionIds: [], archivedWorkspaceIds: [], archivedGuideIds: [] }, activeProfileId: null, activeElectionId: null, activeWorkspaceId: null, parentGuide: null });
   });
 
   afterEach(() => { vi.restoreAllMocks(); });
 
   it('starts with a reusable topic profile and exposes all builder stages', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Start with fictional demonstration' }));
-    expect(screen.getByRole('heading', { name: 'Your topic profile' })).toBeInTheDocument();
-    expect(screen.getByText('More residents can afford stable housing near jobs and services')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Open fictional demonstration' }));
+    expect(screen.getByRole('heading', { name: 'What outcomes matter to you?' })).toBeInTheDocument();
+    expect(screen.getAllByText('More residents can afford stable housing near jobs and services').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: '2 Election' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '3 Map' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '4 Draft & share' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '3 Pair & research' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '4 Draft & review' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '5 Share' })).toBeInTheDocument();
   });
 
   it('keeps local work when a shared snapshot is malformed', async () => {
@@ -29,7 +30,7 @@ describe('corrected Gate 1 shell and safety', () => {
     render(<App />);
     expect(await screen.findByRole('alert')).toHaveTextContent('Local work was not changed');
     expect(useAppStore.getState().workspaces[0].id).toBe(workspaceId);
-    expect(screen.getByRole('button', { name: 'Resume my ballot' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Resume research' })).toBeInTheDocument();
   });
 
   it('previews conversion and offers the exact untouched vt.m2 payload', async () => {
@@ -41,7 +42,7 @@ describe('corrected Gate 1 shell and safety', () => {
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Preview conversion' }));
-    expect(screen.getByText(/tsb.v0 → vt.topic-profile.v1/u)).toBeInTheDocument();
+    expect(screen.getByText(/tsb.v0 → vt.topic-profile.v3/u)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Cancel without changes' }));
     fireEvent.click(screen.getByRole('button', { name: 'Download exact raw data' }));
     await waitFor(() => expect(createObjectUrl).toHaveBeenCalledOnce());
@@ -55,9 +56,9 @@ describe('corrected Gate 1 shell and safety', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Preview conversion' }));
     fireEvent.click(screen.getByRole('button', { name: 'Accept as new profile' }));
-    expect(screen.getByRole('heading', { name: 'Your topic profile' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'What outcomes matter to you?' })).toBeInTheDocument();
     expect(useAppStore.getState().profiles[0].topics[0].stars).toBe(4);
-    expect(useAppStore.getState().workspaces[0].mapping.profileId).toBe(useAppStore.getState().profiles[0].id);
+    expect(useAppStore.getState().workspaces).toEqual([]);
     expect(localStorage.getItem(LEGACY_STORAGE_KEY)).toBe(raw);
   });
 });

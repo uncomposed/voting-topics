@@ -1,6 +1,6 @@
 interface StarsInputProps {
   label: string;
-  value: number;
+  value: number | null;
   onChange: (value: number) => void;
   disabled?: boolean;
 }
@@ -9,6 +9,7 @@ export function StarsInput({ label, value, onChange, disabled }: StarsInputProps
   return (
     <fieldset className="stars-input">
       <legend>{label}</legend>
+      {value === null && <span className="unrated-label">Unrated — choose 0–5</span>}
       <div className="star-buttons">
         {[0, 1, 2, 3, 4, 5].map((stars) => (
           <button

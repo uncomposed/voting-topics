@@ -1,0 +1,270 @@
+{
+  "$ref": "#/definitions/election-map.v2",
+  "definitions": {
+    "election-map.v2": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "vt.election-map.v2"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "electionId": {
+          "$ref": "#/definitions/election-map.v2/properties/id"
+        },
+        "profileId": {
+          "$ref": "#/definitions/election-map.v2/properties/id"
+        },
+        "authorLabel": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/definitions/election-map.v2/properties/id"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "maxLength": 2000
+              },
+              "evidenceSummary": {
+                "type": "string",
+                "maxLength": 800
+              },
+              "asOfDate": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            "required": [
+              "id",
+              "label",
+              "url"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 200
+        },
+        "contests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contestId": {
+                "$ref": "#/definitions/election-map.v2/properties/id"
+              },
+              "relevantTopicIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/election-map.v2/properties/id"
+                },
+                "minItems": 1,
+                "maxItems": 20
+              },
+              "assessments": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "assessed"
+                        },
+                        "contestId": {
+                          "$ref": "#/definitions/election-map.v2/properties/id"
+                        },
+                        "optionId": {
+                          "$ref": "#/definitions/election-map.v2/properties/id"
+                        },
+                        "topicId": {
+                          "$ref": "#/definitions/election-map.v2/properties/id"
+                        },
+                        "stars": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 5
+                        },
+                        "confidence": {
+                          "type": "string",
+                          "enum": [
+                            "low",
+                            "medium",
+                            "high"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 1200
+                        },
+                        "sourceIds": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/election-map.v2/properties/id"
+                          },
+                          "minItems": 1,
+                          "maxItems": 5
+                        },
+                        "authorship": {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "human",
+                                "chatbot",
+                                "import",
+                                "fork"
+                              ]
+                            },
+                            "toolLabel": {
+                              "type": "string",
+                              "maxLength": 100
+                            },
+                            "taskId": {
+                              "$ref": "#/definitions/election-map.v2/properties/id"
+                            },
+                            "inputDigest": {
+                              "type": "string",
+                              "pattern": "^[a-f0-9]{64}$"
+                            }
+                          },
+                          "required": [
+                            "kind"
+                          ],
+                          "additionalProperties": false,
+                          "default": {
+                            "kind": "human"
+                          }
+                        },
+                        "verification": {
+                          "type": "object",
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "draft",
+                                "verified"
+                              ]
+                            },
+                            "verifiedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          },
+                          "required": [
+                            "status"
+                          ],
+                          "additionalProperties": false,
+                          "default": {
+                            "status": "draft"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "contestId",
+                        "optionId",
+                        "topicId",
+                        "stars",
+                        "confidence",
+                        "reason",
+                        "sourceIds"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "unknown"
+                        },
+                        "contestId": {
+                          "$ref": "#/definitions/election-map.v2/properties/id"
+                        },
+                        "optionId": {
+                          "$ref": "#/definitions/election-map.v2/properties/id"
+                        },
+                        "topicId": {
+                          "$ref": "#/definitions/election-map.v2/properties/id"
+                        },
+                        "note": {
+                          "type": "string",
+                          "maxLength": 500
+                        },
+                        "authorship": {
+                          "$ref": "#/definitions/election-map.v2/properties/contests/items/properties/assessments/items/anyOf/0/properties/authorship"
+                        },
+                        "verification": {
+                          "$ref": "#/definitions/election-map.v2/properties/contests/items/properties/assessments/items/anyOf/0/properties/verification"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "contestId",
+                        "optionId",
+                        "topicId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "maxItems": 600
+              },
+              "authorship": {
+                "$ref": "#/definitions/election-map.v2/properties/contests/items/properties/assessments/items/anyOf/0/properties/authorship"
+              },
+              "verification": {
+                "$ref": "#/definitions/election-map.v2/properties/contests/items/properties/assessments/items/anyOf/0/properties/verification"
+              }
+            },
+            "required": [
+              "contestId",
+              "relevantTopicIds",
+              "assessments"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 50
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "electionId",
+        "profileId",
+        "sources",
+        "contests",
+        "createdAt",
+        "updatedAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

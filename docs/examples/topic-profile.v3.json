@@ -1,0 +1,25 @@
+{
+  "version": "vt.topic-profile.v3",
+  "id": "profile-example-v3",
+  "title": "My reusable priorities",
+  "ownerLabel": "Alex",
+  "topics": [
+    {
+      "id": "housing",
+      "title": "More residents can afford stable housing near jobs and services",
+      "stars": 5,
+      "category": "Infrastructure & Housing",
+      "sources": []
+    },
+    {
+      "id": "privacy",
+      "title": "People can understand and control how organizations use their personal data",
+      "stars": null,
+      "category": "Technology & Privacy",
+      "sources": []
+    }
+  ],
+  "authorship": { "kind": "human" },
+  "createdAt": "2026-07-19T12:00:00.000Z",
+  "updatedAt": "2026-07-19T12:00:00.000Z"
+}

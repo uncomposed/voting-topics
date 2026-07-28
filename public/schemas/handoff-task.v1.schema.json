@@ -1,0 +1,65 @@
+{
+  "$ref": "#/definitions/handoff-task.v1",
+  "definitions": {
+    "handoff-task.v1": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "vt.handoff-task.v1"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "taskType": {
+          "type": "string",
+          "enum": [
+            "priorities",
+            "election",
+            "relevance",
+            "assessment",
+            "review"
+          ]
+        },
+        "inputDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "instructions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 6000
+        },
+        "userQuestion": {
+          "type": "string",
+          "maxLength": 2000,
+          "default": ""
+        },
+        "responseVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "context": {},
+        "example": {}
+      },
+      "required": [
+        "version",
+        "id",
+        "taskType",
+        "inputDigest",
+        "createdAt",
+        "instructions",
+        "responseVersion"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
