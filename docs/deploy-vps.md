@@ -47,7 +47,7 @@ Use `managed` when the web server already serves `<deploy path>/current`. Use `d
 
 The command performs the following audited sequence:
 
-1. Refuse a dirty checkout or a commit different from `origin/main`.
+1. Refresh `origin/main`, then refuse a dirty checkout or a different checked-out commit.
 2. Run lint, unit tests, schema-drift checks, Playwright tests, the production build, and the bundle budget.
 3. Open one reusable SSH connection and allow SSH to obtain the credential.
 4. Back up the current static site and upload the candidate without deleting the backup.

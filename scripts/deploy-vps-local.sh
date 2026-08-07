@@ -18,6 +18,7 @@ command -v curl >/dev/null || fail "curl is required."
 
 test -z "$(git status --porcelain)" || fail "Commit or stash local changes before deploying."
 
+git fetch --quiet origin main || fail "Could not refresh origin/main."
 git_sha="$(git rev-parse HEAD)"
 origin_main_sha="$(git rev-parse origin/main 2>/dev/null || true)"
 test -n "$origin_main_sha" || fail "origin/main is unavailable; fetch it before deploying."
