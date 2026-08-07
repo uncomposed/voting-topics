@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "deploy:vps:configure": "bash scripts/configure-vps-local.sh",
     "deploy:vps": "bash scripts/deploy-vps-local.sh",
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx,ts,tsx",

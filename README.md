@@ -36,6 +36,16 @@ npm run check:bundle
 
 Playwright covers the direct and optional-chatbot paths, peer copying, desktop/mobile layouts, serious/critical Axe findings, damaged inputs, and legacy recovery.
 
+## Deploy to the VPS
+
+Configure the non-secret VPS target once with `npm run deploy:vps:configure`. After that, deploy the exact `origin/main` commit with one command:
+
+```bash
+npm run deploy:vps
+```
+
+SSH asks for the password or private-key passphrase; the deployment scripts never read or store it. The command runs the release gate, backs up the current static site, deploys the candidate, checks the public URL and security headers, and rolls back automatically on failure. See `docs/deploy-vps.md` for first-time layout selection, safety checks, and recovery details.
+
 ## Privacy, ownership, and portability
 
 - Profiles, elections, paired workspaces, and snapshots are separate local artifacts under new versioned keys. A rolling backup is retained before replacements.

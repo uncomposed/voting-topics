@@ -27,6 +27,31 @@ No deployment is considered configured merely because the workflow file exists. 
 
 ## Interactive local deployment
 
-For a VPS that is not yet configured through GitHub Actions, run `npm run deploy:vps` from a clean checkout whose commit exactly matches `origin/main`. The script prompts for the host, SSH user, port, exact deployment path, public HTTPS URL, and deployment layout. SSH itself prompts for a password or private-key passphrase; the script does not read, print, or store the credential.
+For a VPS that is not yet configured through GitHub Actions, save its non-secret connection metadata once:
+
+```bash
+npm run deploy:vps:configure
+```
+
+The setup asks for the host, SSH user, port, exact deployment path, public HTTPS URL, and deployment layout. It writes them with owner-only permissions to the gitignored `.vps-deploy.env`. It never asks for or stores the SSH password.
+
+Every subsequent release is one command from a clean checkout whose commit exactly matches `origin/main`:
+
+```bash
+npm run deploy:vps
+```
+
+There are no deployment questions or confirmation prompts. The only interactive prompt is SSH's own password or private-key passphrase prompt. An SSH control connection reuses that authentication for upload, activation, verification, and any rollback, so password authentication is normally requested once.
 
 Use `managed` when the web server already serves `<deploy path>/current`. Use `direct` for an existing static web root. Direct mode first copies the current web root to a timestamped sibling backup, uploads to a sibling staging directory, and restores the backup if the public smoke or security-header check fails. The typed deployment-path confirmation is deliberately exact because direct mode replaces the contents of that directory.
+
+The command performs the following audited sequence:
+
+1. Refuse a dirty checkout or a commit different from `origin/main`.
+2. Run lint, unit tests, schema-drift checks, Playwright tests, the production build, and the bundle budget.
+3. Open one reusable SSH connection and allow SSH to obtain the credential.
+4. Back up the current static site and upload the candidate without deleting the backup.
+5. Activate the candidate and check the public URL plus CSP, referrer-policy, and `nosniff` headers.
+6. Restore the backup automatically if deployment exits before verification or if the smoke check fails.
+
+To change the target later, rerun `npm run deploy:vps:configure`. To inspect it without exposing a password, open `.vps-deploy.env`; it contains target metadata only.

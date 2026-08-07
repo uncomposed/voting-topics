@@ -5,16 +5,6 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
-prompt_with_default() {
-  local variable_name="$1"
-  local prompt_text="$2"
-  local default_value="$3"
-  local entered_value
-
-  read -r -p "$prompt_text [$default_value]: " entered_value
-  printf -v "$variable_name" '%s' "${entered_value:-$default_value}"
-}
-
 fail() {
   printf 'Error: %s\n' "$1" >&2
   exit 1
@@ -33,13 +23,35 @@ origin_main_sha="$(git rev-parse origin/main 2>/dev/null || true)"
 test -n "$origin_main_sha" || fail "origin/main is unavailable; fetch it before deploying."
 test "$git_sha" = "$origin_main_sha" || fail "The checked-out commit must exactly match origin/main before deploying."
 
-printf 'Deploying Voting Topics commit %s\n' "$git_sha"
-read -r -p "VPS host name or IP: " vps_host
-read -r -p "SSH user: " vps_user
-prompt_with_default vps_port "SSH port" "22"
-read -r -p "Exact absolute deployment path: " deploy_path
-read -r -p "Public HTTPS URL: " public_base_url
-prompt_with_default deploy_mode "Layout (managed or direct)" "managed"
+config_file="${VPS_DEPLOY_CONFIG:-$repo_root/.vps-deploy.env}"
+test -f "$config_file" || fail "VPS deployment is not configured. Run: npm run deploy:vps:configure"
+
+vps_host=""
+vps_user=""
+vps_port=""
+deploy_path=""
+public_base_url=""
+deploy_mode=""
+
+while IFS='=' read -r config_key config_value; do
+  case "$config_key" in
+    ''|'#'*) ;;
+    VPS_HOST) vps_host="$config_value" ;;
+    VPS_USER) vps_user="$config_value" ;;
+    VPS_PORT) vps_port="$config_value" ;;
+    VPS_DEPLOY_PATH) deploy_path="$config_value" ;;
+    PUBLIC_BASE_URL) public_base_url="$config_value" ;;
+    DEPLOY_MODE) deploy_mode="$config_value" ;;
+    *) fail "Unknown setting in $config_file: $config_key" ;;
+  esac
+done < "$config_file"
+
+test -n "$vps_host" || fail "VPS_HOST is missing from $config_file."
+test -n "$vps_user" || fail "VPS_USER is missing from $config_file."
+test -n "$vps_port" || fail "VPS_PORT is missing from $config_file."
+test -n "$deploy_path" || fail "VPS_DEPLOY_PATH is missing from $config_file."
+test -n "$public_base_url" || fail "PUBLIC_BASE_URL is missing from $config_file."
+test -n "$deploy_mode" || fail "DEPLOY_MODE is missing from $config_file."
 
 [[ "$vps_host" =~ ^[A-Za-z0-9._-]+$ ]] || fail "VPS host contains unsupported characters."
 [[ "$vps_user" =~ ^[A-Za-z0-9._-]+$ ]] || fail "SSH user contains unsupported characters."
@@ -55,11 +67,11 @@ case "$deploy_path" in
   /|/var|/var/www|/srv|/usr|/usr/share|/home) fail "Deployment path is too broad." ;;
 esac
 
-printf '\nTarget: %s@%s:%s%s\n' "$vps_user" "$vps_host" "$vps_port" "$deploy_path"
+printf 'Deploying Voting Topics commit %s\n' "$git_sha"
+printf 'Configuration: %s\n' "$config_file"
+printf 'Target: %s@%s:%s%s\n' "$vps_user" "$vps_host" "$vps_port" "$deploy_path"
 printf 'Public URL: %s\n' "$public_base_url"
 printf 'Layout: %s\n' "$deploy_mode"
-read -r -p "Type the exact deployment path to continue: " confirmed_path
-test "$confirmed_path" = "$deploy_path" || fail "Deployment path confirmation did not match."
 
 printf '\nRunning the complete release gate...\n'
 npm ci
