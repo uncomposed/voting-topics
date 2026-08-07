@@ -7,8 +7,8 @@ on:
         description: Git ref to deploy
         required: true
         default: main
-      pilot_approval:
-        description: Type PILOT-PASSED only after the documented creator/peer pilot succeeds
+      release_approval:
+        description: Type PILOT-PASSED after the pilot or EARLY-LAUNCH-APPROVED for the recorded pre-user exception
         required: true
 
 concurrency:
@@ -34,10 +34,13 @@ jobs:
         env:
           VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
-          PILOT_APPROVAL: ${{ inputs.pilot_approval }}
+          RELEASE_APPROVAL: ${{ inputs.release_approval }}
         run: |
           set -eu
-          test "$PILOT_APPROVAL" = 'PILOT-PASSED' || { echo "The documented MVP pilot has not been explicitly approved." >&2; exit 1; }
+          case "$RELEASE_APPROVAL" in
+            PILOT-PASSED|EARLY-LAUNCH-APPROVED) ;;
+            *) echo "Release approval must match a documented release decision." >&2; exit 1 ;;
+          esac
           for value in "$VPS_HOST" "$VPS_PORT" "$VPS_USER" "$VPS_DEPLOY_PATH" "$PUBLIC_BASE_URL" "$VPS_SSH_PRIVATE_KEY" "$VPS_KNOWN_HOSTS"; do
             test -n "$value" || { echo "A required production secret is missing." >&2; exit 1; }
           done

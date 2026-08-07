@@ -50,14 +50,18 @@ If the same gate fails twice, stop feature expansion. Redesign that transition o
 
 ## Release decision
 
-- Pilot date:
-- Facilitator:
-- Direct-path creators completed:
-- Mixed/chatbot-path creators completed and chatbot products used:
-- Peers completed:
-- Total maintainer assistance:
-- Failed gates and redesigns:
-- Representative maximum guide URL length:
-- Evidence repository/folder:
-- Decision: **PENDING — DO NOT DEPLOY**
-- Approver and date:
+- Pilot date: Not yet run
+- Facilitator: Not yet assigned
+- Direct-path creators completed: Pending
+- Mixed/chatbot-path creators completed and chatbot products used: Pending
+- Peers completed: Pending
+- Total maintainer assistance: Pending
+- Failed gates and redesigns: Pending
+- Representative maximum guide URL length: Covered by automated representative-payload tests; participant evidence pending
+- Evidence repository/folder: Automated tests in this repository; participant evidence pending
+- Decision: **EARLY LAUNCH APPROVED — formal pilot remains outstanding**
+- Approver and date: Repository owner, 2026-08-07
+
+### Early-launch exception
+
+The repository owner approved replacing the existing production experience before the formal pilot because the reworked application is judged materially better for users and there are no known current users. This accepts unresolved usability uncertainty; it does not claim that participant thresholds passed. The exception is valid only while there are no known users and automated release checks, exact-current-site backup, rollback verification, and live post-deployment smoke checks pass. Any known work loss, damaged share/import loop, or inability to restore the previous site stops the release. Once real usage begins, subsequent material releases return to the participant-evidence gate above unless another dated decision explicitly supersedes it.
