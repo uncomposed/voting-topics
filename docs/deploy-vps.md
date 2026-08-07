@@ -20,7 +20,7 @@ The web server should serve `VPS_DEPLOY_PATH/current` and fall back to `index.ht
 
 1. Configure the web server and all seven repository secrets.
 2. Complete the applicable release decision in `docs/mvp-pilot.md`, run **Deploy to VPS** against the exact approved commit on `main`, and enter its matching approval token.
-3. Confirm the workflow's smoke and security-header checks (`Content-Security-Policy`, `Referrer-Policy`, and `X-Content-Type-Options: nosniff`).
+3. Confirm the workflow's smoke and live-Caddy security-header checks (`Strict-Transport-Security`, `X-Frame-Options: DENY`, `Referrer-Policy`, and `X-Content-Type-Options: nosniff`). A compatible CSP remains a separately tracked hardening improvement because the application intentionally imports user-selected public HTTPS artifacts.
 4. Manually complete the peer loop from a separate browser profile and confirm the reopened fork’s digest and change summary.
 
 No deployment is considered configured merely because the workflow file exists. Missing secrets fail before upload, and a failed public smoke check triggers rollback and fails the run.
@@ -51,7 +51,7 @@ The command performs the following audited sequence:
 2. Run lint, unit tests, schema-drift checks, Playwright tests, the production build, and the bundle budget.
 3. Open one reusable SSH connection and allow SSH to obtain the credential.
 4. Back up the current static site and upload the candidate without deleting the backup.
-5. Activate the candidate and check the public URL plus CSP, referrer-policy, and `nosniff` headers.
+5. Activate the candidate and check the public URL plus HSTS, frame-denial, referrer-policy, and `nosniff` headers.
 6. Restore the backup automatically if deployment exits before verification or if the smoke check fails.
 
 To change the target later, rerun `npm run deploy:vps:configure`. To inspect it without exposing a password, open `.vps-deploy.env`; it contains target metadata only.

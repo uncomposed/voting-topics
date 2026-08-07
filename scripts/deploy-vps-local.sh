@@ -185,7 +185,8 @@ if curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --retr
   --dump-header "$headers_file" "$public_base_url" >/dev/null \
   && grep -Eiq '^x-content-type-options:[[:space:]]*nosniff' "$headers_file" \
   && grep -Eiq '^referrer-policy:' "$headers_file" \
-  && grep -Eiq '^content-security-policy:' "$headers_file"; then
+  && grep -Eiq '^strict-transport-security:' "$headers_file" \
+  && grep -Eiq '^x-frame-options:[[:space:]]*deny' "$headers_file"; then
   smoke_passed=true
 fi
 

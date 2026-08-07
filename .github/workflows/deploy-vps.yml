@@ -97,7 +97,8 @@ jobs:
           if curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --retry-all-errors --dump-header "$headers" "$PUBLIC_BASE_URL" > /dev/null \
             && grep -Eiq '^x-content-type-options:[[:space:]]*nosniff' "$headers" \
             && grep -Eiq '^referrer-policy:' "$headers" \
-            && grep -Eiq '^content-security-policy:' "$headers"; then
+            && grep -Eiq '^strict-transport-security:' "$headers" \
+            && grep -Eiq '^x-frame-options:[[:space:]]*deny' "$headers"; then
             echo "Production smoke and security-header checks passed."
             exit 0
           fi
