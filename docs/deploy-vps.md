@@ -43,6 +43,8 @@ npm run deploy:vps
 
 There are no deployment questions or confirmation prompts. The only interactive prompt is SSH's own password or private-key passphrase prompt. An SSH control connection reuses that authentication for upload, activation, verification, and any rollback, so password authentication is normally requested once.
 
+On macOS, the control socket is deliberately created under a short `/tmp/vt-ssh.*` path to remain below the operating system's Unix-domain socket path limit.
+
 Use `managed` when the web server already serves `<deploy path>/current`. Use `direct` for an existing static web root. Direct mode first copies the current web root to a timestamped sibling backup, uploads to a sibling staging directory, and restores the backup if the public smoke or security-header check fails. The typed deployment-path confirmation is deliberately exact because direct mode replaces the contents of that directory.
 
 The command performs the following audited sequence:

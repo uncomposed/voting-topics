@@ -84,8 +84,9 @@ npm run build
 npm run check:bundle
 
 release_name="${git_sha}-$(date -u +%Y%m%dT%H%M%SZ)"
-control_dir="$(mktemp -d)"
-control_socket="$control_dir/control-%C"
+control_dir="$(mktemp -d /tmp/vt-ssh.XXXXXX)"
+control_socket="$control_dir/c"
+test "${#control_socket}" -lt 90 || fail "SSH control socket path is too long."
 headers_file="$(mktemp)"
 remote="$vps_user@$vps_host"
 deployment_activated=false
