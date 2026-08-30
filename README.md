@@ -55,6 +55,10 @@ SSH asks for the password or private-key passphrase; the deployment scripts neve
 - Peer guides are canonicalized, SHA-256 digested, gzip-compressed, base64url encoded, and stored after `#guide=p3.`. Valid `p1` and `p2` snapshots still open and are upgraded in memory.
 - A link recipient can read everything in the snapshot. URL fragments normally are not sent to the web server, but they are not a secrecy boundary.
 
+## Idea and rendering
+
+This application is one rendering of the public [Voting Topics: Forkable Civic Decision Guides](https://github.com/uncomposed/voting-topics-idea) idea. The [IRAP idea record](https://ideas.proximitytoprogress.com/ideas/voting-topics) freezes the exact idea state; the [web rendering record](https://ideas.proximitytoprogress.com/renderings/2663ba42-4d83-44b1-b85a-8f837a9fd628) binds the deployed HTML, CSS, and JavaScript observed for that state without making this implementation the canonical definition of the idea.
+
 ## Repository map
 
 | Path | Responsibility |
